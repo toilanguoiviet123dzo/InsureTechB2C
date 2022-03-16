@@ -10,17 +10,22 @@
 
 <MudFab HtmlTag="label"
         Color="Color.Secondary"
-        StartIcon="@Icons.Material.Filled.Add"
-        Size="Size.Medium"
+        StartIcon="@Icon"
+        Size="@Size"
         for="fileInput" />
 
 @code {
     [Parameter] public string OwnerID { get; set; } = "";
     [Parameter] public string CategoryID { get; set; } = "";
     [Parameter] public bool IsMakeThumbnail { get; set; } = true;
+    [Parameter] public bool IsMakeFullImage { get; set; } = true;
+    [Parameter] public bool SingleImage { get; set; } = false;
     [Parameter] public int ThumbnailWidth { get; set; } = 250;
     [Parameter] public int ThumbnailHeight { get; set; } = 250;
     [Parameter] public Int32 SecureLevel { get; set; } = 0;
+    [Parameter] public string Icon { get; set; } = Icons.Material.Filled.Add;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
+
     [Parameter] public EventCallback<List<UpLoadFileModel>> OnSubmit { get; set; }
     //
     List<UpLoadFileModel> ReturnImageList = new List<UpLoadFileModel>();
@@ -73,6 +78,9 @@
                 uploadItem.UpdMode = 1;
                 //
                 ReturnImageList.Add(uploadItem);
+
+                //Single file mode
+                if (SingleImage) break;
             }
             if (ReturnImageList.Count == 0) return;
 

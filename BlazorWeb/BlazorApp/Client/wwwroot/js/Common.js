@@ -101,7 +101,7 @@ function sleep(ms) {
 //TinyMCE config
 window.tinyMCEconfig = {
     selector: '#productEditor',
-    width: 800,
+    width: 1200,
     height: 600,
     plugins: [
         'advlist autolink link image lists charmap print preview hr anchor pagebreak',
@@ -111,9 +111,6 @@ window.tinyMCEconfig = {
     toolbar: 'undo redo | styleselect | bold italic | alignleft aligncenter alignright alignjustify | ' +
         'bullist numlist outdent indent | link image | print preview media fullscreen | ' +
         'forecolor backcolor emoticons | help',
-    menu: {
-        favs: { title: 'My Favorites', items: 'code visualaid | searchreplace | emoticons' }
-    },
     menubar: 'favs file edit view insert format tools table help',
     content_css: 'css/content.css'
 }

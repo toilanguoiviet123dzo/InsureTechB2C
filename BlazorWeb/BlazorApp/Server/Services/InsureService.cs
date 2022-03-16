@@ -52,6 +52,20 @@ namespace BlazorApp.Server.Services
                     if (saveRecord != null)
                     {
                         ClassHelper.CopyPropertiesData(request.Record, saveRecord);
+
+                        //Specifications
+                        saveRecord.Specifications.Clear();
+                        if (request.Record.Specifications != null)
+                        {
+                            foreach (var item in request.Record.Specifications)
+                            {
+                                var specItem = new SpecificationModel();
+                                ClassHelper.CopyPropertiesData(item, specItem);
+                                //
+                                saveRecord.Specifications.Add(specItem);
+                            }
+                        }
+
                         //GenerateNewID
                         if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
                         saveRecord.ModifiedOn = DateTime.UtcNow;
@@ -93,6 +107,19 @@ namespace BlazorApp.Server.Services
                 {
                     response.Record = new grpcProductModel();
                     ClassHelper.CopyPropertiesData(gotRecord, response.Record);
+
+                    //Specifications
+                    response.Record.Specifications.Clear();
+                    if (gotRecord.Specifications != null)
+                    {
+                        foreach (var item in gotRecord.Specifications)
+                        {
+                            var specItem = new grpcSpecificationModel();
+                            ClassHelper.CopyPropertiesData(item, specItem);
+                            //
+                            response.Record.Specifications.Add(specItem);
+                        }
+                    }
                 }
                 else
                 {
@@ -128,6 +155,19 @@ namespace BlazorApp.Server.Services
                     {
                         var retRecord = new grpcProductModel();
                         ClassHelper.CopyPropertiesData(item, retRecord);
+
+                        //Specifications
+                        retRecord.Specifications.Clear();
+                        if (item.Specifications != null)
+                        {
+                            foreach (var specItem in item.Specifications)
+                            {
+                                var grpcSpecItem = new grpcSpecificationModel();
+                                ClassHelper.CopyPropertiesData(specItem, grpcSpecItem);
+                                //
+                                retRecord.Specifications.Add(grpcSpecItem);
+                            }
+                        }
                         //
                         response.Records.Add(retRecord);
                     }

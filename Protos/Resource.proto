@@ -111,12 +111,13 @@ message grpcResourceFileModel {
     string AccountID = 12;
     string RecNo = 13;
     bool IsMakeThumbnail = 14;
-    int32 ThumbnailWidth = 15;
-    int32 ThumbnailHeight = 16;
-    bool HasThumbnail = 17;
+    bool IsMakeFullImage = 15;
+    int32 ThumbnailWidth = 16;
+    int32 ThumbnailHeight = 17;
+    bool HasThumbnail = 18;
     //
-    google.protobuf.Timestamp IssueDate = 18;
-    int32 UpdMode = 19;
+    google.protobuf.Timestamp IssueDate = 19;
+    int32 UpdMode = 20;
 }
 message GetResourceFile_Request {
     UserCredential Credential = 1;

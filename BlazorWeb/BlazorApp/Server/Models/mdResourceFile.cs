@@ -20,8 +20,10 @@ namespace BlazorApp.Server.Models
         public string ServerThumbnailFileName { get; set; } = "";
         public byte[] FileContent { get; set; } = new byte[] { };
         public byte[] Thumbnail { get; set; } = new byte[] { };
+        public bool IsMakeFullImage { get; set; }
         public bool IsMakeThumbnail { get; set; }
         public bool HasThumbnail { get; set; }
+        public bool HasFullImage { get; set; }
         public int ThumbnailWidth { get; set; }
         public int ThumbnailHeight { get; set; }
         public int ArchiveMode { get; set; }

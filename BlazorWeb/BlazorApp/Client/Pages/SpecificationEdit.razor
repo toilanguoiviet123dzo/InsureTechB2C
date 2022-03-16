@@ -1,5 +1,17 @@
 ﻿@using TinyMCE.Blazor
 @inject MasterService masterService;
+@inject ISnackbar Snackbar
+
+<style>
+    .tox .tox-dialog-wrap {
+        z-index: 5000 !important;
+    }
+
+    .tox-tinymce-aux {
+        z-index: 5000;
+    }
+</style>
+
 
 <MyPopupEdit Title="Nhập đặc tả sản phẩm"
              T="SpecificationModel"
@@ -7,16 +19,17 @@
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
 
-    <MudTextField Label="Tiêu đề" @bind-Value="DspModel.Title" For="@(() => DspModel.Title)" />
+    <MudTextField @ref="@RefTitle" Label="Tiêu đề" @bind-Value="DspModel.Title" For="@(() => DspModel.Title)" AutoFocus=true/>
+    <br />
     <Editor Id="productEditor"
             Inline=false
             CloudChannel="5"
             @bind-Value="DspModel.Content"
+            Field="@(() => DspModel.Content)"
             Disable=false
             JsConfSrc="tinyMCEconfig"
             ApiKey="drl7u5czy5p8ubduqdrt6t6v5bhf1gplqh32boqwfoxzz7ud"
             ClassName="tinymce-wrapper" />
-
 
 </MyPopupEdit>
 
@@ -32,6 +45,7 @@
     };
     //
     SpecificationModel DspModel;
+    MudTextField<string> RefTitle;
     // Master
     //Selected
     //
@@ -50,10 +64,32 @@
     //Submit
     private void OnSubmit()
     {
+        //Validate
+        if (!Validate()) return;
+
         Model = DspModel;
 
         //Return changed
         MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    bool Validate()
+    {
+        //Title
+        if (string.IsNullOrWhiteSpace(DspModel.Title))
+        {
+            Snackbar.Add("Chưa nhập tiêu đề", Severity.Error);
+            if(RefTitle != null) RefTitle.FocusAsync();
+            return false;
+        }
+        //Content
+        if (string.IsNullOrWhiteSpace(DspModel.Content))
+        {
+            Snackbar.Add("Chưa nhập nội dung", Severity.Error);
+            return false;
+        }
+        //
+        return true;
     }
 
     protected override async Task OnInitializedAsync()

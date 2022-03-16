@@ -1,5 +1,8 @@
-﻿@inject MasterService masterService;
+﻿@using Resource.Services
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject MasterService masterService;
 @inject IDialogService DialogService
+@inject ISnackbar Snackbar
 
 <MyPopupEdit Title="Nhập sản phẩm"
              T="ProductModel"
@@ -7,17 +10,32 @@
              ReadOnly="@ReadOnly"
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
-    <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" />
+    <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Style="text-transform: uppercase" AutoFocus=true/>
     <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
-    <MyComboBox Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+
+    <div class="d-flex align-center">
+        <MyComboBox @ref="@RefVendor" Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+        <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.LogoContent))" Alt="Vendor Avatar" />
+        <MyImageUpLoad CategoryID="@CategoryID"
+                       OwnerID="@DspModel.ProductID"
+                       IsMakeThumbnail=true
+                       IsMakeFullImage=false
+                       SingleImage=true
+                       ThumbnailHeight=200
+                       ThumbnailWidth=200
+                       Icon=@Icons.Material.Filled.Create
+                       Size=Size.Small
+                       SecureLevel="@WebUserCredential.DocumentLevel"
+                       OnSubmit="@((List<UpLoadFileModel> files) => AddVendorAvatar_Handle(files))" />
+    </div>
     <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" />
     <MudNumericField Label="Giá bán" @bind-Value="DspModel.UnitPrice" For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
     <div class="d-flex">
-        <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="P0" T="double" />
+        <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="00" T="double" />
         <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
     </div>
     <div class="d-flex">
-        <MudNumericField Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" />
+        <MudNumericField Style="width: 4rem" Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" />
         <MudRadioGroup @bind-SelectedOption="@DspModel.DurationUnit">
             <MudRadio Option="@("Ngày")" Color="Color.Primary">Ngày</MudRadio>
             <MudRadio Option="@("Tháng")" Color="Color.Secondary">Tháng</MudRadio>
@@ -26,13 +44,12 @@
     </div>
     <MudTextField Label="Link chi tiết sp" @bind-Value="DspModel.VendorLinks" />
     <MudTextField Label="Link Q&A" @bind-Value="DspModel.QALinks" />
-    <MudTextField Label="Logo NCC" @bind-Value="@DspModel.LogoID" OnAdornmentClick="OnAdornmentClick_Handle" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.MoreHoriz" AdornmentColor="Color.Primary" />
-
+    <br />
     <!--Specifications-->
     <MyDataGrid @ref="@grid"
                 T="SpecificationModel"
                 Title="Danh sách đặc tả chỉ tiết sản phẩm"
-                Items="@DetailData"
+                Items="@DspModel.Specifications"
                 ShowSearchBox="false"
                 IsAddNew="true"
                 IsDelete="true"
@@ -49,7 +66,7 @@
         </HeaderContent>
         <RowTemplate>
             <MudTd Style="text-align:center;">@context.DspOrder</MudTd>
-            <MudTd>@context.Title</MudTd>
+            <MudTd Style="font-weight:bold;color:blue">@context.Title</MudTd>
         </RowTemplate>
     </MyDataGrid>
 </MyPopupEdit>
@@ -62,18 +79,36 @@
     ProductModel DspModel = new ProductModel();
     // Detail data
     MyDataGrid<SpecificationModel> grid;
-    List<SpecificationModel> DetailData = new List<SpecificationModel>();
     // Master
     private List<OptionListModel> VendorList = new List<OptionListModel>();
     //Selected
     OptionListModel SelectedVendor;
+    MyComboBox<OptionListModel> RefVendor;
+    //Logo
+    string CategoryID = "001";
+
 
     //OnParametersSet
-    protected override void OnParametersSet()
+    protected override async Task OnParametersSetAsync()
     {
-        base.OnParametersSet();
+        await base.OnParametersSetAsync();
         //Display data
         ClassHelper.CopyPropertiesData(Model, DspModel);
+
+        //Specifications
+        DspModel.Specifications.Clear();
+        if (Model.Specifications != null)
+        {
+            foreach (var item in Model.Specifications)
+            {
+                var copyItem = new SpecificationModel();
+                ClassHelper.CopyPropertiesData(item, copyItem);
+                DspModel.Specifications.Add(copyItem);
+            }
+        }
+
+        //Logo
+        await LoadVendorLogo();
     }
 
     //Cancel
@@ -85,6 +120,9 @@
     //Submit
     private void OnSubmit()
     {
+        //Validate
+        if (!Validate()) return;
+
         ClassHelper.CopyPropertiesData(DspModel, Model);
         //SelectedVendor
         if (SelectedVendor != null)
@@ -92,8 +130,32 @@
             Model.VendorID = SelectedVendor.ItemCode;
             Model.VendorName = SelectedVendor.ItemName;
         }
+
+        //Specifications
+        Model.Specifications.Clear();
+        if (DspModel.Specifications != null)
+        {
+            foreach (var item in DspModel.Specifications)
+            {
+                Model.Specifications.Add(item);
+            }
+        }
+
         //Return changed
         MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    bool Validate()
+    {
+        //Title
+        if (SelectedVendor == null)
+        {
+            Snackbar.Add("Chưa nhập nhà cung cấp", Severity.Error);
+            RefVendor.Focus();
+            return false;
+        }
+        //
+        return true;
     }
 
     //OnInitializedAsync
@@ -114,9 +176,31 @@
         VendorList = await masterService.Load_OptionList("001");
     }
 
-    void OnAdornmentClick_Handle(MouseEventArgs e)
+    //Load Logo image
+    async Task LoadVendorLogo()
     {
+        if (string.IsNullOrWhiteSpace(DspModel.LogoID)) return;
 
+        //Load image from DB
+        var request = new Resource.Services.GetResourceFile_Request();
+        var Credential = new Resource.Services.UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+        request.Credential = Credential;
+        //ClaimNo
+        request.ResourceID = DspModel.LogoID;
+        request.IsGetThumbnail = true;
+        //Call api
+        var response = await resourceServiceClient.GetResourceFileAsync(request);
+        // Success
+        if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+        {
+            DspModel.LogoContent = response.Record.Thumbnail.ToByteArray();
+        }
     }
 
     //Add row
@@ -130,13 +214,13 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditorOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (SpecificationModel)result.Data;
 
             //Add to grid
-            DetailData.Add(retModel);
+            DspModel.Specifications.Add(retModel);
             grid.Refresh();
         }
     }
@@ -146,11 +230,11 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditorOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (SpecificationModel)result.Data;
-            var updateReccord = DetailData.Find(x => x.RecNo == retModel.RecNo);
+            var updateReccord = DspModel.Specifications.Find(x => x.RecNo == retModel.RecNo);
             if (updateReccord != null)
             {
                 //Update to Grid
@@ -163,16 +247,25 @@
     //Delete row
     void OnDeleteRow_Handle(SpecificationModel row)
     {
-        DetailData.Remove(row);
+        DspModel.Specifications.Remove(row);
         grid.Refresh();
     }
 
     private int Get_MaxDspOrder()
     {
-        if (Model.Specifications != null && Model.Specifications.Count > 0)
+        if (DspModel.Specifications != null && DspModel.Specifications.Count > 0)
         {
-            return Model.Specifications.Max(x => x.DspOrder) + 1;
+            return DspModel.Specifications.Max(x => x.DspOrder) + 1;
         }
         return 1;
+    }
+
+    void AddVendorAvatar_Handle(List<UpLoadFileModel> files)
+    {
+        if (files != null && files.Count > 0)
+        {
+            DspModel.LogoID = files[0].ResourceID;
+            DspModel.LogoContent = files[0].FileContent;
+        }
     }
 }

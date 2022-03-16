@@ -7,20 +7,27 @@ namespace BlazorApp.Client.BindingModels
     public class ProductModel
     {
         public string ID { get; set; } = "";
+        [Required(ErrorMessage = "Bắt buộc nhập")]
         public string ProductID { get; set; } = "";
+        [Required(ErrorMessage = "Bắt buộc nhập")]
         public string ProductName { get; set; } = "";
         public string VendorID { get; set; } = "";
         public string VendorName { get; set; } = "";
+        [Range(1, 999999999, ErrorMessage = "Giá trị không hợp lệ")]
         public double InsureAmount { get; set; }
+        [Range(1, 9999999, ErrorMessage = "Giá trị không hợp lệ")]
         public double UnitPrice { get; set; }
+        [Range(1, 99, ErrorMessage = "Giá trị không hợp lệ")]
         public double TaxRate { get; set; }
         public bool IsIncludeVAT { get; set; }
+        [Range(1, 999, ErrorMessage = "Giá trị không hợp lệ")]
         public int Duration { get; set; }
         public string DurationUnit { get; set; } = "";
         public List<SpecificationModel> Specifications { get; set; } = new List<SpecificationModel>();
         public string VendorLinks { get; set; } = "";
         public string QALinks { get; set; } = "";
         public string LogoID { get; set; } = "";
+        public byte[] LogoContent { get; set; } = new byte[] { };
         public string Notes { get; set; } = "";
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }
@@ -37,5 +44,9 @@ namespace BlazorApp.Client.BindingModels
         public string Title { get; set; } = "";
         public string Content { get; set; } = "";
         public string RecNo { get; set; } = "";
+        //Row mode
+        public bool RowMode_View { get; set; } = false;
+        public bool RowMode_Edit { get; set; } = true;
+        public bool RowMode_Delete { get; set; } = true;
     }
 }

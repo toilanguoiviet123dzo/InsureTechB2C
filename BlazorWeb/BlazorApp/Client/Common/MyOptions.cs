@@ -50,6 +50,20 @@ namespace BlazorApp.Client.Common
             return options;
         }
 
+        public static DialogOptions GetEditorOptions(MaxWidth size = MaxWidth.Large)
+        {
+            var options = new DialogOptions()
+            {
+                MaxWidth = size,
+                Position = DialogPosition.Center,
+                CloseOnEscapeKey = false,
+                DisableBackdropClick = true,
+                CloseButton = false,
+                FullWidth = true
+            };
+            return options;
+        }
+
         public static DialogOptions GetMessageBoxOptions(MaxWidth size = MaxWidth.ExtraSmall)
         {
             var options = new DialogOptions()

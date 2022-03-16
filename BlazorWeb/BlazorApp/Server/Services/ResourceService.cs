@@ -115,6 +115,15 @@ namespace BlazorApp.Server.Services
                         saveRecord.ID = "";
                     }
                     saveRecord.IssueDate = DateTime.UtcNow;
+
+                    //Full image
+                    if (saveRecord.IsMakeFullImage && ImageHelper.IsImage(saveRecord.FileType))
+                    {
+                        saveRecord.FileContent = saveRecord.FileContent;
+                        saveRecord.HasFullImage = true;
+                    }
+
+                    //Thumbnail
                     if (saveRecord.IsMakeThumbnail && ImageHelper.IsImage(saveRecord.FileType))
                     {
                         saveRecord.Thumbnail = ImageHelper.MakeThumbnail(saveRecord.FileContent, saveRecord.ThumbnailWidth, saveRecord.ThumbnailHeight);
@@ -124,10 +133,14 @@ namespace BlazorApp.Server.Services
                     //Save to local file
                     if (ArchiveMode == 2 && !string.IsNullOrWhiteSpace(archiveFolder))
                     {
+                        string fileName = "";
                         //Full
-                        saveRecord.ServerFileName = saveRecord.ResourceID + "_" + saveRecord.FileName;
-                        string fileName = archiveFolder + saveRecord.ServerFileName;
-                        MyFile.Write_ToBinary(fileName, saveRecord.FileContent);
+                        if (saveRecord.IsMakeFullImage)
+                        {
+                            saveRecord.ServerFileName = saveRecord.ResourceID + "_" + saveRecord.FileName;
+                            fileName = archiveFolder + saveRecord.ServerFileName;
+                            MyFile.Write_ToBinary(fileName, saveRecord.FileContent);
+                        }
 
                         //Thumbnail
                         if (saveRecord.IsMakeThumbnail)

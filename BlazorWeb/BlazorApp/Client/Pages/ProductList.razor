@@ -46,8 +46,8 @@
         <MudTd>@context.VendorName</MudTd>
         <MudTd Style="color:blue; font-weight: bold; text-align:end">@context.InsureAmount.ToString("N0")</MudTd>
         <MudTd Style="color:green; font-weight: bold; text-align:end">@context.UnitPrice.ToString("N0")</MudTd>
-        <MudTd Style="text-align:end">@context.TaxRate.ToString("P0")</MudTd>
-        <MudTd><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true"></MudCheckBox></MudTd>
+        <MudTd Style="text-align:end">@context.TaxRate.ToString("00%")</MudTd>
+        <MudTd Class="justify-center"><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true"></MudCheckBox></MudTd>
         <MudTd Style="color:purple; font-weight: bold; text-align:end">@context.Duration.ToString("N0")</MudTd>
         <MudTd>@context.DurationUnit</MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
@@ -92,10 +92,21 @@
             var response = await insureServiceClient.GetProductListAsync(requestString);
             if (response != null && response.ReturnCode == 200)
             {
-                foreach (var item in response.Records)
+                foreach (var record in response.Records)
                 {
                     ProductModel dataRow = new ProductModel();
-                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    ClassHelper.CopyPropertiesDataDateConverted(record, dataRow);
+                    //Specifications
+                    if (record.Specifications != null)
+                    {
+                        foreach (var item in record.Specifications)
+                        {
+                            var specItem = new SpecificationModel();
+                            ClassHelper.CopyPropertiesData(item,specItem);
+                            //
+                            dataRow.Specifications.Add(specItem);
+                        }
+                    }
                     //
                     DetailData.Add(dataRow);
                 }
@@ -129,6 +140,19 @@
             // Convert to DB row
             request.Record = new grpcProductModel();
             ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+
+            //Specifications
+            if (saveRow.Specifications != null)
+            {
+                foreach (var item in saveRow.Specifications)
+                {
+                    var grpcItem = new grpcSpecificationModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, grpcItem);
+                    //
+                    request.Record.Specifications.Add(grpcItem);
+                }
+            }
+
             // Call api
             var response = await insureServiceClient.SaveProductAsync(request);
             // Success
