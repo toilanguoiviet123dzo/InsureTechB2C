@@ -1,0 +1,256 @@
+﻿@page "/UserAccount"
+@using Admin.Services
+@using System.Collections.ObjectModel;
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyDataGrid @ref="@grid"
+            T="UserAccountModel"
+            Title="Danh sách yêu cầu bồi thường"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((UserAccountModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((UserAccountModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 8rem;" />
+        <col style="width: 10rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 10rem;" />
+        <col />
+        <col style="width: 6rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 4rem;" />
+        <col style="width: 8rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<UserAccountModel, object>(x => x.UserName)">User name</MudTableSortLabel></MudTh>
+        <MudTh>Fullname</MudTh>
+        <MudTh>Phone</MudTh>
+        <MudTh>Email</MudTh>
+        <MudTh>Address</MudTh>
+        <MudTh>Vai trò</MudTh>
+        <MudTh>Chi nhánh</MudTh>
+        <MudTh>Cty vận chuyển</MudTh>
+        <MudTh>Nơi sửa chữa</MudTh>
+        <MudTh>Người duyệt</MudTh>
+        <MudTh>Cấp duyệt</MudTh>
+        <MudTh>Bảo mật tài liệu</MudTh>
+        <MudTh>Hữu hiệu</MudTh>
+        <MudTh>Ngày giờ cập nhật</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.UserName</MudTd>
+        <MudTd>@context.Fullname</MudTd>
+        <MudTd>@context.Phone</MudTd>
+        <MudTd>@context.Email</MudTd>
+        <MudTd>@context.Address</MudTd>
+        <MudTd>@context.RoleName</MudTd>
+        <MudTd>@context.BrancheName</MudTd>
+        <MudTd>@context.LogisticCompanyName</MudTd>
+        <MudTd>@context.RepairCompanyName</MudTd>
+        <MudTd>@context.ApproveAcountID</MudTd>
+        <MudTd>@context.ApproveLevelName</MudTd>
+        <MudTd>@context.DocumentLevelName</MudTd>
+        <MudTd><MudCheckBox Checked="@context.Status" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
+        <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<UserAccountModel> grid;
+    readonly List<UserAccountModel> DetailData = new List<UserAccountModel>();
+    // Master
+    private List<OptionListModel> RoleList = new List<OptionListModel>();
+    private List<OptionListModel> ApproveLevelList = new List<OptionListModel>();
+    private List<OptionListModel> DocumentLevelList = new List<OptionListModel>();
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await LoadMaster();
+
+        //Display data ..
+        await DisplayMain();
+    }
+    #region Load data
+    async Task LoadMaster()
+    {
+        ApproveLevelList = await masterService.Load_OptionList("002");
+        DocumentLevelList = await masterService.Load_OptionList("003");
+        RoleList = await masterService.Load_OptionList("003");
+    }
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Filter
+            var requestString = new String_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = ""
+                };
+
+            //Get data from DB
+            DetailData.Clear();
+            var response = await adminServiceClient.GetUserAccountAsync(requestString);
+            if (response != null && response.ReturnCode == 200)
+            {
+                foreach (var item in response.UserAccounts)
+                {
+                    UserAccountModel dataRow = new UserAccountModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    //Upd mode
+                    dataRow.UpdMode = 0;
+                    //Set blank for password -> not save
+                    dataRow.Password = "";
+                    //
+                    DetailData.Add(dataRow);
+                }
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    #endregion
+
+
+    #region Grid main
+    //Save Row
+    async Task<bool> SaveRow(UserAccountModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveUserAccount_Request();
+            var Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcUserAccountModel();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await adminServiceClient.SaveUserAccountAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new UserAccountModel();
+        newRow.UpdMode = 1;
+        newRow.Status = true;
+        newRow.ModifiedOn = DateTime.Now;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<UserAccountEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (UserAccountModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(UserAccountModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<UserAccountEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (UserAccountModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(UserAccountModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+
+    #endregion
+    //
+}

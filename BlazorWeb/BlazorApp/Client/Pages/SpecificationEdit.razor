@@ -1,0 +1,69 @@
+﻿@using TinyMCE.Blazor
+@inject MasterService masterService;
+
+<MyPopupEdit Title="Nhập đặc tả sản phẩm"
+             T="SpecificationModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+
+    <MudTextField Label="Tiêu đề" @bind-Value="DspModel.Title" For="@(() => DspModel.Title)" />
+    <Editor Id="productEditor"
+            Inline=false
+            CloudChannel="5"
+            @bind-Value="DspModel.Content"
+            Disable=false
+            JsConfSrc="tinyMCEconfig"
+            ApiKey="drl7u5czy5p8ubduqdrt6t6v5bhf1gplqh32boqwfoxzz7ud"
+            ClassName="tinymce-wrapper" />
+
+
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public SpecificationModel Model { get; set; }
+    //
+    private Dictionary<string, object> editorConf = new Dictionary<string, object>{
+       { "menubar", false },
+       {"height",600 },
+       { "plugins", "advlist autolink lists link image charmap print preview anchor searchreplace visualblocks code fullscreen insertdatetime media table paste imagetools wordcount" },
+       {"toolbar","bold italic underline strikethrough cut copy paste pastetext pasteword alignleft aligncenter alignright alignjustify formatselect fontselect fontsizeselect bullist numlist outdent indent blockquote undo redo link unlink anchor image cleanup code forecolor backcolor hr removeformat visualaid superscript subscript" }
+    };
+    //
+    SpecificationModel DspModel;
+    // Master
+    //Selected
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+        DspModel = Model;
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        Model = DspModel;
+
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await Task.FromResult(0);
+
+    }
+
+
+}

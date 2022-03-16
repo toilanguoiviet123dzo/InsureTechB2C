@@ -1,0 +1,178 @@
+﻿@inject MasterService masterService;
+@inject IDialogService DialogService
+
+<MyPopupEdit Title="Nhập sản phẩm"
+             T="ProductModel"
+             Model="DspModel"
+             ReadOnly="@ReadOnly"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" />
+    <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
+    <MyComboBox Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" />
+    <MudNumericField Label="Giá bán" @bind-Value="DspModel.UnitPrice" For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
+    <div class="d-flex">
+        <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="P0" T="double" />
+        <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
+    </div>
+    <div class="d-flex">
+        <MudNumericField Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" />
+        <MudRadioGroup @bind-SelectedOption="@DspModel.DurationUnit">
+            <MudRadio Option="@("Ngày")" Color="Color.Primary">Ngày</MudRadio>
+            <MudRadio Option="@("Tháng")" Color="Color.Secondary">Tháng</MudRadio>
+            <MudRadio Option="@("Năm")" Color="Color.Warning">Năm</MudRadio>
+        </MudRadioGroup>
+    </div>
+    <MudTextField Label="Link chi tiết sp" @bind-Value="DspModel.VendorLinks" />
+    <MudTextField Label="Link Q&A" @bind-Value="DspModel.QALinks" />
+    <MudTextField Label="Logo NCC" @bind-Value="@DspModel.LogoID" OnAdornmentClick="OnAdornmentClick_Handle" Adornment="Adornment.End" AdornmentIcon="@Icons.Filled.MoreHoriz" AdornmentColor="Color.Primary" />
+
+    <!--Specifications-->
+    <MyDataGrid @ref="@grid"
+                T="SpecificationModel"
+                Title="Danh sách đặc tả chỉ tiết sản phẩm"
+                Items="@DetailData"
+                ShowSearchBox="false"
+                IsAddNew="true"
+                IsDelete="true"
+                OnAddRow="@(() => OnAddRow_Handle())"
+                OnViewRow="@((SpecificationModel row) => OnViewRow_Handle(row))"
+                OnDeleteRow="@((SpecificationModel row) => OnDeleteRow_Handle(row))">
+        <ColGroup>
+            <col style="width: 2rem;" />
+            <col style="width: 15rem;" />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SpecificationModel, object>(x => x.DspOrder)">No.</MudTableSortLabel></MudTh>
+            <MudTh>Tiêu đề</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="text-align:center;">@context.DspOrder</MudTd>
+            <MudTd>@context.Title</MudTd>
+        </RowTemplate>
+    </MyDataGrid>
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public ProductModel Model { get; set; }
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    //
+    ProductModel DspModel = new ProductModel();
+    // Detail data
+    MyDataGrid<SpecificationModel> grid;
+    List<SpecificationModel> DetailData = new List<SpecificationModel>();
+    // Master
+    private List<OptionListModel> VendorList = new List<OptionListModel>();
+    //Selected
+    OptionListModel SelectedVendor;
+
+    //OnParametersSet
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+    }
+
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    //Submit
+    private void OnSubmit()
+    {
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+        //SelectedVendor
+        if (SelectedVendor != null)
+        {
+            Model.VendorID = SelectedVendor.ItemCode;
+            Model.VendorName = SelectedVendor.ItemName;
+        }
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await LoadMaster();
+
+        //SelectedVendor
+        if (!string.IsNullOrWhiteSpace(Model.VendorID)) SelectedVendor = VendorList.Find(x => x.ItemCode == Model.VendorID);
+    }
+
+    //LoadMaster
+    async Task LoadMaster()
+    {
+        VendorList = await masterService.Load_OptionList("001");
+    }
+
+    void OnAdornmentClick_Handle(MouseEventArgs e)
+    {
+
+    }
+
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new SpecificationModel();
+        newRow.DspOrder = Get_MaxDspOrder();
+        newRow.RecNo = MyCodeGenerator.GenRecNo();
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (SpecificationModel)result.Data;
+
+            //Add to grid
+            DetailData.Add(retModel);
+            grid.Refresh();
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(SpecificationModel row)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (SpecificationModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.RecNo == retModel.RecNo);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+                grid.Refresh();
+            }
+        }
+    }
+
+    //Delete row
+    void OnDeleteRow_Handle(SpecificationModel row)
+    {
+        DetailData.Remove(row);
+        grid.Refresh();
+    }
+
+    private int Get_MaxDspOrder()
+    {
+        if (Model.Specifications != null && Model.Specifications.Count > 0)
+        {
+            return Model.Specifications.Max(x => x.DspOrder) + 1;
+        }
+        return 1;
+    }
+}

@@ -1,0 +1,276 @@
+﻿@using System.Reflection
+@inject IDialogService DialogService
+@typeparam T
+
+<style>
+    .mud-table-cell {
+        padding: 4px !important;
+    }
+
+</style>
+
+<MudTable @ref="@_table"
+          Items="@Items"
+          Dense="@Dense"
+          Hover="true"
+          Bordered="@Bordered"
+          Striped="@Striped"
+          Filter="new Func<T,bool>(FilterFunc1)"
+          SelectedItem="@SelectedItem"
+          SelectedItemChanged="@((T item) => OnSelectedItemChanged(item))"
+          SelectedItems="@SelectedItems"
+          SelectedItemsChanged="@((HashSet<T> items) => OnSelectedItemsChanged(items))"
+          OnRowClick="@((TableRowClickEventArgs<T> para) => OnRowClick_Handle(para))"
+          OnCommitEditClick="@((MouseEventArgs para) => OnCommitEditClick_Handle(para))"
+          RowStyleFunc="@RowStyleFunc"
+          Loading="@Loading"
+          HorizontalScrollbar="@HorizontalScrollbar"
+          Virtualize="@Virtualize"
+          ReadOnly="@ReadOnly"
+          LoadingProgressColor="Color.Info"
+          RowsPerPage="@RowsPerPage"
+          Breakpoint="Breakpoint.None"
+          NoRecordsContent="@NoRecordsContent"
+          Style="width: 100%">
+    <ToolBarContent>
+        <MudText Typo="Typo.h6">@Title</MudText>
+        @if (ShowSearchBox)
+        {
+            <MudSpacer />
+        <MudTextField @bind-Value="@SearchString" Placeholder="Search" Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+        }
+    </ToolBarContent>
+    <ColGroup>
+        <col style="width: 3rem;" />
+        @if (IsDelete)
+        {
+            <col style="width: 3rem;" />
+        }
+        @ColGroup
+    </ColGroup>
+    <HeaderContent>
+        <MudTh>
+            @if (IsAddNew)
+            {
+                <MudFab Color="Color.Success"
+                    StartIcon="@Icons.Material.Filled.Add"
+                    Size="Size.Medium"
+                    OnClick="@(() => OnAddRow_Handle())" />
+            }
+        </MudTh>
+        @if (IsDelete)
+        {
+            <MudTh></MudTh>
+        }
+        @HeaderContent
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center">
+            @if (IsViewMode(context))
+            {
+                <MudIconButton Icon="fa-solid fa-eye" Color="Color.Info" Size="Size.Medium" OnClick="@(() => OnViewRow_Handle(context))"></MudIconButton>
+            }
+            @if (IsEditMode(context))
+            {
+                <MudIconButton Icon="@Icons.Material.Filled.Edit" Color="Color.Primary" Size="Size.Medium" OnClick="@(() => OnViewRow_Handle(context))"></MudIconButton>
+            }
+        </MudTd>
+        @if (IsDelete)
+        {
+            <MudTd Style="text-align:center">
+                @if (IsDeleteMode(context))
+                {
+                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Medium" OnClick="@(() => OnDeleteRow_Handle(context))"></MudIconButton>
+                }
+            </MudTd>
+        }
+        @RowTemplate(context)
+    </RowTemplate>
+    <PagerContent>
+        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+    </PagerContent>
+</MudTable>
+
+@code {
+    [Parameter] public IEnumerable<T> Items { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public string AddRowTitle { get; set; } = "Thêm";
+    [Parameter] public string DeleteRowTitle { get; set; } = "Xóa";
+    [Parameter] public string UpdateRowTitle { get; set; } = "Cập nhật";
+    [Parameter] public string ViewRowTitle { get; set; } = "Xem";
+    [Parameter] public string DeleteRowConfirmMessage { get; set; } = MyMessage.Confirm_DeleteRow;
+    [Parameter] public bool IsAddNew { get; set; } = false;
+    [Parameter] public bool IsDelete { get; set; } = false;
+    [Parameter] public bool Dense { get; set; } = false;
+    [Parameter] public bool Bordered { get; set; } = true;
+    [Parameter] public bool Striped { get; set; } = true;
+    [Parameter] public bool Loading { get; set; } = false;
+    [Parameter] public bool HorizontalScrollbar { get; set; } = false;
+    [Parameter] public bool Virtualize { get; set; } = false;
+    [Parameter] public bool ReadOnly { get; set; } = true;
+    [Parameter] public bool ShowSearchBox { get; set; } = true;
+    [Parameter] public int RowsPerPage { get; set; } = 10;
+    [Parameter] public RenderFragment ColGroup { get; set; }
+    [Parameter] public RenderFragment HeaderContent { get; set; }
+    [Parameter] public RenderFragment<T> RowTemplate { get; set; }
+    [Parameter] public RenderFragment NoRecordsContent { get; set; }
+    [Parameter] public Func<T, int, string> RowStyleFunc { get; set; }
+
+    //SelectedItem
+    [Parameter] public T SelectedItem { get; set; }
+    [Parameter] public EventCallback<T> SelectedItemChanged { get; set; }
+    private async void OnSelectedItemChanged(T newValue)
+    {
+        await SelectedItemChanged.InvokeAsync(newValue);
+    }
+    //SelectedItems
+    [Parameter] public HashSet<T> SelectedItems { get; set; }
+    [Parameter] public EventCallback<HashSet<T>> SelectedItemsChanged { get; set; }
+    private async void OnSelectedItemsChanged(HashSet<T> newValue)
+    {
+        await SelectedItemsChanged.InvokeAsync(newValue);
+    }
+    //OnRowClick
+    [Parameter] public EventCallback<TableRowClickEventArgs<T>> OnRowClick { get; set; }
+    private async void OnRowClick_Handle(TableRowClickEventArgs<T> para)
+    {
+        await OnRowClick.InvokeAsync(para);
+    }
+
+    //OnCommitEditClick
+    [Parameter] public EventCallback<MouseEventArgs> OnCommitEditClick { get; set; }
+    private async void OnCommitEditClick_Handle(MouseEventArgs para)
+    {
+        await OnCommitEditClick.InvokeAsync(para);
+    }
+
+    //OnDeleteRow
+    [Parameter] public EventCallback<T> OnDeleteRow { get; set; }
+    private async void OnDeleteRow_Handle(T row)
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Cảnh báo",
+            "Bạn có muốn xóa dòng dữ liệu!",
+            yesText: "Delete!", noText: null, cancelText: "Cancel",
+            MyOptions.GetMessageBoxOptions());
+
+        //OK
+        if (result != null && result == true)
+        {
+            await OnDeleteRow.InvokeAsync(row);
+        }
+    }
+
+    //OnViewRow
+    [Parameter] public EventCallback<T> OnViewRow { get; set; }
+    private async void OnViewRow_Handle(T row)
+    {
+        await OnViewRow.InvokeAsync(row);
+    }
+
+    //OnAddRow
+    [Parameter] public EventCallback OnAddRow { get; set; }
+    private async void OnAddRow_Handle()
+    {
+        await OnAddRow.InvokeAsync();
+    }
+
+    //Attributes
+    Dictionary<string, object> Attributes { get; set; }
+
+    //Data
+    string SearchString = "";
+    MudMessageBox mbox { get; set; }
+    private MudTable<T> _table;
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Width
+    }
+
+    private void PageChanged(int i)
+    {
+        _table.NavigateTo(i - 1);
+    }
+
+    //Filter
+    private bool FilterFunc1(T element) => FilterFunc(element, SearchString);
+
+    private bool FilterFunc(T element, string searchString)
+    {
+        if (string.IsNullOrWhiteSpace(searchString)) return true;
+        //
+        foreach (PropertyInfo property in element.GetType().GetProperties())
+        {
+            if (property.PropertyType.ToString() == "System.String")
+            {
+                var itemValue = (string)property.GetValue(element);
+                //
+                if (itemValue.Contains(searchString, StringComparison.OrdinalIgnoreCase)) return true;
+            }
+        }
+        //
+        return false;
+    }
+
+    //Methods
+    public void SetSelectedItem(object item) => _table.SetSelectedItem(item);
+    public void SetEditingItem(object item) => _table.SetEditingItem(item);
+    public void SetRowsPerPage(int size) => _table.SetRowsPerPage(size);
+    public void NavigateTo(int pageIndex) => _table.NavigateTo(pageIndex);
+    public void BeginLoadData()
+    {
+        Loading = true;
+    }
+    public void EndLoadData()
+    {
+        Loading = false;
+        this.StateHasChanged();
+    }
+    public void Refresh()
+    {
+        this.StateHasChanged();
+    }
+    public int CurrentPage()
+    {
+        return _table.CurrentPage;
+    }
+    //View
+    bool IsViewMode(T element)
+    {
+        foreach (PropertyInfo property in element.GetType().GetProperties())
+        {
+            if (property.Name == "RowMode_View" && property.PropertyType.ToString() == "System.Boolean")
+            {
+                return (bool)property.GetValue(element);
+            }
+        }
+        return false;
+    }
+    //Edit
+    bool IsEditMode(T element)
+    {
+        foreach (PropertyInfo property in element.GetType().GetProperties())
+        {
+            if (property.Name == "RowMode_Edit" && property.PropertyType.ToString() == "System.Boolean")
+            {
+                return (bool)property.GetValue(element);
+            }
+        }
+        return false;
+    }
+    //Delete
+    bool IsDeleteMode(T element)
+    {
+        foreach (PropertyInfo property in element.GetType().GetProperties())
+        {
+            if (property.Name == "RowMode_Delete" && property.PropertyType.ToString() == "System.Boolean")
+            {
+                return (bool)property.GetValue(element);
+            }
+        }
+        return false;
+    }
+
+}

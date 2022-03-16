@@ -1,0 +1,120 @@
+﻿@using System.Globalization
+@typeparam T
+
+<MudNumericField @ref="@Ref"
+                 T="T"
+                 Value="@Value"
+                 ValueChanged="@((T value) => OnValueChanged(value))"
+                 TextChanged="@((string text) => OnTextChanged(text))"
+                 Immediate="false"
+                 Label="@Literal"
+                 Placeholder="@Placeholder"
+                 Clearable="@Clearable"
+                 Disabled="@Disabled"
+                 ReadOnly="@ReadOnly"
+                 FullWidth="@FullWidth"
+                 Format="@Format"
+                 Culture="@_en"
+                 HelperText="@HelperText"
+                 HelperTextOnFocus="true"
+                 HideSpinButtons="true"
+                 Variant="@Variant"
+                 Adornment="@Adornment"
+                 AdornmentIcon="@AdornmentIcon"
+                 AdornmentText="@AdornmentText"
+                 Class="@Class"
+                 Style="@Style"
+                 Tag="@Tag"
+                 @attributes="@Attributes"/>
+
+
+@code {
+    [Parameter] public bool TabStop { get; set; } = true;
+    [Parameter] public string Literal { get; set; } = "";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public string HelperText { get; set; } = "";
+    [Parameter] public bool Clearable { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool FullWidth { get; set; } = true;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public object Tag { get; set; }
+    [Parameter] public string Width { get; set; } = "";
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    [Parameter] public string AdornmentIcon { get; set; } = "";
+    [Parameter] public string AdornmentText { get; set; } = "";
+    [Parameter] public string Format { get; set; } = "N0";
+    [Parameter] public bool IsFontBold { get; set; } = false;
+    [Parameter] public string TextColor { get; set; } = "";
+
+
+    //ValueChanged
+    [Parameter] public T Value { get; set; }
+    [Parameter] public EventCallback<T> ValueChanged { get; set; }
+    private async void OnValueChanged(T newValue)
+    {
+        await ValueChanged.InvokeAsync(newValue);
+        await TextChanged.InvokeAsync(newValue.ToString());
+    }
+    [Parameter]
+    //TextChanged
+    public EventCallback<string> TextChanged { get; set; }
+    private async void OnTextChanged(string newValue)
+    {
+        await TextChanged.InvokeAsync(newValue);
+    }
+    //Culture
+    public CultureInfo _en = CultureInfo.GetCultureInfo("en-US");
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //ReadOnly -> Disable
+        Disabled = false;
+        if (ReadOnly) Disabled = true;
+
+        //IsFontBold
+        if (IsFontBold)
+        {
+            if (!Style.Contains("font-weight: bold;")) Style = $"font-weight: bold; {Style}";
+        }
+
+        //Text Color
+        if (!string.IsNullOrWhiteSpace(TextColor))
+        {
+            if (TextColor == MyTextColor.Green && !Style.Contains(MyTextColor.Green)) Style = $"{MyTextColor.Green}; {Style}";
+            if (TextColor == MyTextColor.Blue && !Style.Contains(MyTextColor.Blue)) Style = $"{MyTextColor.Blue}; {Style}";
+            if (TextColor == MyTextColor.Navy && !Style.Contains(MyTextColor.Navy)) Style = $"{MyTextColor.Navy}; {Style}";
+            if (TextColor == MyTextColor.Maroon && !Style.Contains(MyTextColor.Maroon)) Style = $"{MyTextColor.Maroon}; {Style}";
+            if (TextColor == MyTextColor.Purple && !Style.Contains(MyTextColor.Purple)) Style = $"{MyTextColor.Purple}; {Style}";
+            if (TextColor == MyTextColor.Red && !Style.Contains(MyTextColor.Red)) Style = $"{MyTextColor.Red}; {Style}";
+        }
+
+        //Set width
+        if (!string.IsNullOrWhiteSpace(Width))
+        {
+            FullWidth = false;
+            if (!Style.Contains($"width:{Width};")) Style = $"width:{Width}; {Style}";
+        }
+
+        //ReadOnly
+        if (ReadOnly || !TabStop)
+        {
+            Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "tabIndex", "-1" }
+                                            };
+        }
+    }
+    //Focus
+    private MudNumericField<T> Ref;
+    public async void Focus()
+    {
+        await Ref.FocusAsync();
+    }
+}

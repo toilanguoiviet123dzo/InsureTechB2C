@@ -1,0 +1,159 @@
+﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+/*Text color STT*/
+.text-green {
+    color: green !important;
+}
+
+.text-blue {
+    color: blue !important;
+}
+
+.text-navy {
+    color: navy !important;
+}
+
+.text-maroon {
+    color: maroon !important;
+}
+
+.text-red {
+    color: red !important;
+}
+
+.text-purple {
+    color: purple !important;
+}
+
+.font-italic {
+    font-style: italic !important;
+}
+
+.font-normal {
+    font-style: normal !important;
+}
+
+.font-weight-bold {
+    font-weight: bold !important;
+}
+
+.font-weight-light {
+    font-weight: lighter !important;
+}
+
+.text-justify {
+    text-align: justify !important;
+}
+
+/*Text color END*/
+
+
+input:read-only {
+    pointer-events: none !important;
+}
+
+/*DevExtreme STT*/
+.dx-grid-summary-cell {
+    color: navy;
+    text-align: right;
+}
+
+/*DevExtreme END*/
+
+
+.navigation-menu {
+    width: 120px;
+    position: fixed;
+}
+
+.components-container {
+    padding-left: 150px;
+    padding-bottom: 40px;
+    flex-grow: 1;
+}
+
+.component-header {
+    display: block;
+}
+
+.component-header {
+    margin-bottom: 24px;
+}
+
+    .component-header:not(:first-child) {
+        margin-top: 48px;
+    }
+
+.component-example + .component-example {
+    margin-top: 20px;
+}
+
+.component-example .card {
+    margin-bottom: 20px;
+}
+
+.component-example .modal {
+    display: block;
+    position: relative;
+    top: auto;
+    right: auto;
+    left: auto;
+    bottom: auto;
+    z-index: 1;
+    overflow: visible;
+}
+
+.component-example .modal-dialog {
+    width: 90%;
+    margin: 5px;
+}
+
+.component-example .popover {
+    position: relative;
+    display: inline-block;
+    width: 220px;
+    margin: 20px
+}
+
+
+@media (max-width: 991px) {
+    .navigation-menu {
+        display: none;
+    }
+
+    .components-container {
+        padding-left: 0;
+    }
+}
+
+/*splash-screen*/
+.splash-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column nowrap;
+    height: 100vh;
+    font-family: "Segoe UI",Roboto,"Helvetica Neue","-apple-system",BlinkMacSystemFont,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    font-size: .88rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+}
+
+    .splash-screen .spinner-border {
+        border: .2em solid;
+        border-color: #5f368d #bfbfbf #bfbfbf;
+        width: 120px;
+        height: 120px;
+    }
+
+.splash-screen-caption {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+}
+
+.splash-screen-text {
+    color: #a1a1a1;
+    margin-top: .5rem;
+}
+

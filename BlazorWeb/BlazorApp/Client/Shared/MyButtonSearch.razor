@@ -1,0 +1,19 @@
+﻿<MudChip Style="width:120px"
+         Variant="Variant.Filled"
+         Icon="@Icons.Material.Filled.Search"
+         Color="@Color.Info"
+         OnClick="OnClickHandler">
+    @Literal
+</MudChip>
+
+@code {
+    [Parameter]
+    public string Literal { get; set; } = "Search";
+    [Parameter]
+    public EventCallback OnClick { get; set; }
+
+    private async void OnClickHandler()
+    {
+        await OnClick.InvokeAsync();
+    }
+}

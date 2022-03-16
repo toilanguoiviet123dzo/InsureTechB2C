@@ -1,0 +1,32 @@
+﻿@using Microsoft.AspNetCore.Components.Authorization
+
+@inject NavigationManager Navigation
+@inject IAuthenticationService AuthService
+
+<AuthorizeView>
+    <Authorized>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+            <h6 class="m-auto">Hello, @WebUserCredential.Fullname</h6>
+        </MudHidden>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Inherit" OnClick="@((e) => LogOut())" />
+    </Authorized>
+    <NotAuthorized>
+        <MudHidden Breakpoint="Breakpoint.MdAndUp" Invert="true">
+            <h6 class="m-auto" Style="@($"color:{Colors.Red.Default};")">Hello, You need to login.</h6>
+        </MudHidden>
+        <MudIconButton Icon="@Icons.Material.Filled.Logout" Color="Color.Warning" OnClick="@((e) => LogIn())" />
+    </NotAuthorized>
+</AuthorizeView>
+
+@code {
+    private void LogOut()
+    {
+        AuthService.Logout();
+        Navigation.NavigateTo("/");
+    }
+
+    private void LogIn()
+    {
+        Navigation.NavigateTo("/login");
+    }
+}

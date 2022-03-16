@@ -1,0 +1,28 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\GrpcClient\GrpcChannelFactory.cs" Link="GrpcClient\GrpcChannelFactory.cs" />
+    <Compile Include="..\GrpcClient\GrpcClientFactory.cs" Link="GrpcClient\GrpcClientFactory.cs" />
+    <Compile Include="..\GrpcClient\GrpcReturnCode.cs" Link="GrpcClient\GrpcReturnCode.cs" />
+    <Compile Include="..\GrpcClient\ServiceList.cs" Link="GrpcClient\ServiceList.cs" />
+    <Compile Include="..\GrpcClient\ServiceListModel.cs" Link="GrpcClient\ServiceListModel.cs" />
+    <Compile Include="..\GrpcClient\UserCredential.cs" Link="GrpcClient\UserCredential.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Google.Protobuf" Version="3.15.7" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.41.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="GrpcClient\" />
+  </ItemGroup>
+
+</Project>

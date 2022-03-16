@@ -1,0 +1,430 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Claim.Services";
+import "google/protobuf/timestamp.proto";
+package grpcClaimService;
+
+//Services
+service grpcClaimService {    
+    //Save claim
+    rpc SaveClaimRequest (SaveClaim_Request) returns (String_Response);
+    rpc SaveClaimProcess (SaveClaim_Request) returns (String_Response);
+    rpc SaveClaimLogistic (SaveClaim_Request) returns (String_Response);
+    rpc SaveClaimRepair (SaveClaim_Request) returns (String_Response);
+    rpc SaveClaimApprove (SaveClaim_Request) returns (String_Response);
+    rpc SaveClaimPayment (SaveClaim_Request) returns (String_Response);
+    //Get claim
+    rpc GetClaimRequest (String_Request) returns (GetClaimRequest_Response);
+    rpc GetClaimRequestList (GetClaimRequestList_Request) returns (GetClaimRequestList_Response);
+    rpc CancelClaimRequest (String_Request) returns (Empty_Response);
+    rpc GetCustomerInfo (String_Request) returns (GetCustomerInfo_Response);
+    rpc GetPickupList (GetPickupList_Request) returns (GetClaimRequestList_Response);
+    rpc GetRepairList (GetRepairList_Request) returns (GetClaimRequestList_Response);
+    rpc GetReturnList (GetReturnList_Request) returns (GetClaimRequestList_Response);
+    rpc GetApproveList (GetClaimRequestList_Request) returns (GetClaimRequestList_Response);
+    rpc GetPaymentList (GetClaimRequestList_Request) returns (GetClaimRequestList_Response);
+
+    //Insure
+    rpc GetInsureContract (GetInsureContract_Request) returns (GetInsureContract_Response);
+
+    //RepairerMaster
+    rpc SaveRepairerMaster (SaveRepairerMaster_Request) returns (String_Response);
+    rpc GetRepairerMaster (Empty_Request) returns (GetRepairerMaster_Response);
+
+    //BranchMaster
+    rpc SaveBranchMaster (SaveBranchMaster_Request) returns (String_Response);
+    rpc GetBranchMaster (Empty_Request) returns (GetBranchMaster_Response);
+   
+}
+
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    string RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+    string StringValue = 2;
+}
+message String_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string StringValue = 3;
+}
+message Int_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    int32 IntValue = 3;
+}
+
+//
+//======================================================
+// Messages
+//======================================================
+message GetCustomerInfo_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string CusEmail = 3;
+    string CusFullname = 4;
+    string CusCardID = 5;
+    string PickupAddress = 6;
+}
+message GetInsureContract_Request {
+    UserCredential Credential = 1;
+    //
+    string InsurContractNo = 2;
+    string InsurCompanyID = 3;
+}
+message GetInsureContract_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    google.protobuf.Timestamp InsurStartDate = 3;
+    google.protobuf.Timestamp InsurEndDate = 4;
+    double ContractAmount = 5;
+    double InsurAmount = 6;
+}
+
+
+message GetRefEstimationList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcRefEstimationModel Records = 3;
+}
+message grpcRefEstimationModel {
+    string ClaimNo = 1;
+    string ReqPersonName = 2;
+    string BranchName = 3;
+    string RepairerName = 4;
+    string TemplateName = 5;
+}
+
+message SaveBranchMaster_Request {
+    UserCredential Credential = 1;
+    //
+    grpcBranchMasterModel Record = 2;
+}
+message grpcBranchMasterModel {
+    string ID = 1;
+    string BranchID = 2;
+    string BranchName = 3;
+    string PhoneNo = 4;
+    string Email = 5;
+    string Address = 6;
+    string Notes = 7;
+    string PicName = 8;
+    bool Status = 9;
+    int32 DspOrder = 10;
+    google.protobuf.Timestamp ModifiedOn = 11;
+    int32 UpdMode = 12;
+}
+message GetBranchMaster_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcBranchMasterModel Records = 3;
+}
+message UpdateTotalClaimRequest_Request {
+    UserCredential Credential = 1;
+    //
+    string ClaimNo = 2;
+    double EstRepairPrice = 3;
+    double DealRepairPrice = 4;
+    double AprRepairPrice = 5;
+    double EstVAT = 80;
+    double DealVAT = 81;
+    double AprVAT = 82;
+}
+message UpdateStatusClaimRequest_Request {
+    UserCredential Credential = 1;
+    //
+    string ClaimNo = 2;
+    bool IsUpdateAcceptStatus = 3;
+    bool AcceptStatus = 4;
+    bool IsUpdateCancelStatus = 5;
+    bool CancelStatus = 6;
+}
+
+
+message SaveRepairerMaster_Request {
+    UserCredential Credential = 1;
+    //
+    grpcRepairerMasterModel Record = 2;
+}
+message GetRepairerMaster_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcRepairerMasterModel Records = 3;
+}
+message grpcRepairerMasterModel {
+    string ID = 1;
+    string RepairerID = 2;
+    string RepairerName = 3;
+    string PhoneNo = 4;
+    string Email = 5;
+    string Address = 6;
+    string Notes = 7;
+    string PicName = 8;
+    bool Status = 9;
+    int32 DspOrder = 10;
+    google.protobuf.Timestamp ModifiedOn = 11;
+    int32 UpdMode = 12;
+}
+
+message GetAttachFileCount_Request {
+    UserCredential Credential = 1;
+    //
+    string VoucherNo = 2;
+    int32 DocumentLevel = 3;
+}
+
+message SaveClaim_Request {
+    UserCredential Credential = 1;
+    //
+    bool IsApproval = 2;
+    grpcClaimRequestModel ClaimRequest = 3;
+    
+}
+message GetClaimRequest_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    grpcClaimRequestModel ClaimRequest = 3;
+}
+message grpcClaimRequestModel {
+    string ID = 1;
+    string ClaimNo = 2;
+    google.protobuf.Timestamp ClaimDate = 3;
+    string ClaimAccountID = 4;
+    string ClaimAccountName = 5;
+    string BrancheID = 6;
+    string BrancheName = 7;
+    //Customer & claim
+    string CusFullname = 8;
+    string CusPhone = 9;
+    string CusEmail = 10;
+    string CusCardID = 11;
+    string DeviceIMEI = 12;
+    string DeviceModel = 13;
+    string TPAProductID = 14;
+    string TPAProductName = 15;
+    google.protobuf.Timestamp IncidentDate = 16;
+    google.protobuf.Timestamp NotificationDate = 17;
+    string DamageCause = 18;
+    string DamageType = 19;
+    string DamageTypeName = 190;
+    string NotificationChannelID = 20;
+    string NotificationChannelName = 21;
+    int32 Priority = 22;
+    //Insur contraction
+    string InsurContractNo = 23;
+    google.protobuf.Timestamp InsurStartDate = 24;
+    google.protobuf.Timestamp InsurEndDate = 25;
+    string InsurCompanyID = 26;
+    string InsurCompanyName = 27;
+    double ContractAmount = 28;
+    double InsurAmount = 280;
+    string AcceptNotes = 29;
+    bool AcceptStatus = 30;
+    //Pickup
+    google.protobuf.Timestamp PickupReqDate = 31;
+    google.protobuf.Timestamp PickupDoneDate1 = 32;
+    google.protobuf.Timestamp PickupDoneDate2 = 33;
+    string PickupCompanyID = 34;
+    string PickupCompanyName = 35;
+    string PickupAccountID = 36;
+    string PickupAccountName = 37;
+    string PickupNotes = 38;
+    string PickupAddress = 39;
+    bool PickupReqStatus = 40;
+    bool PickupStatus1 = 41;
+    bool PickupStatus2 = 42;
+    //Check
+    google.protobuf.Timestamp CheckReqDate = 43;
+    google.protobuf.Timestamp CheckDoneDate = 44;
+    string PicAccountID = 45;
+    string PicPhone = 46;
+    string PicAccountName = 47;
+    string CheckNotes = 48;
+    bool CheckStatus = 49;
+    //Repair
+    google.protobuf.Timestamp EstReqDate = 50;
+    google.protobuf.Timestamp EstDoneDate = 500;
+    google.protobuf.Timestamp RepairDoneDate = 51;
+    string RepairCompanyID = 52;
+    string RepairCompanyName = 53;
+    string RepairAccountID = 54;
+    string RepairAccountName = 55;
+    string NewDeviceIMEI = 56;
+    string NewDeviceModel = 57;
+    string RepairReqNotes = 580;
+    string RepairNotes = 58;
+    bool RepairStatus = 59;
+    //Estimations
+    repeated grpcEstimationModel Estimations = 60;
+    bool EstimationReqStatus = 61;
+    bool EstimationStatus = 62;
+    //Approve
+    google.protobuf.Timestamp ApproveReqDate = 63;
+    google.protobuf.Timestamp ApproveDoneDate = 64;
+    string ApproveAccountID = 65;
+    string ApproveAccountName = 66;
+    string ApproveNotes = 67;
+    bool ApproveReqStatus = 68;
+    bool ApproveStatus = 69;
+    //Return
+    google.protobuf.Timestamp ReturnReqDate = 70;
+    google.protobuf.Timestamp ReturnDoneDate1 = 71;
+    google.protobuf.Timestamp ReturnDoneDate2 = 710;
+    string ReturnCompanyID = 72;
+    string ReturnCompanyName = 73;
+    string ReturnAccountID = 74;
+    string ReturnAccountName = 75;
+    string ReturnAddress = 76;
+    string ReturnNotes = 77;
+    bool ReturnReqStatus = 780;
+    bool ReturnStatus1 = 78;
+    bool ReturnStatus2 = 79;
+    //Payment
+    google.protobuf.Timestamp PayReqDate = 80;
+    google.protobuf.Timestamp PayDoneDate = 81;
+    string PayAccountID = 82;
+    string PayAccountName = 83;
+    string PayReqNotes = 840;
+    string PayNotes = 84;
+    bool PayReqStatus = 85;
+    bool PayStatus = 86;
+    //Close
+    bool CloseStatus = 87;
+    //sumary
+    double ClaimAmount = 88;
+    double ApproveAmount = 89;
+    double DeductibleAmount = 90;
+    double IndemnityAmount = 91;
+    double RemainingAmount = 92;
+    //Update History
+    repeated grpcUpdateHistoryModel UpdateHistorys = 94;
+    //CancelStatus
+    bool CancelStatus = 95;
+    bool ProcessStatus = 96;
+    //
+    int32 UpdMode = 97;
+    google.protobuf.Timestamp ModifiedOn = 98;
+}
+message grpcEstimationModel {
+    int32 LineNo = 1;
+    google.protobuf.Timestamp IssueDate = 2;
+    string ItemCode = 3;
+    string ItemName = 4;
+    bool IsReplace = 5;
+    double Quantity = 6;
+    double UnitPrice = 7;
+    double Amount = 8;
+    double ApproveAmount = 9;
+    string RecNo = 10;
+    string Notes = 11;
+}
+message grpcUpdateHistoryModel {
+    google.protobuf.Timestamp ChangedDate = 1;
+    string WorkStep = 2;
+    string ChangedStatus = 3;
+    string ChangedNotes = 4;
+}
+
+message SaveAttachFiles_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcAttachFileModel AttachFiles = 2;
+}
+message grpcAttachFileModel {
+    string ID = 1;
+    string VoucherNo = 2;
+    google.protobuf.Timestamp IssueDateTime = 3;
+    string CategoryID = 4;
+    string CategoryName = 5;
+    string FileName = 6;
+    string Notes = 7;
+    string ResourceID = 8;
+    int32 DocumentLevel = 9;
+    string DocumentLevelName = 10;
+    string DataOwnerID = 11;
+    //
+    google.protobuf.Timestamp ModifiedOn = 12;
+    int32 UpdMode = 13;
+}
+message GetAttachFiles_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcAttachFileModel AttachFiles = 3;
+}
+message GetClaimRequestList_Request {
+    UserCredential Credential = 1;
+    //
+    string CusPhone = 2;
+    string DeviceIMEI = 3;
+    string CusFullname = 4;
+    string BrancheID = 5;
+    string InsurCompanyID = 6;
+    string PickupCompanyID = 7;
+    string RepairCompanyID = 8;
+    int32 Status = 9;
+    bool StatusCheck = 10;
+    google.protobuf.Timestamp StartDate = 11;
+    google.protobuf.Timestamp EndDate = 12;
+}
+message GetPickupList_Request {
+    UserCredential Credential = 1;
+    //
+    string PickupCompanyID = 2;
+    int32 Status = 3;
+    bool StatusCheck = 4;
+    google.protobuf.Timestamp StartDate = 5;
+    google.protobuf.Timestamp EndDate = 6;
+}
+message GetRepairList_Request {
+    UserCredential Credential = 1;
+    //
+    string RepairCompanyID = 2;
+    int32 Status = 3;
+    bool StatusCheck = 4;
+    google.protobuf.Timestamp StartDate = 5;
+    google.protobuf.Timestamp EndDate = 6;
+}
+message GetReturnList_Request {
+    UserCredential Credential = 1;
+    //
+    string ReturnCompanyID = 2;
+    int32 Status = 3;
+    bool StatusCheck = 4;
+    google.protobuf.Timestamp StartDate = 5;
+    google.protobuf.Timestamp EndDate = 6;
+}
+message GetClaimRequestList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcClaimRequestModel ClaimRequests = 3;
+}
+
+

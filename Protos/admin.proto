@@ -1,0 +1,252 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Admin.Services";
+import "google/protobuf/timestamp.proto";
+package grpcAdminService;
+
+//Services
+service grpcAdminService {    
+    //Login
+    rpc GrpcLogin (GrpcLogin_Request) returns (GrpcLogin_Response);
+    //VoucherMaster
+    rpc GetVoucherNo (String_Request) returns (String_Response);
+    rpc CommitVoucherNo (CommitVoucherNo_Request) returns (String_Response);
+
+    //OptionList
+    rpc SaveOptionList (SaveOptionList_Request) returns (String_Response);
+    rpc GetOptionList (String_Request) returns (GetOptionList_Response);    
+    //OptionListHeader
+    rpc SaveOptionListHeader (SaveOptionListHeader_Request) returns (String_Response);
+    rpc GetOptionListHeader (Empty_Request) returns (GetOptionListHeader_Response);
+    //SettingMaster
+    rpc SaveSettingMaster (SaveSettingMaster_Request) returns (String_Response);
+    rpc GetSettingMaster (Empty_Request) returns (GetSettingMaster_Response);
+    //UserAccount
+    rpc SaveUserAccount (SaveUserAccount_Request) returns (String_Response);
+    rpc GetUserAccount (String_Request) returns (GetUserAccount_Response);
+    //WebPushNotification
+    rpc SubscribeToNotifications (SubscribeToNotifications_Request) returns (Empty_Response);
+    rpc WebPushNotification (WebPushNotification_Request) returns (Empty_Response);
+    rpc GetNotificationSubscribe (String_Request) returns (GetNotificationSubscribe_Response);
+}
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    string RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+     string StringValue = 2;
+}
+message String_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     string StringValue = 3;
+}
+message Int_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     int32 IntValue = 3;
+}
+//
+//======================================================
+// Messages
+//======================================================
+message GetNotificationSubscribe_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcNotificationSubcribeModel Records = 3;
+}
+message grpcNotificationSubcribeModel {
+    string ID = 1;
+    int32 NotificationSubscriptionId = 2;
+    string UserId = 3;
+    string Url = 4;
+    string P256dh = 5;
+    string Auth = 6;
+}
+message SubscribeToNotifications_Request {
+    UserCredential Credential = 1;
+    //
+    int32 NotificationSubscriptionId = 2;
+    string UserId = 3;
+    string Url = 4;
+    string P256dh = 5;
+    string Auth = 6;
+}
+message WebPushNotification_Request {
+    UserCredential Credential = 1;
+    //
+    string UserName = 2;
+    string Messages = 3;
+    string Url = 4;
+}
+
+//GrpcLogin
+message CommitVoucherNo_Request {
+    UserCredential Credential = 1;
+    //
+    string VoucherCode = 2;
+    string VoucherNo = 3;
+}
+message GrpcLogin_Request
+{
+    UserCredential Credential = 1;
+    //
+    string UserName = 2;
+    string Password = 3;
+}
+message GrpcLogin_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string UserName = 3;
+    string Fullname = 4;
+    string RoleID = 5;
+    int32 ApproveLevel = 6;
+    int32 DocumentLevel = 7;
+}
+message SaveOptionList_Request {
+    UserCredential Credential = 1;
+    //
+    grpcOptionList Record = 2;
+}
+//
+message GetOptionList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcOptionList OptionList = 3;
+}
+//OptionListHeader
+message SaveOptionListHeader_Request
+{
+    UserCredential Credential = 1;
+    //
+    grpcOptionListHeader Record = 2;
+}
+message GetOptionListHeader_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcOptionListHeader OptionListHeader = 3;
+}
+message grpcOptionListHeader
+{
+    string ID = 1;
+    string ListCode = 2;
+    int32 IntCode = 3;
+    double DoubleCode = 4;
+    string ListName = 5;
+    string Description = 6;
+    int32 UpdMode = 7;
+}
+message grpcOptionList
+{
+    string ID  = 1; 
+    string ListCode  = 2;
+    string ItemCode  = 3; 
+    int32 IntCode  = 4; 
+    double DoubleCode  = 5; 
+    string ItemName  = 6; 
+    string DspOrder  = 7; 
+    string Description  = 8; 
+    google.protobuf.Timestamp CreatedOn  = 9; 
+    google.protobuf.Timestamp ModifiedOn  = 10;          
+    int32 UpdMode  = 11;     
+}
+message SaveSettingMaster_Request
+{
+    UserCredential Credential = 1;
+    //
+    grpcSettingMasterModel Record = 2;
+}
+
+message GetSettingMaster_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcSettingMasterModel Records = 3;
+}
+message grpcSettingMasterModel
+{   
+    string ID = 1;
+    string Code = 2;
+    string Description = 3;
+    string StringValue1 = 4;
+    string StringValue2 = 5;
+    int32 IntValue1 = 6;
+    int32 IntValue2 = 7;
+    double DoubleValue1 = 8;
+    double DoubleValue2 = 9;
+    google.protobuf.Timestamp ModifiedOn = 10;
+    int32 UpdMode = 11;
+}
+
+message SaveUserAccount_Request
+{
+    UserCredential Credential = 1;
+    //
+    grpcUserAccountModel Record = 2;
+}
+
+message GetUserAccount_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcUserAccountModel UserAccounts = 3;
+}
+message grpcUserAccountModel
+{   
+    string ID = 1;
+    string UserID = 2;
+    string UserName = 3;
+    string Password = 4;
+    string Fullname = 5;
+    string Phone = 6;
+    string Email = 7;
+    string Address = 8;
+    string RoleID = 9;
+    string RoleName = 10;
+    string BrancheID = 11;
+    string BrancheName = 12;
+    string LogisticCompanyID = 13;
+    string LogisticCompanyName = 14;
+    string RepairCompanyID = 15;
+    string RepairCompanyName = 16;
+    string ApproveAcountID = 17;
+    int32 ApproveLevel = 18;
+    string ApproveLevelName = 19;
+    int32 DocumentLevel = 20;
+    string DocumentLevelName = 21;
+    bool Status = 22;
+    google.protobuf.Timestamp ModifiedOn = 23;
+    int32 UpdMode = 24;
+}
+
+
+
+

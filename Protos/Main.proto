@@ -1,0 +1,528 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Gosu.Admin.Services";
+import "google/protobuf/timestamp.proto";
+package grpcAdminService;
+
+//Services
+service grpcAdminService {        
+    rpc SaveServiceList (SaveServiceList_Request) returns (Empty_Response);
+    rpc GetServiceList (Empty_Request) returns (GetServiceList_Response);
+    //
+    rpc SaveApiList (SaveApiList_Request) returns (Empty_Response);
+    rpc GetApiList (Empty_Request) returns (GetApiList_Response);
+    //
+    rpc SaveOptionList (SaveOptionList_Request) returns (Empty_Response);
+    rpc GetOptionList (String_Request) returns (GetOptionList_Response);    
+    //
+    rpc SaveLanguageList (SaveLanguageList_Request) returns (Empty_Response);
+    rpc GetLanguageList (Empty_Request) returns (GetLanguageList_Response);
+    //
+    rpc SaveLanguageDic (SaveLanguageDic_Request) returns (Empty_Response);
+    rpc GetLanguageDic (Empty_Request) returns (GetLanguageDic_Response);        
+    //    
+    rpc SaveFunctionList (SaveFunctionList_Request) returns (Empty_Response);
+    rpc GetFunctionList (String_Request) returns (GetFunctionList_Response);     
+    //
+    rpc SaveRoleList (SaveRoleList_Request) returns (Empty_Response);
+    rpc GetRoleList (String_Request) returns (GetRoleList_Response);
+    //
+    rpc SaveUserRole (SaveUserRole_Request) returns (Empty_Response);
+    rpc GetUserRole (String_Request) returns (GetUserRole_Response);
+    //
+    rpc SaveMenuGroup (SaveMenuGroup_Request) returns (Empty_Response);
+    rpc GetMenuGroup (String_Request) returns (GetMenuGroup_Response);
+    //
+    rpc SaveMenuDetail (SaveMenuDetail_Request) returns (Empty_Response);
+    rpc GetMenuDetail (String_Request) returns (GetMenuDetail_Response);
+    //
+    rpc SaveAddressMaster (SaveAddressMaster_Request) returns (Empty_Response);
+    rpc GetAddressMaster (Empty_Request) returns (GetAddressMaster_Response);
+    //
+    rpc SaveNews (SaveNews_Request) returns (Empty_Response);
+    rpc GetNews (Empty_Request) returns (GetNews_Response);
+    //
+    rpc SaveRoleDetail (SaveRoleDetail_Request) returns (Empty_Response);
+    rpc GetRoleDetail (String_Request) returns (GetRoleDetail_Response);
+    rpc DeleteRoleDetail (DeleteRoleDetail_Request) returns (Empty_Response);    
+    //
+    rpc SaveOptionListHeader (SaveOptionListHeader_Request) returns (Empty_Response);
+    rpc GetOptionListHeader (Empty_Request) returns (GetOptionListHeader_Response);
+    //
+    rpc SaveSystemList (SaveSystemList_Request) returns (Empty_Response);
+    rpc GetSystemList (Empty_Request) returns (GetSystemList_Response);
+    //
+    rpc SaveSettingMaster (SaveSettingMaster_Request) returns (Empty_Response);
+    rpc GetSettingMaster (Empty_Request) returns (GetSettingMaster_Response);
+    //
+    
+
+}
+
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    int32 RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+     string StringValue = 2;
+}
+//
+//======================================================
+// Messages
+//======================================================
+message SaveOptionList_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcOptionList OptionList = 2;
+}
+//
+message GetOptionList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcOptionList OptionList = 3;
+}
+message SaveServiceList_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcServiceList ServiceList = 2;    
+}
+message SaveApiList_Request
+{
+   UserCredential Credential = 1;
+    //
+    repeated  grpcApiList ApiList = 2;
+}
+message GetServiceList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcServiceList ServiceList = 3;    
+}
+message GetApiList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated  grpcApiList ApiList = 3;
+}
+message grpcApiList
+{
+    string ID  = 1; 
+    string ApiKey = 2;
+    string ServiceName  = 3; 
+    string Descriptions  = 4;         
+    google.protobuf.Timestamp CreatedOn = 5;
+    google.protobuf.Timestamp ModifiedOn = 6;
+    int32 UpdMode = 7; 
+}
+
+message grpcServiceList
+{
+    string ID  = 1; 
+    string ServiceName  = 2; 
+    string Descriptions  = 3; 
+    string Host  = 4; 
+    int32 Port = 5; 
+    string Url = 6;    
+    google.protobuf.Timestamp CreatedOn = 7;
+    google.protobuf.Timestamp ModifiedOn = 8;
+    int32 UpdMode = 9;    
+}
+message grpcOptionList
+{
+    string ID  = 1; 
+    string ListCode  = 2;
+    string ItemCode  = 3; 
+    string ItemName  = 4; 
+    string DspOrder  = 5; 
+    string Description  = 6; 
+    google.protobuf.Timestamp CreatedOn  = 7; 
+    google.protobuf.Timestamp ModifiedOn  = 8;          
+    int32 UpdMode  = 9;     
+}
+////
+//LanguageList
+////
+message SaveLanguageList_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated  grpcLanguageList LanguageList = 2;
+}
+//
+message GetLanguageList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcLanguageList LanguageList = 3;
+}
+//
+message grpcLanguageList
+{
+    string ID  = 1; 
+    string LanguageID   = 2;
+    string LanguageName    = 3;    
+    google.protobuf.Timestamp CreatedOn  = 4; 
+    google.protobuf.Timestamp ModifiedOn  = 5;          
+    int32 UpdMode  = 6;  
+}
+//
+//LanguageDic
+//
+message SaveLanguageDic_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated  grpcLanguageDic LanguageDics = 2;
+}
+//
+message GetLanguageDic_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcLanguageDic LanguageDics = 3;
+}
+//
+message grpcLanguageDic
+{
+    string ID  = 1; 
+    string LanguageID   = 2;
+    string Code   = 3;
+    string Text   = 4;
+    string OriText   = 5;
+    google.protobuf.Timestamp CreatedOn  = 6; 
+    google.protobuf.Timestamp ModifiedOn  = 7;          
+    int32 UpdMode  = 8;  
+}
+//
+message SaveFunctionList_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcFunctionList FunctionList = 2;
+}
+//
+message GetFunctionList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcFunctionList FunctionList = 3;
+}
+//
+message grpcFunctionList
+{
+    string ID  = 1; 
+    string SystemID   = 2;
+    string PageID  = 3; 
+    string PageName  = 4; 
+    string Discriptions  = 5; 
+    string F1 = 6; 
+    string F2  = 7; 
+    string F3  = 8; 
+    string F4  = 9; 
+    string F5  = 10;     
+    google.protobuf.Timestamp CreatedOn  = 11; 
+    google.protobuf.Timestamp ModifiedOn  = 12;          
+    int32 UpdMode  = 13;     
+}
+////
+message SaveRoleList_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcRoleList RoleList = 2;
+}
+//
+message GetRoleList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcRoleList RoleList = 3;
+}
+//
+message grpcRoleList
+{
+    string ID  = 1; 
+    string SystemID   = 2;
+    int32 RoleID  = 3; 
+    string RoleName  = 4; 
+    string Discriptions  = 5;         
+    google.protobuf.Timestamp CreatedOn  = 6; 
+    google.protobuf.Timestamp ModifiedOn  = 7;          
+    int32 UpdMode  = 8;     
+}
+
+//
+message SaveUserRole_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcUserRole UserRoles = 2;
+}
+//
+message GetUserRole_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcUserRole UserRoles = 3;
+}
+//
+message grpcUserRole
+{
+    string ID  = 1; 
+    string UserName   = 2;
+    string SystemID   = 3;
+    int32 RoleID  = 4;     
+    string Discriptions  = 5;         
+    google.protobuf.Timestamp CreatedOn  = 6; 
+    google.protobuf.Timestamp ModifiedOn  = 7;          
+    int32 UpdMode  = 8;     
+}
+//
+message SaveMenuGroup_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcMenuGroup MenuGroups = 2;
+}
+//
+message GetMenuGroup_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcMenuGroup MenuGroups = 3;
+}
+//
+message grpcMenuGroup
+{
+    string ID  = 1; 
+    string SystemID   = 2;
+    string GroupID   = 3;
+    string GroupName  = 4;     
+    int32 DisplayOrder  = 5;         
+    string IconUrl  = 6;
+    bool Enabled  = 7;
+    int32 UpdMode  = 8;     
+}
+//
+message SaveMenuDetail_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcMenuDetail MenuDetails = 2;
+}
+//
+message GetMenuDetail_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcMenuDetail MenuDetails = 3;
+}
+//
+message grpcMenuDetail
+{
+    string ID  = 1; 
+    string SystemID   = 2;
+    string GroupID   = 3;
+    string PageID  = 4;     
+    string PageName  = 5;     
+    string IconUrl  = 6;
+    int32 DisplayOrder  = 7;         
+    bool Enabled  = 8;
+    int32 UpdMode  = 9;     
+}
+//AddressMaster
+message SaveAddressMaster_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcAddressMaster AddressMasters = 2;
+}
+//
+message GetAddressMaster_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcAddressMaster AddressMasters = 3;
+}
+message grpcAddressMaster
+{
+    string ID  = 1; 
+    int32 DeepLevel   = 2;
+    string ParrentID   = 3;
+    string ItemID  = 4;     
+    string ItemName  = 5;     
+    string GGItemName  = 6;         
+    google.protobuf.Timestamp CreatedOn  = 7; 
+    google.protobuf.Timestamp ModifiedOn  = 8;          
+    int32 UpdMode  = 9;     
+}
+//News
+message SaveNews_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcNews News = 2;
+}
+//
+message GetNews_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcNews News = 3;
+}
+message grpcNews
+{
+    string ID = 1; 
+    string Title = 2;
+    string Content = 3;
+    int32 Category = 4;     
+    string Writter = 5;     
+    string GameID = 6;         
+    google.protobuf.Timestamp CreatedOn = 7; 
+    google.protobuf.Timestamp ModifiedOn = 8;          
+    int32 UpdMode = 9;     
+}
+//RoleDetail
+message SaveRoleDetail_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcRoleDetail RoleDetail = 2;
+}
+message GetRoleDetail_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcRoleDetail RoleDetail = 3;
+}
+message grpcRoleDetail
+{
+    string ID = 1;
+    string SystemID = 2;
+    int32 RoleID = 3;
+    string PageID = 4;
+    string PageName = 5;
+    string Discriptions = 6;
+    bool F1 = 7;
+    bool F2 = 8;
+    bool F3 = 9;
+    bool F4 = 10;
+    bool F5 = 11;
+    google.protobuf.Timestamp CreatedOn = 12; 
+    google.protobuf.Timestamp ModifiedOn = 13;
+    int32 UpdMode = 14;
+}
+message DeleteRoleDetail_Request
+{
+    UserCredential Credential = 1;
+    //
+    string SystemID = 2;
+    int32 RoleID = 3;    
+}
+//OptionListHeader
+message SaveOptionListHeader_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcOptionListHeader OptionListHeader = 2;
+}
+message GetOptionListHeader_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcOptionListHeader OptionListHeader = 3;
+}
+message grpcOptionListHeader
+{
+    string ID = 1;
+    string ListCode = 2;
+    string ListName = 3;
+    string Description = 4;
+    int32 UpdMode = 5;
+}
+//SystemList
+message SaveSystemList_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcSystemList SystemList = 2;
+}
+message GetSystemList_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcSystemList SystemList = 3;
+}
+message grpcSystemList
+{
+    string ID = 1;
+    string SystemID = 2;
+    string SystemName = 3;
+    int32 UpdMode = 4;
+}
+message SaveSettingMaster_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcSettingMaster SettingMasters = 2;
+}
+
+message GetSettingMaster_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcSettingMaster SettingMasters = 3;
+}
+message grpcSettingMaster
+{   
+    string ID = 1;
+    string Code = 2;
+    string Description = 3;
+    string StringValue1 = 4;
+    string StringValue2 = 5;
+    int32 IntValue1 = 6;
+    int32 IntValue2 = 7;
+    double DoubleValue1 = 8;
+    double DoubleValue2 = 9;
+    google.protobuf.Timestamp ModifiedOn = 10;
+    int32 UpdMode = 11;
+}
+
+
+
+
+

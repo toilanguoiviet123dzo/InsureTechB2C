@@ -1,0 +1,229 @@
+﻿@page "/ProductList"
+@using Insure.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyDataGrid @ref="@grid"
+            T="ProductModel"
+            Title="Danh sách sản phẩm"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((ProductModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((ProductModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 8rem;" />
+        <col />
+        <col style="width: 10rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 5rem;" />
+        <col style="width: 5rem;" />
+        <col style="width: 5rem;" />
+        <col style="width: 5rem;" />
+        <col style="width: 9rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProductModel, object>(x => x.ProductID)">Mã</MudTableSortLabel></MudTh>
+        <MudTh>Tên</MudTh>
+        <MudTh>Nhà cung cấp</MudTh>
+        <MudTh>Số tiền bảo hiểm</MudTh>
+        <MudTh>Giá bán</MudTh>
+        <MudTh>% VAT</MudTh>
+        <MudTh>Gồm VAT</MudTh>
+        <MudTh>Thời hạn</MudTh>
+        <MudTh>Đơn vị</MudTh>
+        <MudTh>Cập nhật cuối</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.ProductID</MudTd>
+        <MudTd>@context.ProductName</MudTd>
+        <MudTd>@context.VendorName</MudTd>
+        <MudTd Style="color:blue; font-weight: bold; text-align:end">@context.InsureAmount.ToString("N0")</MudTd>
+        <MudTd Style="color:green; font-weight: bold; text-align:end">@context.UnitPrice.ToString("N0")</MudTd>
+        <MudTd Style="text-align:end">@context.TaxRate.ToString("P0")</MudTd>
+        <MudTd><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true"></MudCheckBox></MudTd>
+        <MudTd Style="color:purple; font-weight: bold; text-align:end">@context.Duration.ToString("N0")</MudTd>
+        <MudTd>@context.DurationUnit</MudTd>
+        <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<ProductModel> grid;
+    readonly List<ProductModel> DetailData = new List<ProductModel>();
+    // Master
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Display data ..
+        await DisplayMain();
+    }
+    #region Load data
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Filter
+            var requestString = new String_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = ""
+                };
+
+            //Get data from DB
+            DetailData.Clear();
+            var response = await insureServiceClient.GetProductListAsync(requestString);
+            if (response != null && response.ReturnCode == 200)
+            {
+                foreach (var item in response.Records)
+                {
+                    ProductModel dataRow = new ProductModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    //
+                    DetailData.Add(dataRow);
+                }
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    #endregion
+
+
+    #region Grid main
+    //Save Row
+    async Task<bool> SaveRow(ProductModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveProduct_Request();
+            var Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcProductModel();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await insureServiceClient.SaveProductAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new ProductModel();
+        newRow.DurationUnit = "Ngày";
+        newRow.IsIncludeVAT = true;
+        newRow.UpdMode = 1;
+        newRow.ModifiedOn = DateTime.Now;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (ProductModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(ProductModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (ProductModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(ProductModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+
+    #endregion
+    //
+}

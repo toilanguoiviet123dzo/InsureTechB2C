@@ -1,0 +1,221 @@
+﻿@page "/SettingMaster"
+@using Admin.Services
+@using System.Collections.ObjectModel
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyDataGrid @ref="@grid"
+            T="SettingMasterModel"
+            Title="Danh sách yêu cầu bồi thường"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((SettingMasterModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((SettingMasterModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 6rem;" />
+        <col />
+        <col style="width: 15rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 8rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SettingMasterModel, object>(x => x.Code)">Code</MudTableSortLabel></MudTh>
+        <MudTh>Description</MudTh>
+        <MudTh>StringValue1</MudTh>
+        <MudTh>StringValue2</MudTh>
+        <MudTh>IntValue1</MudTh>
+        <MudTh>IntValue2</MudTh>
+        <MudTh>DoubleValue1</MudTh>
+        <MudTh>DoubleValue2</MudTh>
+        <MudTh>ModifiedOn</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center;">@context.Code</MudTd>
+        <MudTd>@context.Description</MudTd>
+        <MudTd>@context.StringValue1</MudTd>
+        <MudTd>@context.StringValue2</MudTd>
+        <MudTd Style="text-align:right;">@context.IntValue1.ToString("N0")</MudTd>
+        <MudTd Style="text-align:right;">@context.IntValue2.ToString("N0")</MudTd>
+        <MudTd Style="text-align:right;">@context.DoubleValue1.ToString("N2")</MudTd>
+        <MudTd Style="text-align:right;">@context.DoubleValue2.ToString("N2")</MudTd>
+        <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code{
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<SettingMasterModel> grid;
+    readonly List<SettingMasterModel> DetailData = new List<SettingMasterModel>();
+    // Init
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        // Load filter data
+        await DisplayMain();
+
+        // Display data ..
+    }
+
+    #region Load data
+    // Load SettingMaster
+    async Task DisplayMain()
+    {
+        try
+        {
+            var requestSettingMaster = new Empty_Request()
+            {
+                Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                }
+            };
+            //Get data from DB
+            DetailData.Clear();
+            var resSettingMaster = await adminServiceClient.GetSettingMasterAsync(requestSettingMaster);
+            if (resSettingMaster != null && resSettingMaster.ReturnCode == 200)
+            {
+                foreach (var item in resSettingMaster.Records)
+                {
+                    SettingMasterModel dataRow = new SettingMasterModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    // Set Updmode
+                    dataRow.UpdMode = 0;
+                    //
+                    DetailData.Add(dataRow);
+                }
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+
+    }
+    #endregion
+
+    #region DataGrid
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new SettingMasterModel();
+        newRow.UpdMode = 1;
+        newRow.ModifiedOn = DateTime.Now;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<SettingMasterEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (SettingMasterModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(SettingMasterModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<SettingMasterEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (SettingMasterModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(SettingMasterModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+    // Save edit main
+    async Task<bool> SaveRow(SettingMasterModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveSettingMaster_Request();
+            var Credential = new Admin.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcSettingMasterModel();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await adminServiceClient.SaveSettingMasterAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    #endregion
+}

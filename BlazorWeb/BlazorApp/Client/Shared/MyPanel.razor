@@ -1,0 +1,29 @@
+﻿<MudExpansionPanel @ref="@Ref"
+                   IsInitiallyExpanded="IsInitiallyExpanded"
+                   Dense="true"
+                   DisableGutters="true"
+                   Class="pb-2">
+    <TitleContent>
+        <h6 class="font-weight-bold">@Title</h6>
+    </TitleContent>
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+</MudExpansionPanel>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public bool IsInitiallyExpanded { get; set; } = true;
+
+    MudExpansionPanel Ref;
+
+    public void Expand()
+    {
+        Ref.Expand();
+    }
+    public void Collapse()
+    {
+        Ref.Collapse();
+    }
+}

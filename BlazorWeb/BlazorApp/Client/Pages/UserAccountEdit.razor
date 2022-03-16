@@ -1,0 +1,55 @@
+﻿@inject MasterService masterService;
+
+<MyPopupEdit Title="Nhập chi nhánh bồi thường"
+             T="UserAccountModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MudTextField Label="UserName" @bind-Value="DspModel.UserName" For="@(() => DspModel.UserName)" />
+    <MudTextField Label="Password" @bind-Value="DspModel.Password" InputType="InputType.Password" For="@(() => DspModel.Password)" />
+    <MudTextField Label="Full name" @bind-Value="DspModel.Fullname" For="@(() => DspModel.Fullname)" />
+    <MudTextField Label="Phone" @bind-Value="DspModel.Phone" />
+    <MudTextField Label="Email" @bind-Value="DspModel.Email" />
+    <MudTextField Label="Address" @bind-Value="DspModel.Address" />
+    <MudSwitch @bind-Checked="@DspModel.Status" Color="Color.Primary">Hữu hiệu</MudSwitch>
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public UserAccountModel Model { get; set; }
+    //
+    UserAccountModel DspModel = new UserAccountModel();
+    // Master
+    //Selected
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await Task.FromResult(0);
+
+    }
+
+
+}

@@ -1,0 +1,99 @@
+﻿@inject IJSRuntime JsRuntime;
+
+<style>
+    .mud-container {
+        padding-left: 8px !important;
+        padding-right: 8px !important;
+    }
+
+    .mud-expand-panel .mud-expand-panel-header {
+        padding: 0 0 0 8px !important;
+    }
+
+    .mud-dialog .mud-dialog-title {
+        padding: 0 !important;
+    }
+</style>
+
+<MudCard @ref="@Ref">
+    <MudCardHeader>
+        <MudAppBar Fixed="false" Elevation="1" Dense="true">
+            <MudText Typo="Typo.h6" Class="ml-4">
+                @Title
+            </MudText>
+            <MudSpacer />
+            <MudIconButton Class="mt-n2" Icon="@Icons.Material.Filled.Close" Color="Color.Error" Size="Size.Medium" OnClick="@(() => OnClose_Handle())"></MudIconButton>
+        </MudAppBar>
+    </MudCardHeader>
+    <MudCardContent Style="@($"max-height: {MaxHeight}; overflow-y: scroll")">
+        @ChildContent
+    </MudCardContent>
+    <MudCardActions Class="justify-center">
+        @if (IsShowCancelButton)
+        {
+            <MyButton OnClick="OnCancel" Icon="@CancelIcon" Color="CancelColor" Literal="@CancelText" />
+        }
+        @if (IsShowSubmitButton && !ReadOnly)
+        {
+            <MyButton OnClick="OnSubmit" Icon="@SubmitIcon" Color="SubmitColor" Literal="@SubmitText" />
+        }
+        @ActionButtons
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public RenderFragment ActionButtons { get; set; }
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool IsShowCancelButton { get; set; } = true;
+    [Parameter] public bool IsShowSubmitButton { get; set; } = true;
+    [Parameter] public string CancelText { get; set; } = "Cancel";
+    [Parameter] public string SubmitText { get; set; } = "Save";
+    [Parameter] public string CancelIcon { get; set; } = Icons.Material.Filled.Cancel;
+    [Parameter] public string SubmitIcon { get; set; } = Icons.Material.Filled.Save;
+    [Parameter] public Color CancelColor { get; set; } = Color.Default;
+    [Parameter] public Color SubmitColor { get; set; } = Color.Primary;
+    [Parameter] public string FocusFirstItemID { get; set; } = "";
+
+    //Visible
+    [Parameter] public bool Visible { get; set; } = true;
+    [Parameter] public EventCallback<bool> VisibleChanged { get; set; }
+    private async void OnVisibleChanged(bool value)
+    {
+        Visible = value;
+        await VisibleChanged.InvokeAsync(value);
+    }
+
+    //Cancel
+    [Parameter] public EventCallback OnCancelClick { get; set; }
+    private async void OnCancel()
+    {
+        await OnCancelClick.InvokeAsync();
+    }
+
+    //Submit
+    [Parameter] public EventCallback OnSubmitClick { get; set; }
+    private async void OnSubmit()
+    {
+        await OnSubmitClick.InvokeAsync();
+    }
+
+    //Ref
+    MudCard Ref;
+    string MaxHeight = "800px";
+
+    //Close
+    async void OnClose_Handle()
+    {
+        await OnCancelClick.InvokeAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Height
+        MaxHeight = Math.Round(BrowserInfo.Height * 0.8, 0) + "px";
+    }
+}

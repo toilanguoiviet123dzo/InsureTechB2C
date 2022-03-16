@@ -1,0 +1,154 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Insure.Services";
+import "google/protobuf/timestamp.proto";
+package grpcInsureService;
+
+//Services
+service grpcInsureService {    
+    //Product
+    rpc SaveProduct (SaveProduct_Request) returns (String_Response);
+    rpc GetProduct (String_Request) returns (GetProduct_Response);
+    rpc GetProductList (String_Request) returns (GetProductList_Response);
+   
+    //Order
+    rpc CreateSaleOrder (CreateSaleOrder_Request) returns (String_Response);
+
+}
+
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    string RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+    string StringValue = 2;
+}
+message String_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string StringValue = 3;
+}
+message Int_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    int32 IntValue = 3;
+}
+
+//
+//======================================================
+// Messages
+//======================================================
+message GetProductDetail_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string aaa = 3;
+    string bbb = 4;
+}
+message SaveProduct_Request {
+    UserCredential Credential = 1;
+    //
+    grpcProductModel Record = 2;
+}
+
+message grpcProductModel {
+    string ID = 1;
+    string ProductID = 2;
+    string ProductName = 3;
+    string VendorID = 4;
+    string VendorName = 5;
+    double InsureAmount = 6;
+    double UnitPrice = 7;
+    double TaxRate = 8;
+    int32 Duration = 9;
+    string DurationUnit = 10;
+    repeated grpcSpecificationModel Specifications = 11;
+    string VendorLinks = 12;
+    string QALinks = 13;
+    string LogoID = 14;
+    string Notes = 15;
+    google.protobuf.Timestamp ModifiedOn  = 16;
+    int32 UpdMode = 17;
+}
+message grpcSpecificationModel {
+    int32 DspOrder = 1;
+    string Title = 2;
+    string Content = 3;
+    string RecNo = 4;
+}
+message GetProduct_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    grpcProductModel Record = 3;
+}
+message GetProductList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcProductModel Records = 3;
+}
+message CreateSaleOrder_Request {
+    UserCredential Credential = 1;
+    //
+    grpcSaleOrderModel Record = 2;
+}
+message grpcSaleOrderModel {
+    string ID = 1;
+    string OrderID = 2;
+    string OwnerFullname = 3;
+    string LicensePlate = 4;
+    string CusFullname = 5;
+    string CusPhone = 6;
+    string CusEmail = 7;
+    google.protobuf.Timestamp EffectiveSttDate = 8;
+    google.protobuf.Timestamp EffectiveEndDate = 9;
+    string CityID = 10;
+    string CityName = 11;
+    string DistrictID = 12;
+    string DistrictName = 13;
+    string WardID = 14;
+    string WardName = 15;
+    string Address = 16;
+    //Product
+    string ProductID = 17;
+    string ProductName = 18;
+    int32 Quantity = 19;
+    double UnitPrice = 20;
+    double Amount = 21;
+    bool IsIncludeVAT = 22;
+    double TaxRate = 23;
+    double TaxAmount = 24;
+    //Status
+    bool IsMakeOrder = 25;
+    bool IsPayed = 26;
+    bool IsIssueCertificate = 27;
+    //
+    google.protobuf.Timestamp ModifiedOn  = 28;
+    int32 UpdMode = 29;
+}
+
+
+
+
+
+

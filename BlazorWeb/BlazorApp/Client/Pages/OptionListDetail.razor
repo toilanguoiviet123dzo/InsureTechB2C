@@ -1,0 +1,297 @@
+﻿@page "/OptionListDetail"
+@using Admin.Services
+@using System.Collections.ObjectModel;
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<br />
+<div style="width:15rem">
+    <MyComboBox @ref="RefListCode"
+                Value="SelectedListCode"
+                ValueChanged="@((OptionListHeaderModel value) => ListCode_Changed(value))"
+                Data="@ListCodeData"
+                Literal="Loại danh sách"
+                TextFieldName="@nameof(OptionListHeaderModel.ListName)">
+    </MyComboBox>
+</div>
+<br />
+<MyDataGrid @ref="@grid"
+            T="OptionListModel"
+            Title="Danh sách tùy chọn"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((OptionListModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((OptionListModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 2rem;" />
+        <col style="width: 10rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col />
+        <col style="width: 8rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<OptionListModel, object>(x => x.DspOrder)">STT</MudTableSortLabel></MudTh>
+        <MudTh>Tên hạng mục</MudTh>
+        <MudTh>Trị chữ</MudTh>
+        <MudTh>Trị số nguyên</MudTh>
+        <MudTh>Trị số thực</MudTh>
+        <MudTh>Ghi chú</MudTh>
+        <MudTh>Ngày giờ</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center;">@context.DspOrder</MudTd>
+        <MudTd>@context.ItemName</MudTd>
+        <MudTd>@context.ItemCode</MudTd>
+        <MudTd Style="color:blue; text-align:right;">@context.IntCode</MudTd>
+        <MudTd Style="color:blue; text-align:right;">@context.DoubleCode</MudTd>
+        <MudTd>@context.Description</MudTd>
+        <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // ListCode
+    private readonly List<OptionListHeaderModel> ListCodeData = new List<OptionListHeaderModel>();
+    // Detail data
+    MyDataGrid<OptionListModel> grid;
+    readonly List<OptionListModel> DetailData = new List<OptionListModel>();
+    //
+    OptionListHeaderModel SelectedListCode;
+    MyComboBox<OptionListHeaderModel> RefListCode;
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await LoadMaster();
+    }
+
+    #region Load data
+    async Task LoadMaster()
+    {
+        //GetOptionListHeader
+        await Load_OptionListHeader();
+
+        //...
+    }
+
+    async Task Load_OptionListHeader()
+    {
+        try
+        {
+            var request = new Empty_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    }
+                };
+            ListCodeData.Clear();
+            var response = await adminServiceClient.GetOptionListHeaderAsync(request);
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                foreach (var item in response.OptionListHeader)
+                {
+                    OptionListHeaderModel dataRow = new OptionListHeaderModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    //Upd mode
+                    dataRow.UpdMode = 0;
+                    //
+                    ListCodeData.Add(dataRow);
+                }
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    async void DisplayMain()
+    {
+        try
+        {
+            //Filter
+            var requestString = new Admin.Services.String_Request()
+                {
+                    Credential = new Admin.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = ListCode
+                };
+
+            //Get data from DB
+            DetailData.Clear();
+            var response = await adminServiceClient.GetOptionListAsync(requestString);
+            if (response != null && response.ReturnCode == 200)
+            {
+                foreach (var item in response.OptionList)
+                {
+                    OptionListModel dataRow = new OptionListModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    //Upd modeB
+                    dataRow.UpdMode = 0;
+                    //
+                    DetailData.Add(dataRow);
+                }
+                grid.Refresh();
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+    #endregion
+
+    #region Save
+
+    //Save Row
+    async Task<bool> SaveRow(OptionListModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveOptionList_Request();
+            var Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcOptionList();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await adminServiceClient.SaveOptionListAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    #endregion
+
+    #region Grid
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        if (SelectedListCode == null)
+        {
+            Snackbar.Add("Hãy chọn loại danh sách trước!", Severity.Warning);
+            RefListCode.Focus();
+        }
+        //Init new row
+        var newRow = new OptionListModel();
+        newRow.UpdMode = 1;
+        newRow.ListCode = SelectedListCode.ListCode;
+        newRow.ModifiedOn = DateTime.Now;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<OptionListDetailEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (OptionListModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(OptionListModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<OptionListDetailEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (OptionListModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(OptionListModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+    string ListCode = "";
+    void ListCode_Changed(OptionListHeaderModel filter)
+    {
+        if (filter == null) return;
+        SelectedListCode = filter;
+        ListCode = filter.ListCode;
+        //
+        DisplayMain();
+    }
+    #endregion
+    //
+
+
+}

@@ -1,0 +1,138 @@
+﻿@page "/login"
+@using Admin.Services
+@inject IAuthenticationService AuthService
+@inject SettingService settingService;
+@inject NavigationManager NavManager
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject IJSRuntime JsRuntime;
+@attribute [AllowAnonymous]
+
+<style>
+    .center {
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        height: 100vh;
+    }
+</style>
+
+<!--Show error message-->
+@if (showError)
+{
+    <div class="alert alert-danger" role="alert">
+        <p>@errorMessage</p>
+    </div>
+}
+
+<!--Login form-->
+@if (!MaintennanceMode)
+{
+    <div class="center">
+        <div style="width:15rem">
+            <EditForm Model="@model" OnValidSubmit="@ExecuteLogin">
+                <DataAnnotationsValidator />
+                <ValidationSummary />
+                <!--UserName-->
+            <MyTextEdit @bind-Text="model.UserName" Literal="User name" />
+                <ValidationMessage For="@(() => model.UserName)" />
+
+                <!--Password-->
+            <MyTextEdit @bind-Text="model.Password" Literal="Password"
+                        InputType="InputType.Password" />
+                <ValidationMessage For="@(() => model.Password)" />
+
+                <!--Submit-->
+            <div style="margin: 20px auto; width: 60%">
+                    <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Style="width:100px"
+                           IconClass="@Icons.Material.Filled.Login">Save</MudButton>
+                </div>
+            </EditForm>
+        </div>
+    </div>
+}
+
+<!--Maintenance mode-->
+@if (MaintennanceMode)
+{
+    <h1 style="color:red; font-weight:bold">Hệ thống đang bảo trì</h1>
+}
+
+
+@code {
+    private AuthenticationRequestModel model = new();
+    private bool showError = false;
+    private string errorMessage = "";
+    private bool MaintennanceMode = false;
+
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        // Check maintenance mode
+        await Check_MaintenanceMode();
+    }
+
+    private async Task ExecuteLogin()
+    {
+        showError = false;
+        var result = await AuthService.Login(model);
+        if (result == true)
+        {
+            NavManager.NavigateTo("/");
+            _ = RequestNotificationSubscriptionAsync();
+        }
+        else
+        {
+            errorMessage = "There is error on login.";
+            showError = true;
+        }
+    }
+
+
+    async Task Check_MaintenanceMode()
+    {
+        var setting = await settingService.GetSetting("005");
+        if (setting != null)
+        {
+            MaintennanceMode = setting.IntValue1 == 1 ? true : false;
+        }
+    }
+
+    async Task RequestNotificationSubscriptionAsync()
+    {
+        var subscription = await JsRuntime.InvokeAsync<NotificationSubscription>("blazorPushNotifications.requestSubscription");
+        if (subscription != null)
+        {
+            try
+            {
+                //await OrdersClient.SubscribeToNotifications(subscription);
+                var request = new Admin.Services.SubscribeToNotifications_Request();
+                request.Credential = new Admin.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    };
+                request.NotificationSubscriptionId = subscription.NotificationSubscriptionId;
+                request.UserId = subscription.UserId ?? "";
+                request.Url = subscription.Url ?? "";
+                request.P256Dh = subscription.P256dh ?? "";
+                request.Auth = subscription.Auth ?? "";
+
+                //Get data from DB
+                var response = await adminServiceClient.SubscribeToNotificationsAsync(request);
+            }
+            catch (AccessTokenNotAvailableException ex)
+            {
+                ex.Redirect();
+            }
+        }
+    }
+
+
+}

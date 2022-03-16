@@ -1,0 +1,170 @@
+﻿@using Resource.Services
+@using System.Collections.ObjectModel;
+@using System.IO;
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<style>
+    .mud-icon-button-color-inherit {
+        color: hotpink !important;
+    }
+</style>
+
+<MudCarousel @ref="_carousel"
+             Class="mud-width-full"
+             Style="@($"height: {MaxHeight}; overflow-y: scroll")"
+             ItemsSource="@ImageList"
+             SelectedIndex="SelectedIndex"
+             SelectedIndexChanged="@((int index) => SelectedIndexChanged_Handle(index))"
+             BulletsColor="Color.Primary"
+             ShowArrows="true"
+             ShowBullets="true"
+             AutoCycle="false">
+    <ItemTemplate>
+        <div class="d-flex flex-column flex-column justify-center mt-4" style="height:100%">
+            <MudText Style="color:blue; z-index:1200; left:10px; top: 10px; position:fixed" Align="@Align.Start">@($"{context.FileName} {context.IssueDate.ToString("dd/MM/yyyy HH:mm")} By: {context.AccountID}")</MudText>
+            <img src="@("data:image/png;base64," + Convert.ToBase64String(context.FileContent))">
+        </div>
+    </ItemTemplate>
+</MudCarousel>
+
+<div class="d-flex justify-center gap-4">
+    @if (SelectedImage != null && SelectedImage.AccountID == WebUserCredential.Username)
+    {
+        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Class="mx-2" aria-label="Delete" OnClick="Delete_Image"></MudIconButton>
+    }
+    <MudIconButton Icon="@Icons.Material.Filled.Download" Color="Color.Success" Class="mx-2" aria-label="Download" OnClick="DownLoadFile"></MudIconButton>
+</div>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public List<UpLoadFileModel> ImageList { get; set; } = new List<UpLoadFileModel>();
+    [Parameter] public string ResourceID { get; set; } = "";
+
+    //Ref
+    MudCarousel<UpLoadFileModel> _carousel;
+    MudMessageBox mbox { get; set; }
+    int SelectedIndex;
+    bool MsgVisible = false;
+    string MaxHeight = "800px";
+    UpLoadFileModel SelectedImage;
+    //
+    void OnCancel()
+    {
+        MudDialog.Close();
+    }
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Height
+        MaxHeight = Math.Round(BrowserInfo.Height * 0.8, 0) + "px";
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        if (ImageList.Count > 0)
+        {
+            var SelectedIndex = ImageList.FindIndex(x => x.ResourceID == ResourceID);
+            if (SelectedIndex == -1)
+            {
+                SelectedIndex = 0;
+            }
+            await Load_Image(SelectedIndex);
+            _carousel.MoveTo(SelectedIndex);
+        }
+        await Task.FromResult(0);
+    }
+
+    async void SelectedIndexChanged_Handle(int index)
+    {
+        SelectedIndex = index;
+        await Load_Image(index);
+        this.StateHasChanged();
+    }
+
+    async Task Load_Image(int index)
+    {
+        SelectedImage = ImageList[index];
+        //Skip loaded
+        if (SelectedImage.FileContent.Length > 0) return;
+
+        //Load image from DB
+        var request = new Resource.Services.GetResourceFile_Request();
+        var Credential = new Resource.Services.UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+        request.Credential = Credential;
+        //ClaimNo
+        request.ResourceID = SelectedImage.ResourceID;
+        request.IsGetFull = true;
+        //Call api
+        var response = await resourceServiceClient.GetResourceFileAsync(request);
+        // Success
+        if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+        {
+            ImageList[index].FileContent = response.Record.FileContent.ToByteArray();
+        }
+    }
+
+    async void Delete_Image()
+    {
+        //confirm
+        bool? result = await DialogService.ShowMessageBox(
+            "Cảnh báo",
+            "Bạn có muốn xóa ảnh!",
+            yesText: "Delete!", noText: null, cancelText: "Cancel",
+            MyOptions.GetMessageBoxOptions());
+        if (result == null || result == false) return;
+
+        //Delete
+        var request = new Resource.Services.String_Request();
+        var Credential = new Resource.Services.UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+        request.Credential = Credential;
+        //
+        request.StringValue = SelectedImage.ResourceID;
+        //Call api
+        var response = await resourceServiceClient.DeleteResourceFileAsync(request);
+        // Success
+        if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+        {
+            ImageList.Remove(SelectedImage);
+            this.StateHasChanged();
+            //Submit
+            MudDialog.Close(DialogResult.Ok(SelectedImage));
+        }
+        else
+        {
+            Snackbar.Add("Xóa file tại Server thất bại", Severity.Error);
+        }
+    }
+
+    //DownLoadFile
+    async void DownLoadFile()
+    {
+        //Skip check
+        if (ImageList == null || SelectedIndex >= ImageList.Count) return;
+
+        //Data
+        var dataRow = ImageList[SelectedIndex];
+
+        //call javascript function to download the file
+        await JsRuntime.InvokeVoidAsync("downloadFile", "application/octet-stream", Convert.ToBase64String(dataRow.FileContent), dataRow.FileName);
+    }
+    //
+}

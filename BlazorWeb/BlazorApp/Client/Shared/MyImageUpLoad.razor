@@ -1,0 +1,127 @@
+﻿@using Resource.Services
+@using System.Collections.ObjectModel;
+@using System.IO;
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject ISnackbar Snackbar
+
+<InputFile id="fileInput" hidden multiple
+           OnChange="@(async(e) => await LoadFile(e))"
+           @attributes="Attributes" />
+
+<MudFab HtmlTag="label"
+        Color="Color.Secondary"
+        StartIcon="@Icons.Material.Filled.Add"
+        Size="Size.Medium"
+        for="fileInput" />
+
+@code {
+    [Parameter] public string OwnerID { get; set; } = "";
+    [Parameter] public string CategoryID { get; set; } = "";
+    [Parameter] public bool IsMakeThumbnail { get; set; } = true;
+    [Parameter] public int ThumbnailWidth { get; set; } = 250;
+    [Parameter] public int ThumbnailHeight { get; set; } = 250;
+    [Parameter] public Int32 SecureLevel { get; set; } = 0;
+    [Parameter] public EventCallback<List<UpLoadFileModel>> OnSubmit { get; set; }
+    //
+    List<UpLoadFileModel> ReturnImageList = new List<UpLoadFileModel>();
+
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+    //OnParametersSet
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Attributes
+        Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "accept", "image/*" },
+                                                { "capture", "camera" }
+                                            };
+    }
+
+    //IList<IBrowserFile> files = new List<IBrowserFile>();
+    async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            //Clear
+            ReturnImageList.Clear();
+            //
+            foreach (var file in e.GetMultipleFiles())
+            {
+                //files.Add(file);
+                //Read file
+                Stream stream = file.OpenReadStream(10000000);
+                MemoryStream ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                stream.Close();
+
+                //UpLoadFileModel
+                var uploadItem = new UpLoadFileModel();
+                uploadItem.OwnerID = OwnerID;
+                uploadItem.CategoryID = CategoryID;
+                uploadItem.FileType = MyFile.Get_FileExtention(file.Name);
+                uploadItem.FileName = file.Name;
+                uploadItem.FileContent = ms.ToArray();
+                uploadItem.IsMakeThumbnail = IsMakeThumbnail;
+                uploadItem.ThumbnailWidth = ThumbnailWidth;
+                uploadItem.ThumbnailHeight = ThumbnailHeight;
+                uploadItem.SecureLevel = SecureLevel;
+                uploadItem.AccountID = WebUserCredential.Username;
+                uploadItem.IssueDate = DateTime.Now;
+                uploadItem.RecNo = MyCodeGenerator.GenRecNo();
+                uploadItem.UpdMode = 1;
+                //
+                ReturnImageList.Add(uploadItem);
+            }
+            if (ReturnImageList.Count == 0) return;
+
+            //Save images to Server
+            var request = new Resource.Services.SaveResourceFiles_Request();
+            var Credential = new Resource.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            //
+            foreach (var item in ReturnImageList)
+            {
+                var record = new grpcResourceFileModel();
+                ClassHelper.CopyPropertiesDataDateConverted(item, record);
+                request.Records.Add(record);
+            }
+            // Call api
+            var response = await resourceServiceClient.SaveResourceFilesAsync(request);
+            // Success
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                if (response.Results != null && response.Results.Count > 0)
+                {
+                    //Update ResourceID
+                    foreach (var item in response.Results)
+                    {
+                        var updateItem = ReturnImageList.Find(x => x.RecNo == item.RecNo);
+                        if (updateItem != null)
+                        {
+                            updateItem.ResourceID = item.ResourceID;
+                        }
+                    }
+                }
+                //Submit
+                await OnSubmit.InvokeAsync(ReturnImageList);
+            }
+            else
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadFile, Severity.Error);
+        }
+    }
+
+}

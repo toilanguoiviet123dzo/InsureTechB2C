@@ -1,0 +1,245 @@
+﻿@using Resource.Services
+@using System.Collections.ObjectModel;
+@using System.IO;
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyForm Title="Ảnh đính kèm"
+        ReadOnly="true"
+        OnCancelClick="OnCancel"
+        CancelText="Close">
+    <MudTable Items="@DetailData"
+              @bind-SelectedItem="selectedRow">
+        <HeaderContent>
+            <MyImageUpLoad CategoryID="@CategoryID"
+                           OwnerID="@OwnerID"
+                           ThumbnailHeight="150"
+                           ThumbnailWidth="200"
+                           SecureLevel="@WebUserCredential.DocumentLevel"
+                           OnSubmit="@((List<UpLoadFileModel> files) => Add_ImagesHandle(files))" />
+        </HeaderContent>
+        <RowTemplate>
+            @if (BrowserInfo.IsMobile)
+            {
+                <MudTd>
+                    @if (context.Thumbnail1.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID1))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail1))">
+                    }
+                </MudTd>
+            }
+            else
+            {
+                <MudTd>
+                    @if (context.Thumbnail1.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID1))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail1))">
+                    }
+                </MudTd>
+                <MudTd>
+                    @if (context.Thumbnail2.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID2))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail2))">
+                    }
+                </MudTd>
+                <MudTd>
+                    @if (context.Thumbnail3.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID3))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail3))">
+                    }
+                </MudTd>
+                <MudTd>
+                    @if (context.Thumbnail4.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID4))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail4))">
+                    }
+                </MudTd>
+                <MudTd>
+                    @if (context.Thumbnail5.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID5))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail5))">
+                    }
+                </MudTd>
+                <MudTd>
+                    @if (context.Thumbnail6.Count() > 0)
+                    {
+                        <img class="align-self-stretch" @onclick="@(() => ShowImageDetail(context.ResourceID6))" src="@("data:image/png;base64," + Convert.ToBase64String(context.Thumbnail6))">
+                    }
+                </MudTd>
+            }
+        </RowTemplate>
+        <PagerContent>
+            <MudTablePager />
+        </PagerContent>
+    </MudTable>
+</MyForm>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string OwnerID { get; set; } = "21000001";
+    [Parameter] public string CategoryID { get; set; } = "001";
+
+    //DetailData
+    private List<ImageViewModel> DetailData = new List<ImageViewModel>();
+    private List<UpLoadFileModel> ImageList = new List<UpLoadFileModel>();
+    ImageViewModel selectedRow;
+
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await DisplayMain();
+    }
+    #region Load data
+
+    void OnCancel()
+    {
+        MudDialog.Close();
+    }
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Request
+            var request = new Resource.Services.GetResourceFiles_Request();
+            var Credential = new Resource.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            //ClaimNo
+            request.OwnerID = OwnerID;
+            request.IsGetThumbnail = true;
+            //Call api
+            var response = await resourceServiceClient.GetResourceFilesAsync(request);
+            // Success
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                DetailData.Clear();
+                int colIndex = 0;
+                ImageViewModel row = new ImageViewModel();
+                //
+                foreach (var record in response.Records)
+                {
+                    //Add to imgage list
+                    var imageItem = new UpLoadFileModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(record, imageItem);
+                    ImageList.Add(imageItem);
+
+                    //Add to view
+                    if (BrowserInfo.IsMobile)
+                    {
+                        //Mobile
+                        row = new ImageViewModel();
+                        row.ResourceID1 = record.ResourceID;
+                        row.Thumbnail1 = record.FileContent.ToByteArray();
+                        row.FileType1 = record.FileType;
+                        row.FileName1 = record.FileName;
+                        //
+                        DetailData.Add(row);
+                    }
+                    else
+                    {
+                        //PC
+                        if (colIndex == 0)
+                        {
+                            row.ResourceID1 = record.ResourceID;
+                            row.Thumbnail1 = record.Thumbnail.ToByteArray();
+                            row.FileType1 = record.FileType;
+                            row.FileName1 = record.FileName;
+                        }
+                        if (colIndex == 1)
+                        {
+                            row.ResourceID2 = record.ResourceID;
+                            row.Thumbnail2 = record.Thumbnail.ToByteArray();
+                            row.FileType2 = record.FileType;
+                            row.FileName2 = record.FileName;
+                        }
+                        if (colIndex == 2)
+                        {
+                            row.ResourceID3 = record.ResourceID;
+                            row.Thumbnail3 = record.Thumbnail.ToByteArray();
+                            row.FileType3 = record.FileType;
+                            row.FileName3 = record.FileName;
+                        }
+                        if (colIndex == 3)
+                        {
+                            row.ResourceID4 = record.ResourceID;
+                            row.Thumbnail4 = record.Thumbnail.ToByteArray();
+                            row.FileType4 = record.FileType;
+                            row.FileName4 = record.FileName;
+                        }
+                        if (colIndex == 4)
+                        {
+                            row.ResourceID5 = record.ResourceID;
+                            row.Thumbnail5 = record.Thumbnail.ToByteArray();
+                            row.FileType5 = record.FileType;
+                            row.FileName5 = record.FileName;
+                        }
+                        if (colIndex == 5)
+                        {
+                            row.ResourceID6 = record.ResourceID;
+                            row.Thumbnail6 = record.Thumbnail.ToByteArray();
+                            row.FileType6 = record.FileType;
+                            row.FileName6 = record.FileName;
+                        }
+                        colIndex++;
+                        //Add
+                        if (colIndex == 6)
+                        {
+                            //Add
+                            DetailData.Add(row);
+                            //New row
+                            row = new ImageViewModel();
+                            colIndex = 0;
+                        }
+                    }
+                }
+
+                //Last row
+                if (!BrowserInfo.IsMobile && !string.IsNullOrWhiteSpace(row.ResourceID1))
+                {
+                    //Add
+                    DetailData.Add(row);
+                }
+            }
+            //Refresh
+            this.StateHasChanged();
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    async void Add_ImagesHandle(List<UpLoadFileModel> uploadFiles)
+    {
+        await DisplayMain();
+    }
+
+    async void ShowImageDetail(string resourceID)
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ImageList", ImageList);
+        parameters.Add("ResourceID", resourceID);
+        //
+        var result = await DialogService.Show<ImageDetail>("", parameters, MyOptions.GetShowImageOptions()).Result;
+        if (!result.Cancelled)
+        {
+            await DisplayMain();
+        }
+    }
+    #endregion
+
+    //
+}

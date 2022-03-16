@@ -1,0 +1,137 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime;
+
+<style>
+    #bottomAppBar .mud-toolbar {
+        margin: auto !important;
+    }
+
+    .mud-main-content {
+        padding-top: 10px !important;
+    }
+
+</style>
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <!--Top App bar-->
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+        <MudAvatar Color="Color.Default" Variant="Variant.Filled" Class="mr-3">
+            <MudIcon Color="Color.Secondary" Icon="@Icons.Filled.HealthAndSafety" Size="Size.Large" 
+                     @onclick="@(async () => await JsRuntime.InvokeAsync<object>("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
+        </MudAvatar>
+        @if (string.IsNullOrWhiteSpace(WebUserCredential.Program.ProgramName))
+        {
+            <h5 class="m-auto">InsureTech Việt Nam</h5>
+        }
+        else
+        {
+            <h5 class="m-auto">@WebUserCredential.Program.ProgramName</h5>
+        }
+        <MudSpacer />
+        <LoginDisplay />
+    </MudAppBar>
+
+    <!--Body content-->
+    <MudMainContent>
+        <CascadingValue Value="Program">
+            @Body
+        </CascadingValue>
+    </MudMainContent>
+
+    <!--Bottom App bar-->
+    <MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
+        <!--Admin-->
+        <MudMenu @ref="@adminMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Error" Style="width: 120px;">Admin</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <MudNavMenu Color="Color.Info">
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Settings" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("SettingMaster","Cài đặt hệ thống")))">Cài đặt hệ thống</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.List" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListHeader","Danh mục tùy chọn")))">Danh mục tùy chọn</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.FormatListBulleted" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListDetail","Chi tiết danh mục tùy chọn")))">Chi tiết danh mục tùy chọn</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.AccountCircle" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("UserAccount","Quản lý account")))">Quản lý account</MudNavLink>
+                </MudNavMenu>
+            </ChildContent>
+        </MudMenu>
+
+        <!--Master-->
+        <MudMenu @ref="@masterMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Filled.DensityMedium" Color="Color.Warning" Style="width: 120px;">Master</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <MudNavMenu Color="Color.Info">
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
+                </MudNavMenu>
+            </ChildContent>
+        </MudMenu>
+
+        <!---->
+        @*<MudMenu @ref="@claimMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+            <ActivatorContent>
+                <MudChip Icon="@Icons.Custom.Uncategorized.Radioactive" Color="Color.Success" Style="width: 120px;">Claim</MudChip>
+            </ActivatorContent>
+            <ChildContent>
+                <MudNavMenu Color="Color.Info">
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.AddAlert" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimRequest","Tiếp nhận")))">Tiếp nhận</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.PlayArrow" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimProcess","Xử lý")))">Xử lý</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.GetApp" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimPickup","Lấy thiết bị")))">Lấy thiết bị</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Calculate" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimRepair","Báo giá & sửa chữa")))">Báo giá & sửa chữa</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Check" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimApprove","Duyệt")))">Duyệt</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.DeliveryDining" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimReturn","Trả thiết bị")))">Trả thiết bị</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Payment" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimPayment","Chi trả")))">Chi trả</MudNavLink>
+                </MudNavMenu>
+            </ChildContent>
+        </MudMenu>*@
+
+    </MudAppBar>
+</MudLayout>
+@code {
+    public ProgramInfo Program { get; set; } = new ProgramInfo("", "");
+    private MudMenu adminMenu;
+    private MudMenu masterMenu;
+    private MudMenu claimMenu;
+
+    bool _drawerOpen = false;
+
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        // Get browser info
+        await Get_BrowserInfo();
+    }
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void ShowProgram(MudMenu menu, ProgramInfo program)
+    {
+        menu.CloseMenu();
+        WebUserCredential.Program = program;
+        Navigation.NavigateTo($"/{program.ProgramID}");
+    }
+
+    async Task Get_BrowserInfo()
+    {
+        var info = await JsRuntime.InvokeAsync<BrowserDimension>("getDimensions");
+        if (info != null)
+        {
+            BrowserInfo.Height = info.Height;
+            BrowserInfo.Width = info.Width;
+            if (BrowserInfo.Width <= 768)
+            {
+                BrowserInfo.IsMobile = true;
+            }
+        }
+    }
+}
+

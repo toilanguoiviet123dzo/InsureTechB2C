@@ -1,0 +1,71 @@
+﻿@typeparam T
+
+<style>
+    .mud-dialog .mud-dialog-title {
+        padding: 0 !important;
+    }
+</style>
+
+<EditForm Model="@Model" OnValidSubmit="OnSubmit" style="@($"max-height: {MaxHeight}; overflow-y: scroll")">
+    <DataAnnotationsValidator />
+    <MudCard>
+        <MudCardHeader Class="px-2 py-1">
+            <CardHeaderContent>
+                <MudText Typo="Typo.h6">@Title</MudText>
+            </CardHeaderContent>
+            <CardHeaderActions>
+                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" OnClick="@(() => OnCancel())" />
+            </CardHeaderActions>
+        </MudCardHeader>
+        <MudCardContent>
+            @ChildContent
+        </MudCardContent>
+        <MudCardActions Class="d-flex justify-center gap-4">
+            <MudButton Variant="Variant.Filled"
+                       Color="Color.Default"
+                       Style="width:100px"
+                       IconClass="@Icons.Material.Filled.Cancel"
+                       OnClick="OnCancel">Cancel</MudButton>
+            @if (!ReadOnly)
+            {
+                <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       Style="width:100px"
+                       IconClass="@Icons.Material.Filled.Save">Save</MudButton>
+            }
+        </MudCardActions>
+    </MudCard>
+</EditForm>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Edit form";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public T Model { get; set; }
+    [Parameter] public bool ReadOnly { get; set; } = false;
+
+    //Cancel
+    [Parameter] public EventCallback OnCancelClick { get; set; }
+    private async void OnCancel()
+    {
+        await OnCancelClick.InvokeAsync();
+    }
+
+    //Submit
+    [Parameter] public EventCallback OnSubmitClick { get; set; }
+    private async void OnSubmit()
+    {
+        await OnSubmitClick.InvokeAsync();
+    }
+
+    //Ref
+    string MaxHeight = "100%";
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Height
+        if (BrowserInfo.IsMobile) MaxHeight = "100%";
+    }
+
+}

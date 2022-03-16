@@ -1,0 +1,8 @@
+﻿img {
+    -webkit-transition: -webkit-transform 0.4s;
+    transition: transform 0.4s;
+}
+
+img:hover {
+    transform: scale(1.08);
+}

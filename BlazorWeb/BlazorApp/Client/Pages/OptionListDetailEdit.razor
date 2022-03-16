@@ -1,0 +1,39 @@
+﻿
+<MyPopupEdit Title="Nhập danh sách"
+             T="OptionListModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MudTextField Label="STT" @bind-Value="DspModel.DspOrder"/>
+    <MudTextField Label="Tên hạng mục" @bind-Value="DspModel.ItemName" For="@(() => DspModel.ItemName)" />
+    <MudTextField Label="Trị chữ" @bind-Value="DspModel.ItemCode"/>
+    <MudNumericField Label="Trị số nguyên" @bind-Value="DspModel.IntCode" ReadOnly="true" Format="N0" T="Int32" />
+    <MudNumericField Label="Trị số thực" @bind-Value="DspModel.DoubleCode" ReadOnly="true" Format="N2" T="Double" />
+    <MudTextField Label="Ghi chú" @bind-Value="DspModel.Description" />
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public OptionListModel Model { get; set; }
+    //
+    OptionListModel DspModel = new OptionListModel();
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}

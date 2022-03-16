@@ -1,0 +1,202 @@
+﻿@page "/OptionListHeader"
+@using Admin.Services
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyDataGrid @ref="@grid"
+            T="OptionListHeaderModel"
+            Title="Loại danh sách"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((OptionListHeaderModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((OptionListHeaderModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 8rem;" />
+        <col style="width: 10rem;" />
+        <col />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh>Mã</MudTh>
+        <MudTh>Tên</MudTh>
+        <MudTh>Ghi chú</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.ListCode</MudTd>
+        <MudTd>@context.ListName</MudTd>
+        <MudTd>@context.Description</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code{
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<OptionListHeaderModel> grid;
+    readonly List<OptionListHeaderModel> DetailData = new List<OptionListHeaderModel>();
+    // Init
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        // Display data ..
+        await DisplayMain();
+    }
+
+    #region Load data
+    // Load OptionListHeader
+    async Task DisplayMain()
+    {
+        try
+        {
+            if (grid != null) grid.BeginLoadData();
+            var requestOptionListHeader = new Empty_Request()
+            {
+                Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                }
+            };
+            //Get data from DB
+            DetailData.Clear();
+            var resOptionListHeader = await adminServiceClient.GetOptionListHeaderAsync(requestOptionListHeader);
+            if (resOptionListHeader != null && resOptionListHeader.ReturnCode == 200)
+            {
+                foreach (var item in resOptionListHeader.OptionListHeader)
+                {
+                    OptionListHeaderModel dataRow = new OptionListHeaderModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    // Set Updmode
+                    dataRow.UpdMode = 0;
+                    //
+                    DetailData.Add(dataRow);
+                }
+            }
+            if (grid != null) grid.EndLoadData();
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+    #endregion
+
+    #region Grid
+    //Save Row
+    async Task<bool> SaveRow(OptionListHeaderModel saveRow)
+    {
+        try
+        {
+            //Request
+            SaveOptionListHeader_Request request = new SaveOptionListHeader_Request();
+            var Credential = new UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcOptionListHeader();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await adminServiceClient.SaveOptionListHeaderAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new OptionListHeaderModel();
+        newRow.UpdMode = 1;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<OptionListHeaderEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (OptionListHeaderModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(OptionListHeaderModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<OptionListHeaderEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (OptionListHeaderModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(OptionListHeaderModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+
+
+    #endregion
+}

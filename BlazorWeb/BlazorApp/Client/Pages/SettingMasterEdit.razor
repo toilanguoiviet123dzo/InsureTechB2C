@@ -1,0 +1,41 @@
+﻿
+<MyPopupEdit Title="Input settings"
+             T="SettingMasterModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MudTextField Label="Code" @bind-Value="DspModel.Code" For="@(() => DspModel.Code)" />
+    <MudTextField Label="Description" @bind-Value="DspModel.Description" For="@(() => DspModel.Description)" />
+    <MudTextField Label="StringValue1" @bind-Value="DspModel.StringValue1" />
+    <MudTextField Label="StringValue2" @bind-Value="DspModel.StringValue2" />
+    <MudNumericField Label="IntValue1" @bind-Value="DspModel.IntValue1" Format="N0" T="Int32" />
+    <MudNumericField Label="IntValue2" @bind-Value="DspModel.IntValue2" Format="N0" T="Int32" />
+    <MudNumericField Label="DoubleValue1" @bind-Value="DspModel.DoubleValue1" Format="N2" T="double" />
+    <MudNumericField Label="DoubleValue2" @bind-Value="DspModel.DoubleValue2" Format="N2" T="double" />
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public SettingMasterModel Model { get; set; }
+    //
+    SettingMasterModel DspModel = new SettingMasterModel();
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}

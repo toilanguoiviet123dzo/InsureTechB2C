@@ -1,0 +1,134 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Resource.Services";
+import "google/protobuf/timestamp.proto";
+package grpcResourceService;
+
+//Services
+service grpcResourceService {    
+    //ResourceFile single
+    rpc SaveResourceFile (SaveResourceFile_Request) returns (String_Response);
+    rpc GetResourceFile (GetResourceFile_Request) returns (GetResourceFile_Response);
+    // multiple
+    rpc SaveResourceFiles (SaveResourceFiles_Request) returns (SaveResourceFiles_Response);
+    rpc GetResourceFiles (GetResourceFiles_Request) returns (GetResourceFiles_Response);
+
+    //Delete
+    rpc DeleteResourceFile (String_Request) returns (Empty_Response);
+}
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    string RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+     string StringValue = 2;
+}
+message String_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     string StringValue = 3;
+}
+message Int_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     int32 IntValue = 3;
+}
+//
+//======================================================
+// Messages
+//======================================================
+message SaveResourceFile_Request {
+    UserCredential Credential = 1;
+    //
+    grpcResourceFileModel Record = 2;
+}
+message GetResourceFile_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    grpcResourceFileModel Record = 3;
+}
+message SaveResourceFiles_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcResourceFileModel Records = 2;
+}
+message SaveResourceFiles_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcSaveResourceFileResult Results = 3;
+}
+message grpcSaveResourceFileResult {
+    string ResourceID = 1;
+    string RecNo = 2;
+}
+message GetResourceFiles_Request {
+    UserCredential Credential = 1;
+    //
+    string OwnerID = 2;
+    string CategoryID = 3;
+    string FileType = 4;
+    bool IsGetFull = 5;
+    bool IsGetThumbnail = 6;
+}
+message GetResourceFiles_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcResourceFileModel Records = 3;
+}
+message grpcResourceFileModel {
+    string ID = 1;
+    string OwnerID = 2;
+    string CategoryID = 3;
+    string ResourceID = 4;
+    string FileType = 5;
+    string Title = 6;
+    string FileName = 7;
+    bytes FileContent = 9;
+    bytes Thumbnail = 10;
+    int32 SecureLevel = 11;
+    string AccountID = 12;
+    string RecNo = 13;
+    bool IsMakeThumbnail = 14;
+    int32 ThumbnailWidth = 15;
+    int32 ThumbnailHeight = 16;
+    bool HasThumbnail = 17;
+    //
+    google.protobuf.Timestamp IssueDate = 18;
+    int32 UpdMode = 19;
+}
+message GetResourceFile_Request {
+    UserCredential Credential = 1;
+    //
+    string ResourceID = 2;
+    bool IsGetFull = 3;
+    bool IsGetThumbnail = 4;
+}
+
+
+
+
+
+
+

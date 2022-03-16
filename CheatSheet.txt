@@ -1,0 +1,6 @@
+//Create mongo db user
+db.createUser({ user: "mongoadmin" , pwd: "mongoadmin", roles: ["userAdminAnyDatabase", "dbAdminAnyDatabase", "readWriteAnyDatabase"]})
+
+// enable security mode
+security:
+    authorization: "enabled"

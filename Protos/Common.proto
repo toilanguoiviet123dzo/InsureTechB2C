@@ -1,0 +1,54 @@
+﻿syntax = "proto3";
+option csharp_namespace = "BlazorApp.Server.Services";
+import "google/protobuf/timestamp.proto";
+package grpcCommonService;
+
+//Services
+service grpcCommonService {    
+    //Login
+    rpc HealthCheck (Empty_Request) returns (Empty_Response);
+    
+}
+
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    string RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+     string StringValue = 2;
+}
+message String_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     string StringValue = 3;
+}
+message Int_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     int32 IntValue = 3;
+}
+
+
+
+
+
