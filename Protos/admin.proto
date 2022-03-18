@@ -27,6 +27,10 @@ service grpcAdminService {
     rpc SubscribeToNotifications (SubscribeToNotifications_Request) returns (Empty_Response);
     rpc WebPushNotification (WebPushNotification_Request) returns (Empty_Response);
     rpc GetNotificationSubscribe (String_Request) returns (GetNotificationSubscribe_Response);
+
+    //AddressMaster
+    rpc SaveAddressMaster (SaveAddressMaster_Request) returns (String_Response);
+    rpc GetAddressList (Empty_Request) returns (GetAddressList_Response);
 }
 //======================================================
 // Common Messages
@@ -246,7 +250,51 @@ message grpcUserAccountModel
     google.protobuf.Timestamp ModifiedOn = 23;
     int32 UpdMode = 24;
 }
+message SaveAddressMaster_Request {
+    UserCredential Credential = 1;
+    //
+    grpcAddressModel Record = 2;
+}
+message grpcAddressModel {
+    string ID = 1;
+    int32 DspOrder = 2;
+    int32 Level = 3;
+    string CityID = 4;
+    string DistrictID = 5;
+    string ItemID = 6;
+    string ItemName = 7;
+    string ItemNameEN = 8;
+    int32 UpdMode = 9;
+}
 
+message GetAddressList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcCityModel Citys = 3;
+}
+message grpcCityModel {
+    string ID = 3;
+    int32 DspOrder = 4;
+    string CityID = 5;
+    string CityName = 6;
+    string CityNameEN = 7;
+    repeated grpcDistrictModel Districts = 8;
+}
+
+message grpcDistrictModel {
+    int32 DspOrder = 1;
+    string DistrictID = 2;
+    string DistrictName = 3;
+    string DistrictNameEN = 4;
+    repeated grpcWardModel Wards = 8;
+}
+message grpcWardModel {
+    int32 DspOrder = 1;
+    string WardID = 2;
+    string WardName = 3;
+    string WardNameEN = 4;
+}
 
 
 

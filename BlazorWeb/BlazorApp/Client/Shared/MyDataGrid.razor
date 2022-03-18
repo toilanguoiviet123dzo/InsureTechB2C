@@ -87,7 +87,10 @@
         @RowTemplate(context)
     </RowTemplate>
     <PagerContent>
-        <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+        @if (ShowPager)
+        {
+            <MudPagination SelectedChanged="PageChanged" Count="@((_table.GetFilteredItemsCount() + _table.RowsPerPage - 1) / _table.RowsPerPage)" Class="pa-4" />
+        }
     </PagerContent>
 </MudTable>
 
@@ -109,6 +112,7 @@
     [Parameter] public bool Virtualize { get; set; } = false;
     [Parameter] public bool ReadOnly { get; set; } = true;
     [Parameter] public bool ShowSearchBox { get; set; } = true;
+    [Parameter] public bool ShowPager { get; set; } = true;
     [Parameter] public int RowsPerPage { get; set; } = 10;
     [Parameter] public RenderFragment ColGroup { get; set; }
     [Parameter] public RenderFragment HeaderContent { get; set; }

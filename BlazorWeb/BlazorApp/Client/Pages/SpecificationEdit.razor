@@ -19,7 +19,7 @@
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
 
-    <MudTextField @ref="@RefTitle" Label="Tiêu đề" @bind-Value="DspModel.Title" For="@(() => DspModel.Title)" AutoFocus=true/>
+    <MudTextField @ref="@RefTitle" Label="Tiêu đề" @bind-Value="DspModel.Title" For="@(() => DspModel.Title)" AutoFocus=true  Style="font-weight:bold"/>
     <br />
     <Editor Id="productEditor"
             Inline=false

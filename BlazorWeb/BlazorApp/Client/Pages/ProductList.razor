@@ -46,8 +46,8 @@
         <MudTd>@context.VendorName</MudTd>
         <MudTd Style="color:blue; font-weight: bold; text-align:end">@context.InsureAmount.ToString("N0")</MudTd>
         <MudTd Style="color:green; font-weight: bold; text-align:end">@context.UnitPrice.ToString("N0")</MudTd>
-        <MudTd Style="text-align:end">@context.TaxRate.ToString("00%")</MudTd>
-        <MudTd Class="justify-center"><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true"></MudCheckBox></MudTd>
+        <MudTd Style="text-align:end">@context.TaxRate.ToString("P0")</MudTd>
+        <MudTd ><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true" Class="m-auto"></MudCheckBox></MudTd>
         <MudTd Style="color:purple; font-weight: bold; text-align:end">@context.Duration.ToString("N0")</MudTd>
         <MudTd>@context.DurationUnit</MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>

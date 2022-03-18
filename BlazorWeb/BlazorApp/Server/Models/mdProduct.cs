@@ -10,6 +10,7 @@ namespace BlazorApp.Server.Models
     [Collection("Product")]
     public class mdProduct : Entity
     {
+        public string ProductType { get; set; } = "";
         public string ProductID { get; set; } = "";
         public string ProductName { get; set; } = "";
         public string VendorID { get; set; } = "";

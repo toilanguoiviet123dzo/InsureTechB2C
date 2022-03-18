@@ -534,6 +534,216 @@ namespace BlazorApp.Server.Services
             return await Task.FromResult(response);
         }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // SaveAddressMaster
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Admin.Services.String_Response> SaveAddressMaster(SaveAddressMaster_Request request, ServerCallContext context)
+        {
+            var response = new Admin.Services.String_Response();
+            response.ReturnCode = GrpcReturnCode.OK;  //OK
+            //
+            try
+            {
+                //ID
+                response.StringValue = request.Record.ID;
+
+                //City
+                if (request.Record.Level == 1)
+                {
+                    //Addnew
+                    if (request.Record.UpdMode == 1)
+                    {
+                        var cityRecord = new mdAddressMaster();
+                        cityRecord.GenerateNewID();
+                        cityRecord.DspOrder = request.Record.DspOrder;
+                        cityRecord.CityID = request.Record.ItemID;
+                        cityRecord.CityName = request.Record.ItemName;
+                        cityRecord.CityNameEN = request.Record.ItemNameEN;
+                        //
+                        await cityRecord.SaveAsync();
+                        //return saved ID
+                        response.StringValue = cityRecord.ID;
+                    }
+                    //Update
+                    if (request.Record.UpdMode == 2)
+                    {
+                        var cityRecord = await DB.Find<mdAddressMaster>()
+                                                 .Match(x => x.CityID == request.Record.ItemID)
+                                                 .ExecuteSingleAsync();
+                        if (cityRecord != null)
+                        {
+                            cityRecord.DspOrder = request.Record.DspOrder;
+                            cityRecord.CityID = request.Record.ItemID;
+                            cityRecord.CityName = request.Record.ItemName;
+                            cityRecord.CityNameEN = request.Record.ItemNameEN;
+                            //
+                            await cityRecord.SaveAsync();
+                        }
+                    }
+                    //Delete
+                    if (request.Record.UpdMode == 3)
+                    {
+                        await DB.DeleteAsync<mdAddressMaster>(request.Record.ID);
+                    }
+                }
+
+                //District
+                if (request.Record.Level == 2)
+                {
+                    var cityRecord = await DB.Find<mdAddressMaster>()
+                                                 .Match(x => x.CityID == request.Record.CityID)
+                                                 .ExecuteSingleAsync();
+                    if (cityRecord != null)
+                    {
+                        //Addnew
+                        if (request.Record.UpdMode == 1)
+                        {
+                            var districtRecord = new DistrictModel();
+                            districtRecord.DspOrder = request.Record.DspOrder;
+                            districtRecord.DistrictID = request.Record.ItemID;
+                            districtRecord.DistrictName = request.Record.ItemName;
+                            districtRecord.DistrictNameEN = request.Record.ItemNameEN;
+                            //
+                            cityRecord.Districts.Add(districtRecord);
+                        }
+                        //Update && Delete
+                        if (request.Record.UpdMode == 2 || request.Record.UpdMode == 3)
+                        {
+                            var districtRecord = cityRecord.Districts.Find(x => x.DistrictID == request.Record.DistrictID);
+                            if (districtRecord != null)
+                            {
+                                //Update
+                                if (request.Record.UpdMode == 2)
+                                {
+                                    districtRecord.DspOrder = request.Record.DspOrder;
+                                    districtRecord.DistrictID = request.Record.ItemID;
+                                    districtRecord.DistrictName = request.Record.ItemName;
+                                    districtRecord.DistrictNameEN = request.Record.ItemNameEN;
+                                }
+                                //Delete
+                                if (request.Record.UpdMode == 3)
+                                {
+                                    cityRecord.Districts.Remove(districtRecord);
+                                }
+                            }
+                        }
+                        //Save City
+                        await cityRecord.SaveAsync();
+                    }
+                }
+
+                //Ward
+                if (request.Record.Level == 3)
+                {
+                    //find City
+                    var cityRecord = await DB.Find<mdAddressMaster>()
+                                                 .Match(x => x.CityID == request.Record.CityID)
+                                                 .ExecuteSingleAsync();
+                    //find District
+                    if (cityRecord != null)
+                    {
+                        var districtRecord = cityRecord.Districts.Find(x => x.DistrictID == request.Record.DistrictID);
+                        //
+                        if (districtRecord != null)
+                        {
+                            //Addnew
+                            if (request.Record.UpdMode == 1)
+                            {
+                                var wardRecord = new WardModel();
+                                wardRecord.DspOrder = request.Record.DspOrder;
+                                wardRecord.WardID = request.Record.ItemID;
+                                wardRecord.WardName = request.Record.ItemName;
+                                wardRecord.WardNameEN = request.Record.ItemNameEN;
+                                //
+                                districtRecord.Wards.Add(wardRecord);
+                            }
+                            //Update && Delete
+                            if (request.Record.UpdMode == 2 || request.Record.UpdMode == 3)
+                            {
+                                var wardRecord = districtRecord.Wards.Find(x => x.WardID == request.Record.ItemID);
+                                if (districtRecord != null)
+                                {
+                                    //Update
+                                    if (request.Record.UpdMode == 2)
+                                    {
+                                        wardRecord.DspOrder = request.Record.DspOrder;
+                                        wardRecord.WardID = request.Record.ItemID;
+                                        wardRecord.WardName = request.Record.ItemName;
+                                        wardRecord.WardNameEN = request.Record.ItemNameEN;
+                                    }
+                                    //Delete
+                                    if (request.Record.UpdMode == 3)
+                                    {
+                                        districtRecord.Wards.Remove(wardRecord);
+                                    }
+                                }
+                            }
+                            //Save City
+                            await cityRecord.SaveAsync();
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "SaveAddressMaster", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetAddressList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<GetAddressList_Response> GetAddressList(Empty_Request request, ServerCallContext context)
+        {
+            var response = new GetAddressList_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            response.MsgCode = "";
+            //
+            try
+            {
+                var records = await DB.Find<mdAddressMaster>()
+                                          .ExecuteAsync();
+                if (records != null)
+                {
+                    foreach (var city in records)
+                    {
+                        //City
+                        var grpcCity = new grpcCityModel();
+                        ClassHelper.CopyPropertiesData(city, grpcCity);
+                        response.Citys.Add(grpcCity);
+
+                        //District
+                        foreach (var district in city.Districts)
+                        {
+                            var grpcDistrict = new grpcDistrictModel();
+                            ClassHelper.CopyPropertiesData(district, grpcDistrict);
+                            grpcCity.Districts.Add(grpcDistrict);
+
+                            //Ward
+                            foreach (var ward in district.Wards)
+                            {
+                                var grpcWard = new grpcWardModel();
+                                ClassHelper.CopyPropertiesData(ward, grpcWard);
+                                grpcDistrict.Wards.Add(grpcWard);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "GetSettingMaster", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
+
 
 
     }//End class

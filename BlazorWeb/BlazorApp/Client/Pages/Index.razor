@@ -1,5 +1,56 @@
 ﻿@page "/"
+@using Insure.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
 
-<h1>Hello, world!</h1>
 
+<MudTabs Elevation="2"
+         Rounded="true"
+         Centered=true
+         ApplyEffectsToContainer="true"
+         PanelClass="pa-6"
+         Class="m-auto"
+         Style="@($"height: 100vh; max-height: 100vh; overflow-y: scroll")">
+    <MudTabPanel Text="Bảo hiểm xe gắn máy">
+        <!--Xe gắn máy-->
+        <TNSD01_Compact ProductID="TNDS_HV" />
+        <TNSD01_Compact ProductID="TNDS_BM" />
+    </MudTabPanel>
+    <MudTabPanel Text="Bảo hiểm xe ô tô">
+        <MudText>Bảo hiểm tai nạn</MudText>
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+
+    string MaxHeight = "100%";
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Get browser info
+        await Get_BrowserInfo();
+
+        //Height
+        MaxHeight = Math.Round(BrowserInfo.Height * 0.8, 0) + "px";
+    }
+
+    async Task Get_BrowserInfo()
+    {
+        var info = await JsRuntime.InvokeAsync<BrowserDimension>("getDimensions");
+        if (info != null)
+        {
+            BrowserInfo.Height = info.Height;
+            BrowserInfo.Width = info.Width;
+            if (BrowserInfo.Width <= 768)
+            {
+                BrowserInfo.IsMobile = true;
+            }
+        }
+    }
+}
 

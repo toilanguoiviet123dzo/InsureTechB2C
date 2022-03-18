@@ -72,22 +72,24 @@ message SaveProduct_Request {
 
 message grpcProductModel {
     string ID = 1;
-    string ProductID = 2;
-    string ProductName = 3;
-    string VendorID = 4;
-    string VendorName = 5;
-    double InsureAmount = 6;
-    double UnitPrice = 7;
-    double TaxRate = 8;
-    int32 Duration = 9;
-    string DurationUnit = 10;
-    repeated grpcSpecificationModel Specifications = 11;
-    string VendorLinks = 12;
-    string QALinks = 13;
-    string LogoID = 14;
-    string Notes = 15;
-    google.protobuf.Timestamp ModifiedOn  = 16;
-    int32 UpdMode = 17;
+    string ProductType = 2;
+    string ProductID = 3;
+    string ProductName = 4;
+    string VendorID = 5;
+    string VendorName = 6;
+    double InsureAmount = 7;
+    double UnitPrice = 8;
+    double TaxRate = 9;
+    bool IsIncludeVAT = 10;
+    int32 Duration = 11;
+    string DurationUnit = 12;
+    repeated grpcSpecificationModel Specifications = 13;
+    string VendorLinks = 14;
+    string QALinks = 15;
+    string LogoID = 16;
+    string Notes = 17;
+    google.protobuf.Timestamp ModifiedOn  = 18;
+    int32 UpdMode = 19;
 }
 message grpcSpecificationModel {
     int32 DspOrder = 1;

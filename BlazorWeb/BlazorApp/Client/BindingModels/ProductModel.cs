@@ -9,18 +9,15 @@ namespace BlazorApp.Client.BindingModels
         public string ID { get; set; } = "";
         [Required(ErrorMessage = "Bắt buộc nhập")]
         public string ProductID { get; set; } = "";
+        public string ProductType { get; set; } = "";
         [Required(ErrorMessage = "Bắt buộc nhập")]
         public string ProductName { get; set; } = "";
         public string VendorID { get; set; } = "";
         public string VendorName { get; set; } = "";
-        [Range(1, 999999999, ErrorMessage = "Giá trị không hợp lệ")]
         public double InsureAmount { get; set; }
-        [Range(1, 9999999, ErrorMessage = "Giá trị không hợp lệ")]
         public double UnitPrice { get; set; }
-        [Range(1, 99, ErrorMessage = "Giá trị không hợp lệ")]
         public double TaxRate { get; set; }
         public bool IsIncludeVAT { get; set; }
-        [Range(1, 999, ErrorMessage = "Giá trị không hợp lệ")]
         public int Duration { get; set; }
         public string DurationUnit { get; set; } = "";
         public List<SpecificationModel> Specifications { get; set; } = new List<SpecificationModel>();

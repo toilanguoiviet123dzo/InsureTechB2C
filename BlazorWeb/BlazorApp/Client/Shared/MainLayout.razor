@@ -100,14 +100,6 @@
 
     bool _drawerOpen = false;
 
-    protected override async Task OnInitializedAsync()
-    {
-        base.OnInitialized();
-
-        // Get browser info
-        await Get_BrowserInfo();
-    }
-
     void DrawerToggle()
     {
         _drawerOpen = !_drawerOpen;
@@ -120,18 +112,6 @@
         Navigation.NavigateTo($"/{program.ProgramID}");
     }
 
-    async Task Get_BrowserInfo()
-    {
-        var info = await JsRuntime.InvokeAsync<BrowserDimension>("getDimensions");
-        if (info != null)
-        {
-            BrowserInfo.Height = info.Height;
-            BrowserInfo.Width = info.Width;
-            if (BrowserInfo.Width <= 768)
-            {
-                BrowserInfo.IsMobile = true;
-            }
-        }
-    }
+    
 }
 

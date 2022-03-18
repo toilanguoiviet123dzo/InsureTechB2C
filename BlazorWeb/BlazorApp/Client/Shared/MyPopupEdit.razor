@@ -6,7 +6,7 @@
     }
 </style>
 
-<EditForm Model="@Model" OnValidSubmit="OnSubmit" style="@($"max-height: {MaxHeight}; overflow-y: scroll")">
+<EditForm Model="@Model" OnValidSubmit="OnSubmit">
     <DataAnnotationsValidator />
     <MudCard>
         <MudCardHeader Class="px-2 py-1">
@@ -17,7 +17,7 @@
                 <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" OnClick="@(() => OnCancel())" />
             </CardHeaderActions>
         </MudCardHeader>
-        <MudCardContent>
+        <MudCardContent Style="@($"max-height: {MaxHeight}; overflow-y: scroll")">
             @ChildContent
         </MudCardContent>
         <MudCardActions Class="d-flex justify-center gap-4">
@@ -66,7 +66,7 @@
         base.OnParametersSet();
 
         //Height
-        if (BrowserInfo.IsMobile) MaxHeight = "100%";
+        MaxHeight = Math.Round(BrowserInfo.Height * 0.8, 0) + "px";
     }
 
 }

@@ -43,7 +43,7 @@ namespace BlazorApp.Client.Common
                 MaxWidth = size,
                 Position = DialogPosition.Center,
                 CloseOnEscapeKey = true,
-                DisableBackdropClick = false,
+                DisableBackdropClick = true,
                 CloseButton = false,
                 FullWidth = true
             };

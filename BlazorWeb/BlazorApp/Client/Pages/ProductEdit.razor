@@ -10,7 +10,11 @@
              ReadOnly="@ReadOnly"
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
-    <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Style="text-transform: uppercase" AutoFocus=true/>
+
+    <div class="d-flex">
+        <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Class="mr-2" Style="text-transform: uppercase" AutoFocus=true />
+        <MyComboBox @ref="@RefProductType" Literal="Loại" @bind-Value="SelectedProductType" Data="@ProductTypeList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    </div>
     <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
 
     <div class="d-flex align-center">
@@ -28,18 +32,20 @@
                        SecureLevel="@WebUserCredential.DocumentLevel"
                        OnSubmit="@((List<UpLoadFileModel> files) => AddVendorAvatar_Handle(files))" />
     </div>
-    <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" />
-    <MudNumericField Label="Giá bán" @bind-Value="DspModel.UnitPrice" For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
     <div class="d-flex">
-        <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="00" T="double" />
-        <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
+        <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" Min=1.0 Max=999999999.0 For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" Class="mr-2" Style="color:maroon; font-weight:bold" />
+        <MudNumericField Label="Giá bán" @bind-Value="DspModel.UnitPrice" Min=1.0 Max=9999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" Style="color:blue; font-weight:bold" />
     </div>
     <div class="d-flex">
-        <MudNumericField Style="width: 4rem" Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" />
+        <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" Min=0.0 Max=99.0 For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="N0" T="double" />
+        <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
+    </div>
+    <div class="d-flex align-center">
+        <MudNumericField Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" Min=1 Max=99 For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" Style="width:4rem; color:purple; font-weight:bold" />
         <MudRadioGroup @bind-SelectedOption="@DspModel.DurationUnit">
             <MudRadio Option="@("Ngày")" Color="Color.Primary">Ngày</MudRadio>
-            <MudRadio Option="@("Tháng")" Color="Color.Secondary">Tháng</MudRadio>
-            <MudRadio Option="@("Năm")" Color="Color.Warning">Năm</MudRadio>
+            <MudRadio Option="@("Tháng")" Color="Color.Warning">Tháng</MudRadio>
+            <MudRadio Option="@("Năm")" Color="Color.Secondary">Năm</MudRadio>
         </MudRadioGroup>
     </div>
     <MudTextField Label="Link chi tiết sp" @bind-Value="DspModel.VendorLinks" />
@@ -50,7 +56,9 @@
                 T="SpecificationModel"
                 Title="Danh sách đặc tả chỉ tiết sản phẩm"
                 Items="@DspModel.Specifications"
+                RowsPerPage=100
                 ShowSearchBox="false"
+                ShowPager=false
                 IsAddNew="true"
                 IsDelete="true"
                 OnAddRow="@(() => OnAddRow_Handle())"
@@ -81,9 +89,12 @@
     MyDataGrid<SpecificationModel> grid;
     // Master
     private List<OptionListModel> VendorList = new List<OptionListModel>();
+    private List<OptionListModel> ProductTypeList = new List<OptionListModel>();
     //Selected
     OptionListModel SelectedVendor;
+    OptionListModel SelectedProductType;
     MyComboBox<OptionListModel> RefVendor;
+    MyComboBox<OptionListModel> RefProductType;
     //Logo
     string CategoryID = "001";
 
@@ -94,6 +105,15 @@
         await base.OnParametersSetAsync();
         //Display data
         ClassHelper.CopyPropertiesData(Model, DspModel);
+
+        //VAT rate * 100
+        DspModel.TaxRate = DspModel.TaxRate * 100;
+
+        //SelectedVendor
+        if (!string.IsNullOrWhiteSpace(DspModel.VendorID)) SelectedVendor = VendorList.Find(x => x.ItemCode == DspModel.VendorID);
+
+        //SelectedProductType
+        if (!string.IsNullOrWhiteSpace(DspModel.ProductType)) SelectedProductType = ProductTypeList.Find(x => x.ItemCode == DspModel.ProductType);
 
         //Specifications
         DspModel.Specifications.Clear();
@@ -124,11 +144,20 @@
         if (!Validate()) return;
 
         ClassHelper.CopyPropertiesData(DspModel, Model);
+
+        //VAT rate / 100
+        Model.TaxRate = Model.TaxRate / 100;
+
         //SelectedVendor
         if (SelectedVendor != null)
         {
             Model.VendorID = SelectedVendor.ItemCode;
             Model.VendorName = SelectedVendor.ItemName;
+        }
+        //SelectedProductType
+        if (SelectedProductType != null)
+        {
+            Model.ProductType = SelectedProductType.ItemCode;
         }
 
         //Specifications
@@ -147,6 +176,14 @@
 
     bool Validate()
     {
+        //Product type
+        if (SelectedProductType == null)
+        {
+            Snackbar.Add("Chưa nhập loại", Severity.Error);
+            RefProductType.Focus();
+            return false;
+        }
+
         //Title
         if (SelectedVendor == null)
         {
@@ -174,6 +211,7 @@
     async Task LoadMaster()
     {
         VendorList = await masterService.Load_OptionList("001");
+        ProductTypeList = await masterService.Load_OptionList("002");
     }
 
     //Load Logo image

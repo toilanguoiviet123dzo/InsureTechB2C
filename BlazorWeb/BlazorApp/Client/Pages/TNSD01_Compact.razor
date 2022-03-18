@@ -1,0 +1,150 @@
+﻿@using Insure.Services
+@using Resource.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudCard Style="border-radius: 10px; max-width: 600px" Class="mx-auto mt-8">
+    <MudCardHeader>
+        <MudAvatar Class="mx-auto mt-n10" Size="Size.Large" Color="Color.Primary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.LogoContent))" Alt="Vendor Avatar" />
+    </MudCardHeader>
+    
+    <MudCardContent>
+        <MudText Typo="Typo.h5" Align=Align.Center Style="font-weight: bold">@Model.ProductName</MudText>
+        <MudText Typo="Typo.h6" Align=Align.Center Class="text-muted">@Model.VendorName</MudText>
+        <div class="d-flex justify-space-between align-center px-2 m-2" style="border-radius: 5px; background-color:#ebe8f2; height: 40px; font-size: large; font-weight:bold; color: #180653">
+            <div>
+                Số tiền bảo hiểm:
+            </div>
+            <div>
+                @(Model.InsureAmount.ToString("N0") + "đ")
+            </div>
+        </div>
+
+        @if (Model.Specifications != null && Model.Specifications.Count > 0)
+        {
+            <MudText Typo="Typo.h6" Style="font-weight: bold">@Model.Specifications[0].Title</MudText>
+            <div style="margin: 8px 8px 8px 24px; word-wrap: break-word;">
+                @((MarkupString)Model.Specifications[0].Content)
+            </div>
+        }
+        <div class="d-flex align-center">
+            <MudLink Href=@($"/TNSD01_Detail/{ProductID}")>Chi tiết quyền lợi</MudLink>
+            <MudText Typo="Typo.h5" Class="ml-2" Style="font-weight: bold; color: gray; font-size:small">></MudText>
+        </div>
+    </MudCardContent>
+    <MudCardActions Class="justify-space-around align-center">
+        <div class="d-flex align-end">
+            <MudText Typo="Typo.h5" Style="font-weight: bold; color: #2453c4">@(Model.UnitPrice.ToString("N0") + "đ")</MudText>
+            <MudText Typo="Typo.inherit" Class="text-muted ml-1" Style="font-weight: bold; color: gray">/năm</MudText>
+        </div>
+        <div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" OnClick="SelectBuy">Chọn mua</MudButton>
+        </div>
+    </MudCardActions>
+</MudCard>
+
+@code {
+    [Parameter] public string ProductID { get; set; } = "";
+
+    ProductModel Model = new ProductModel();
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load data
+        await DisplayMain();
+
+        //Logo
+        await LoadVendorLogo();
+    }
+
+    //Load data
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Validate
+            if (string.IsNullOrWhiteSpace(ProductID)) return;
+
+            //Filter
+            var requestString = new Insure.Services.String_Request()
+                {
+                    Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = ProductID
+                };
+
+            //Get data from DB
+            var response = await insureServiceClient.GetProductAsync(requestString);
+            if (response != null && response.ReturnCode == 200)
+            {
+                ClassHelper.CopyPropertiesDataDateConverted(response.Record, Model);
+
+                //Specifications
+                if (response.Record.Specifications != null)
+                {
+                    foreach (var item in response.Record.Specifications)
+                    {
+                        var specItem = new SpecificationModel();
+                        ClassHelper.CopyPropertiesData(item, specItem);
+                        //
+                        Model.Specifications.Add(specItem);
+                    }
+                }
+
+                //Load vendor logo
+                await LoadVendorLogo();
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    //Load Logo image
+    async Task LoadVendorLogo()
+    {
+        if (string.IsNullOrWhiteSpace(Model.LogoID)) return;
+
+        //Load image from DB
+        var request = new Resource.Services.GetResourceFile_Request();
+        var Credential = new Resource.Services.UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+        request.Credential = Credential;
+        //ClaimNo
+        request.ResourceID = Model.LogoID;
+        request.IsGetThumbnail = true;
+        //Call api
+        var response = await resourceServiceClient.GetResourceFileAsync(request);
+        // Success
+        if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+        {
+            Model.LogoContent = response.Record.Thumbnail.ToByteArray();
+        }
+    }
+
+    void SelectBuy()
+    {
+
+    }
+
+}
+
