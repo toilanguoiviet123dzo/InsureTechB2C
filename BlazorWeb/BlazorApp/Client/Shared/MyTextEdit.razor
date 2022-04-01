@@ -3,6 +3,8 @@
               T="string"
               Text="@Text"
               TextChanged="@((string x) => OnTextChanged(x))"
+              OnBlur="OnBlur_Handle"
+              OnAdornmentClick="OnAdornmentClick_Handle"
               Label="@Literal"
               Variant="@Variant"
               AutoFocus="@AutoFocus"
@@ -21,8 +23,8 @@
               ReadOnly="@ReadOnly"
               InputType="@InputType"
               Immediate="@Immediate"
+              Mask=@Mask
               @attributes="@Attributes" />
-
 
 @code {
     [Parameter] public bool TabStop { get; set; } = true;
@@ -48,6 +50,7 @@
     [Parameter] public bool IsFontBold { get; set; } = false;
     [Parameter] public string TextColor { get; set; } = "";
     [Parameter] public bool Immediate { get; set; } = false;
+    [Parameter] public IMask Mask { get; set; }
 
     //TextChanged
     [Parameter] public string Text { get; set; } = "";
@@ -57,6 +60,19 @@
         if (IsUpperCase) newValue = newValue.ToUpper();
         Text = newValue;
         await TextChanged.InvokeAsync(newValue);
+    }
+
+    //OnBlur
+    [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
+    private async void OnBlur_Handle(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync(e);
+    }
+    //OnAdornmentClick
+    [Parameter] public EventCallback<MouseEventArgs> OnAdornmentClick { get; set; }
+    private async void OnAdornmentClick_Handle(MouseEventArgs e)
+    {
+        await OnAdornmentClick.InvokeAsync(e);
     }
 
     //Attributes

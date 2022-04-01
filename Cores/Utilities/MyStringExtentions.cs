@@ -65,6 +65,19 @@ namespace Cores.Utilities
         #endregion
 
         #region conversion
+        public static string Beautify_VnName(this string fullname)
+        {
+            string ret = "";
+            string[] arr = fullname.Split(" ", StringSplitOptions.RemoveEmptyEntries);
+            foreach (var item in arr)
+            {
+                ret += char.ToUpper(item[0]) + item.Substring(1) + " ";
+            }
+            //
+            return ret.Trim();
+        }
+
+
         private static readonly string[] VietnameseSigns = new string[]
         {
             "aAeEoOuUiIdDyY",
@@ -132,8 +145,49 @@ namespace Cores.Utilities
         }
         #endregion
 
-
         #region Encoding
+        private static string _key = "Pehera5963$$@@!!";
+        public static string EncryptMD5(this string inputString)
+        {
+            {
+                using (var md5 = new MD5CryptoServiceProvider())
+                {
+                    using (var tdes = new TripleDESCryptoServiceProvider())
+                    {
+                        tdes.Key = md5.ComputeHash(Encoding.UTF8.GetBytes(_key));
+                        tdes.Mode = CipherMode.ECB;
+                        tdes.Padding = PaddingMode.PKCS7;
+
+                        using (var transform = tdes.CreateEncryptor())
+                        {
+                            byte[] textBytes = Encoding.UTF8.GetBytes(inputString);
+                            byte[] bytes = transform.TransformFinalBlock(textBytes, 0, textBytes.Length);
+                            return Convert.ToBase64String(bytes, 0, bytes.Length);
+                        }
+                    }
+                }
+            }
+        }
+
+        public static string DecryptMD5(this string inputString)
+        {
+            using (var md5 = new MD5CryptoServiceProvider())
+            {
+                using (var tdes = new TripleDESCryptoServiceProvider())
+                {
+                    tdes.Key = md5.ComputeHash(Encoding.UTF8.GetBytes(_key));
+                    tdes.Mode = CipherMode.ECB;
+                    tdes.Padding = PaddingMode.PKCS7;
+
+                    using (var transform = tdes.CreateDecryptor())
+                    {
+                        byte[] cipherBytes = Convert.FromBase64String(inputString);
+                        byte[] bytes = transform.TransformFinalBlock(cipherBytes, 0, cipherBytes.Length);
+                        return Encoding.UTF8.GetString(bytes);
+                    }
+                }
+            }
+        }
         /// <summary>
         /// Mã hóa MD5
         /// </summary>
@@ -143,7 +197,7 @@ namespace Cores.Utilities
         {
             try
             {
-                MD5 md5 = MD5CryptoServiceProvider.Create();
+                MD5 md5 = MD5.Create();
                 byte[] dataMd5 = md5.ComputeHash(Encoding.Default.GetBytes(s));
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < dataMd5.Length; i++)
@@ -164,7 +218,7 @@ namespace Cores.Utilities
         {
             try
             {
-                MD5 md5 = MD5CryptoServiceProvider.Create();
+                MD5 md5 = MD5.Create();
                 byte[] dataMd5 = md5.ComputeHash(Encoding.UTF8.GetBytes(s));
                 StringBuilder sb = new StringBuilder();
                 for (int i = 0; i < dataMd5.Length; i++)
@@ -195,7 +249,7 @@ namespace Cores.Utilities
         /// <returns></returns>
         public static bool IsPhoneNumber(this string s)
         {
-            return Regex.IsMatch(s, @"^[0-9]");
+            return Regex.IsMatch(s, @"(84|0[3|5|7|8|9])+([0-9]{8})\b");
         }
         /// <summary>
         /// Bỏ các ký tự định dạng HTML ra khỏi chuỗi
@@ -221,7 +275,7 @@ namespace Cores.Utilities
         /// </summary>
         /// <param name="Email"></param>
         /// <returns></returns>
-        public static bool IsEmailValid(this string Email)
+        public static bool IsEmail(this string Email)
         {
             if (string.IsNullOrEmpty(Email))
                 return false;

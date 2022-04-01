@@ -6,44 +6,54 @@
     }
 </style>
 
-<EditForm Model="@Model" OnValidSubmit="OnSubmit">
-    <DataAnnotationsValidator />
-    <MudCard>
-        <MudCardHeader Class="px-2 py-1">
-            <CardHeaderContent>
-                <MudText Typo="Typo.h6">@Title</MudText>
-            </CardHeaderContent>
-            <CardHeaderActions>
-                <MudIconButton Icon="@Icons.Material.Filled.Close" Color="Color.Error" OnClick="@(() => OnCancel())" />
-            </CardHeaderActions>
-        </MudCardHeader>
-        <MudCardContent Style="@($"max-height: {MaxHeight}; overflow-y: scroll")">
+<div style="@($"max-height:calc(100vh - 48px); width:{@Width}; margin-bottom:48px;")" class="hidescroll">
+    <EditForm Model="@Model" OnValidSubmit="OnSubmit">
+        <DataAnnotationsValidator />
+        <!--Appbar-->
+        <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+            <MudIconButton Style="color:white" Icon="@BackIcon" aria-label="back" @onclick="OnCancel"></MudIconButton>
+            <h5 class="m-auto">@Title</h5>
+            <MudSpacer />
+            <MudIconButton Style="color:red" Icon="@Icons.Material.Filled.Close" aria-label="back" @onclick="OnCancel"></MudIconButton>
+        </MudAppBar>
+        <!--Content-->
+        <div style="@Style" class="@Class hidescroll">
             @ChildContent
-        </MudCardContent>
-        <MudCardActions Class="d-flex justify-center gap-4">
-            <MudButton Variant="Variant.Filled"
-                       Color="Color.Default"
-                       Style="width:100px"
-                       Class="mr-4"
-                       IconClass="@Icons.Material.Filled.Cancel"
-                       OnClick="OnCancel">Cancel</MudButton>
-            @if (!ReadOnly)
-            {
-                <MudButton ButtonType="ButtonType.Submit"
-                       Variant="Variant.Filled"
-                       Color="Color.Primary"
-                       Style="width:100px"
-                       IconClass="@Icons.Material.Filled.Save">Save</MudButton>
-            }
-        </MudCardActions>
-    </MudCard>
-</EditForm>
+        </div>
+        <!--Appbar bottom-->
+        <MudAppBar Bottom="true" Fixed="true" Elevation="1" Dense="true" Style="@($"color:white; background:{Colors.Grey.Lighten3};")">
+            <div style="width: 100%;" class="d-flex justify-center">
+                <MudButton Variant="Variant.Filled"
+                           Color="Color.Default"
+                           Style="width:100px"
+                           Class="mr-4"
+                           IconClass="@Icons.Material.Filled.Cancel"
+                           OnClick="OnCancel">Cancel</MudButton>
+                @if (!ReadOnly)
+                {
+                    <MudButton ButtonType="ButtonType.Submit"
+                           Variant="Variant.Filled"
+                           Color="Color.Primary"
+                           Style="width:100px"
+                           IconClass="@Icons.Material.Filled.Save">Save</MudButton>
+                }
+            </div>
+        </MudAppBar>
+    </EditForm>
+</div>
 
 @code {
     [Parameter] public string Title { get; set; } = "Edit form";
     [Parameter] public RenderFragment ChildContent { get; set; }
     [Parameter] public T Model { get; set; }
     [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public int UpdMode { get; set; } = 2;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public string Width { get; set; } = MyFormSize.Small;
+
+    //
+    public string BackIcon { get; set; } = Icons.Material.Filled.ArrowBackIosNew;
 
     //Cancel
     [Parameter] public EventCallback OnCancelClick { get; set; }
@@ -60,13 +70,23 @@
     }
 
     //Ref
-    string MaxHeight = "100%";
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
 
-        //Height
-        MaxHeight = Math.Round(BrowserInfo.Height * 0.8, 0) + "px";
+        //UpdMode
+        BackIcon = Icons.Material.Filled.Create;
+        if (UpdMode == 1)
+        {
+            BackIcon = Icons.Material.Filled.Add;
+        }
+
+        //Style
+        string padding = BrowserInfo.IsMobile ? "0px" : "24px";
+        Style = $"padding: {padding}; max-height:calc(100vh - 96px); overflow-y:scroll; {Style}";
+
+        //Width
+        if (BrowserInfo.IsMobile) Width = "100vw";
     }
 
 }

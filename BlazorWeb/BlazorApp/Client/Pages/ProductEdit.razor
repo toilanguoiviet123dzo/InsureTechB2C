@@ -8,19 +8,16 @@
              T="ProductModel"
              Model="DspModel"
              ReadOnly="@ReadOnly"
+             Width=@MyFormSize.Small
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
 
     <div class="d-flex">
         <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Class="mr-2" Style="text-transform: uppercase" AutoFocus=true />
         <MyComboBox @ref="@RefProductType" Literal="Loại" @bind-Value="SelectedProductType" Data="@ProductTypeList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
-    </div>
-    <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
-
-    <div class="d-flex align-center">
-        <MyComboBox @ref="@RefVendor" Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
-        <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.LogoContent))" Alt="Vendor Avatar" />
-        <MyImageUpLoad CategoryID="@CategoryID"
+        <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.LogoContent))" Alt="Product Avatar" />
+        <MyImageUpLoad Id="ProductLogo"
+                       CategoryID="@ProductLogo_CategoryID"
                        OwnerID="@DspModel.ProductID"
                        IsMakeThumbnail=true
                        IsMakeFullImage=false
@@ -30,7 +27,25 @@
                        Icon=@Icons.Material.Filled.Create
                        Size=Size.Small
                        SecureLevel="@WebUserCredential.DocumentLevel"
-                       OnSubmit="@((List<UpLoadFileModel> files) => AddVendorAvatar_Handle(files))" />
+                       OnSubmit="@((List<UpLoadFileModel> files) => LoadProductLogo_Handle(files))" />
+    </div>
+    <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
+
+    <div class="d-flex align-center">
+        <MyComboBox @ref="@RefVendor" Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+        <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.VendorLogoContent))" Alt="Vendor Avatar" />
+        <MyImageUpLoad Id="VendorLogo"
+                       CategoryID="@VendorLogo_CategoryID"
+                       OwnerID="@DspModel.ProductID"
+                       IsMakeThumbnail=true
+                       IsMakeFullImage=false
+                       SingleImage=true
+                       ThumbnailHeight=200
+                       ThumbnailWidth=200
+                       Icon=@Icons.Material.Filled.Create
+                       Size=Size.Small
+                       SecureLevel="@WebUserCredential.DocumentLevel"
+                       OnSubmit="@((List<UpLoadFileModel> files) => LoadVendorLogo_Handle(files))" />
     </div>
     <div class="d-flex">
         <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" Min=1.0 Max=999999999.0 For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" Class="mr-2" Style="color:maroon; font-weight:bold" />
@@ -50,6 +65,14 @@
     </div>
     <MudTextField Label="Link chi tiết sp" @bind-Value="DspModel.VendorLinks" />
     <MudTextField Label="Link Q&A" @bind-Value="DspModel.QALinks" />
+    <MudTextField @bind-Value="@BuyPolicyDisplayText"
+                  Label="Chính sách mua bảo hiểm"
+                  OnAdornmentClick="Show_BuyPolicy"
+                  Variant="Variant.Text"
+                  Adornment="Adornment.End"
+                  ReadOnly=true
+                  AdornmentIcon="@Icons.Filled.Create"
+                  AdornmentColor="Color.Secondary" />
     <br />
     <!--Specifications-->
     <MyDataGrid @ref="@grid"
@@ -96,8 +119,10 @@
     MyComboBox<OptionListModel> RefVendor;
     MyComboBox<OptionListModel> RefProductType;
     //Logo
-    string CategoryID = "001";
-
+    string ProductLogo_CategoryID = "001";
+    string VendorLogo_CategoryID = "002";
+    //
+    string BuyPolicyDisplayText = "";
 
     //OnParametersSet
     protected override async Task OnParametersSetAsync()
@@ -128,7 +153,15 @@
         }
 
         //Logo
-        await LoadVendorLogo();
+        DspModel.LogoContent = await masterService.GetThumbnail(Model.LogoID);
+        DspModel.VendorLogoContent = await masterService.GetThumbnail(Model.VendorLogoID);
+
+        //BuyPolicy
+        BuyPolicyDisplayText = "";
+        if (!string.IsNullOrWhiteSpace(DspModel.BuyPolicy))
+        {
+            BuyPolicyDisplayText = "Đã nhập";
+        }
     }
 
     //Cancel
@@ -214,33 +247,6 @@
         ProductTypeList = await masterService.Load_OptionList("002");
     }
 
-    //Load Logo image
-    async Task LoadVendorLogo()
-    {
-        if (string.IsNullOrWhiteSpace(DspModel.LogoID)) return;
-
-        //Load image from DB
-        var request = new Resource.Services.GetResourceFile_Request();
-        var Credential = new Resource.Services.UserCredential()
-            {
-                Username = WebUserCredential.Username,
-                RoleID = WebUserCredential.RoleID,
-                AccessToken = WebUserCredential.AccessToken,
-                ApiKey = WebUserCredential.ApiKey
-            };
-        request.Credential = Credential;
-        //ClaimNo
-        request.ResourceID = DspModel.LogoID;
-        request.IsGetThumbnail = true;
-        //Call api
-        var response = await resourceServiceClient.GetResourceFileAsync(request);
-        // Success
-        if (response != null && response.ReturnCode == GrpcReturnCode.OK)
-        {
-            DspModel.LogoContent = response.Record.Thumbnail.ToByteArray();
-        }
-    }
-
     //Add row
     async void OnAddRow_Handle()
     {
@@ -298,12 +304,49 @@
         return 1;
     }
 
-    void AddVendorAvatar_Handle(List<UpLoadFileModel> files)
+    void LoadProductLogo_Handle(List<UpLoadFileModel> files)
     {
         if (files != null && files.Count > 0)
         {
             DspModel.LogoID = files[0].ResourceID;
             DspModel.LogoContent = files[0].FileContent;
+            //
+            this.StateHasChanged();
         }
     }
+
+    void LoadVendorLogo_Handle(List<UpLoadFileModel> files)
+    {
+        if (files != null && files.Count > 0)
+        {
+            DspModel.VendorLogoID = files[0].ResourceID;
+            DspModel.VendorLogoContent = files[0].FileContent;
+            //
+            this.StateHasChanged();
+        }
+    }
+
+    async void Show_BuyPolicy()
+    {
+        var row = new SpecificationModel();
+        row.Title = "Chính sách mua bảo hiểm";
+        row.Content = DspModel.BuyPolicy;
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditorOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (SpecificationModel)result.Data;
+            DspModel.BuyPolicy = retModel.Content;
+            BuyPolicyDisplayText = "";
+            if (!string.IsNullOrWhiteSpace(DspModel.BuyPolicy))
+            {
+                BuyPolicyDisplayText = "Đã nhập";
+            }
+            //
+            this.StateHasChanged();
+        }
+    }
+
 }

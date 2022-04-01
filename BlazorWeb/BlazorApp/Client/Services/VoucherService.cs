@@ -19,7 +19,7 @@ namespace BlazorApp.Client.Services
             _adminServiceClient = adminServiceClient;
         }
 
-        public async Task<string> Get_NewVoucherNo()
+        public async Task<string> Get_NewVoucherNo(string voucherCode)
         {
             try
             {
@@ -31,7 +31,7 @@ namespace BlazorApp.Client.Services
                     AccessToken = WebUserCredential.AccessToken,
                     ApiKey = WebUserCredential.ApiKey
                 };
-                request.StringValue = "001";
+                request.StringValue = voucherCode;
                 //
                 var response = await _adminServiceClient.GetVoucherNoAsync(request);
                 if (response != null && response.ReturnCode == GrpcReturnCode.OK)

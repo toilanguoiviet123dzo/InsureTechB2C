@@ -6,7 +6,8 @@
              Class="@Class"
              Style="@Style"
              Tag="@Tag"
-             Color="Color.Primary">
+             Color="Color.Primary"
+             @attributes="@Attributes">
     <ChildContent>
         @if (!string.IsNullOrWhiteSpace(Literal))
         {
@@ -37,6 +38,7 @@
     [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
     private async void CheckedChanged_Handle(bool newValue)
     {
+        Checked = newValue;
         await CheckedChanged.InvokeAsync(newValue);
     }
 

@@ -15,6 +15,10 @@ using BlazorApp.Server.Models;
 using BlazorApp.Server.Common;
 using Cores.Helpers;
 using Cores.Utilities;
+using System.Data;
+using System.IO;
+using System.Data.OleDb;
+using Resource.Services;
 
 namespace BlazorApp.Server.Services
 {
@@ -457,9 +461,9 @@ namespace BlazorApp.Server.Services
         //-------------------------------------------------------------------------------------------------------/
         // SubscribeToNotifications
         //-------------------------------------------------------------------------------------------------------/
-        public override async Task<Empty_Response> SubscribeToNotifications(SubscribeToNotifications_Request request, ServerCallContext context)
+        public override async Task<Admin.Services.Empty_Response> SubscribeToNotifications(SubscribeToNotifications_Request request, ServerCallContext context)
         {
-            var response = new Empty_Response();
+            var response = new Admin.Services.Empty_Response();
             response.ReturnCode = GrpcReturnCode.OK;
             response.MsgCode = "";
             //
@@ -500,7 +504,7 @@ namespace BlazorApp.Server.Services
         //-------------------------------------------------------------------------------------------------------/
         // GetNotificationSubscribe
         //-------------------------------------------------------------------------------------------------------/
-        public override async Task<GetNotificationSubscribe_Response> GetNotificationSubscribe(String_Request request, ServerCallContext context)
+        public override async Task<GetNotificationSubscribe_Response> GetNotificationSubscribe(Admin.Services.String_Request request, ServerCallContext context)
         {
             var response = new GetNotificationSubscribe_Response();
             response.ReturnCode = GrpcReturnCode.OK;
@@ -551,33 +555,34 @@ namespace BlazorApp.Server.Services
                 if (request.Record.Level == 1)
                 {
                     //Addnew
-                    if (request.Record.UpdMode == 1)
-                    {
-                        var cityRecord = new mdAddressMaster();
-                        cityRecord.GenerateNewID();
-                        cityRecord.DspOrder = request.Record.DspOrder;
-                        cityRecord.CityID = request.Record.ItemID;
-                        cityRecord.CityName = request.Record.ItemName;
-                        cityRecord.CityNameEN = request.Record.ItemNameEN;
-                        //
-                        await cityRecord.SaveAsync();
-                        //return saved ID
-                        response.StringValue = cityRecord.ID;
-                    }
-                    //Update
-                    if (request.Record.UpdMode == 2)
+                    if (request.Record.UpdMode == 1 || request.Record.UpdMode == 2)
                     {
                         var cityRecord = await DB.Find<mdAddressMaster>()
                                                  .Match(x => x.CityID == request.Record.ItemID)
                                                  .ExecuteSingleAsync();
                         if (cityRecord != null)
                         {
+                            //Update
                             cityRecord.DspOrder = request.Record.DspOrder;
                             cityRecord.CityID = request.Record.ItemID;
                             cityRecord.CityName = request.Record.ItemName;
                             cityRecord.CityNameEN = request.Record.ItemNameEN;
                             //
                             await cityRecord.SaveAsync();
+                        }
+                        else
+                        {
+                            //Add new
+                            cityRecord = new mdAddressMaster();
+                            cityRecord.GenerateNewID();
+                            cityRecord.DspOrder = request.Record.DspOrder;
+                            cityRecord.CityID = request.Record.ItemID;
+                            cityRecord.CityName = request.Record.ItemName;
+                            cityRecord.CityNameEN = request.Record.ItemNameEN;
+                            //
+                            await cityRecord.SaveAsync();
+                            //return saved ID
+                            response.StringValue = cityRecord.ID;
                         }
                     }
                     //Delete
@@ -595,37 +600,31 @@ namespace BlazorApp.Server.Services
                                                  .ExecuteSingleAsync();
                     if (cityRecord != null)
                     {
-                        //Addnew
-                        if (request.Record.UpdMode == 1)
+                        var districtRecord = cityRecord.Districts.Find(x => x.DistrictID == request.Record.ItemID);
+                        if (districtRecord != null)
                         {
-                            var districtRecord = new DistrictModel();
+                            //Update
+                            districtRecord.DspOrder = request.Record.DspOrder;
+                            districtRecord.DistrictID = request.Record.ItemID;
+                            districtRecord.DistrictName = request.Record.ItemName;
+                            districtRecord.DistrictNameEN = request.Record.ItemNameEN;
+
+                            //Delete
+                            if (request.Record.UpdMode == 3)
+                            {
+                                cityRecord.Districts.Remove(districtRecord);
+                            }
+                        }
+                        else
+                        {
+                            //Add new
+                            districtRecord = new DistrictModel();
                             districtRecord.DspOrder = request.Record.DspOrder;
                             districtRecord.DistrictID = request.Record.ItemID;
                             districtRecord.DistrictName = request.Record.ItemName;
                             districtRecord.DistrictNameEN = request.Record.ItemNameEN;
                             //
                             cityRecord.Districts.Add(districtRecord);
-                        }
-                        //Update && Delete
-                        if (request.Record.UpdMode == 2 || request.Record.UpdMode == 3)
-                        {
-                            var districtRecord = cityRecord.Districts.Find(x => x.DistrictID == request.Record.DistrictID);
-                            if (districtRecord != null)
-                            {
-                                //Update
-                                if (request.Record.UpdMode == 2)
-                                {
-                                    districtRecord.DspOrder = request.Record.DspOrder;
-                                    districtRecord.DistrictID = request.Record.ItemID;
-                                    districtRecord.DistrictName = request.Record.ItemName;
-                                    districtRecord.DistrictNameEN = request.Record.ItemNameEN;
-                                }
-                                //Delete
-                                if (request.Record.UpdMode == 3)
-                                {
-                                    cityRecord.Districts.Remove(districtRecord);
-                                }
-                            }
                         }
                         //Save City
                         await cityRecord.SaveAsync();
@@ -646,37 +645,31 @@ namespace BlazorApp.Server.Services
                         //
                         if (districtRecord != null)
                         {
-                            //Addnew
-                            if (request.Record.UpdMode == 1)
+                            var wardRecord = districtRecord.Wards.Find(x => x.WardID == request.Record.ItemID);
+                            if (wardRecord != null)
                             {
-                                var wardRecord = new WardModel();
+                                //Update
+                                wardRecord.DspOrder = request.Record.DspOrder;
+                                wardRecord.WardID = request.Record.ItemID;
+                                wardRecord.WardName = request.Record.ItemName;
+                                wardRecord.WardNameEN = request.Record.ItemNameEN;
+
+                                //Delete
+                                if (request.Record.UpdMode == 3)
+                                {
+                                    districtRecord.Wards.Remove(wardRecord);
+                                }
+                            }
+                            else
+                            {
+                                //Add new
+                                wardRecord = new WardModel();
                                 wardRecord.DspOrder = request.Record.DspOrder;
                                 wardRecord.WardID = request.Record.ItemID;
                                 wardRecord.WardName = request.Record.ItemName;
                                 wardRecord.WardNameEN = request.Record.ItemNameEN;
                                 //
                                 districtRecord.Wards.Add(wardRecord);
-                            }
-                            //Update && Delete
-                            if (request.Record.UpdMode == 2 || request.Record.UpdMode == 3)
-                            {
-                                var wardRecord = districtRecord.Wards.Find(x => x.WardID == request.Record.ItemID);
-                                if (districtRecord != null)
-                                {
-                                    //Update
-                                    if (request.Record.UpdMode == 2)
-                                    {
-                                        wardRecord.DspOrder = request.Record.DspOrder;
-                                        wardRecord.WardID = request.Record.ItemID;
-                                        wardRecord.WardName = request.Record.ItemName;
-                                        wardRecord.WardNameEN = request.Record.ItemNameEN;
-                                    }
-                                    //Delete
-                                    if (request.Record.UpdMode == 3)
-                                    {
-                                        districtRecord.Wards.Remove(wardRecord);
-                                    }
-                                }
                             }
                             //Save City
                             await cityRecord.SaveAsync();
@@ -695,11 +688,11 @@ namespace BlazorApp.Server.Services
         }
 
         //-------------------------------------------------------------------------------------------------------/
-        // GetAddressList
+        // GetFullAddressList
         //-------------------------------------------------------------------------------------------------------/
-        public override async Task<GetAddressList_Response> GetAddressList(Empty_Request request, ServerCallContext context)
+        public override async Task<GetFullAddressList_Response> GetFullAddressList(Admin.Services.Empty_Request request, ServerCallContext context)
         {
-            var response = new GetAddressList_Response();
+            var response = new GetFullAddressList_Response();
             response.ReturnCode = GrpcReturnCode.OK;
             response.MsgCode = "";
             //
@@ -738,12 +731,265 @@ namespace BlazorApp.Server.Services
             {
                 response.ReturnCode = GrpcReturnCode.Error_ByServer;
                 response.MsgCode = ex.Message;
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "GetSettingMaster", "Exception", response.ReturnCode, ex.Message);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "GetFullAddressList", "Exception", response.ReturnCode, ex.Message);
             }
             //
             return await Task.FromResult(response);
         }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // GetAddressList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<GetAddressList_Response> GetAddressList(Admin.Services.GetAddressList_Request request, ServerCallContext context)
+        {
+            var response = new GetAddressList_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            response.MsgCode = "";
+            //
+            try
+            {
+                //City list
+                if (request.Level == 1)
+                {
+                    var records = await DB.Find<mdAddressMaster>()
+                                          .ExecuteAsync();
+                    if (records != null)
+                    {
+                        foreach (var city in records)
+                        {
+                            //City
+                            var grpcCity = new grpcAddressModel();
+                            grpcCity.ID = city.ID;
+                            grpcCity.DspOrder = city.DspOrder;
+                            grpcCity.Level = 1;
+                            grpcCity.ItemID = city.CityID;
+                            grpcCity.ItemName = city.CityName;
+                            grpcCity.ItemNameEN = city.CityNameEN;
+                            response.Records.Add(grpcCity);
+                        }
+                    }
+                }
+
+                //District list
+                if (request.Level == 2)
+                {
+                    var city = await DB.Find<mdAddressMaster>()
+                                          .Match(x => x.CityID == request.CityID)
+                                          .ExecuteSingleAsync();
+                    if (city != null)
+                    {
+                        foreach (var district in city.Districts)
+                        {
+                            //City
+                            var grpcDistrict = new grpcAddressModel();
+                            grpcDistrict.DspOrder = district.DspOrder;
+                            grpcDistrict.Level = 2;
+                            grpcDistrict.CityID = city.CityID;
+                            grpcDistrict.ItemID = district.DistrictID;
+                            grpcDistrict.ItemName = district.DistrictName;
+                            grpcDistrict.ItemNameEN = district.DistrictNameEN;
+                            response.Records.Add(grpcDistrict);
+                        }
+                    }
+                }
+
+                //Ward list
+                if (request.Level == 3)
+                {
+                    var city = await DB.Find<mdAddressMaster>()
+                                          .Match(x => x.CityID == request.CityID)
+                                          .ExecuteSingleAsync();
+                    if (city != null && city.Districts.Count > 0)
+                    {
+                        var district = city.Districts.Find(x => x.DistrictID == request.DistrictID);
+                        if (district != null)
+                        {
+                            foreach (var ward in district.Wards)
+                            {
+                                //City
+                                var grpcWard = new grpcAddressModel();
+                                grpcWard.DspOrder = ward.DspOrder;
+                                grpcWard.Level = 3;
+                                grpcWard.CityID = city.CityID;
+                                grpcWard.DistrictID = district.DistrictID;
+                                grpcWard.ItemID = ward.WardID;
+                                grpcWard.ItemName = ward.WardName;
+                                grpcWard.ItemNameEN = ward.WardNameEN;
+                                response.Records.Add(grpcWard);
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "GetCityList", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // ImportAddressList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Admin.Services.Empty_Response> ImportAddressList(Admin.Services.ImportAddressList_Request request, ServerCallContext context)
+        {
+            var response = new Admin.Services.Empty_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            response.MsgCode = "";
+            //
+            try
+            {
+                //archiveFolder
+                SettingMasterModel settingMaster;
+                string archiveFolder = "";
+                settingMaster = await SettingMaster.GetSetting("001");
+                archiveFolder = settingMaster == null ? "" : settingMaster.StringValue1;
+
+                //Get file name
+                var resourceFile = await DB.Find<mdResourceFile>()
+                                       .Match(x => x.ResourceID == request.ResourceID)
+                                       .ExecuteSingleAsync();
+                string fileName = "";
+                if (resourceFile != null)
+                {
+                    fileName = archiveFolder + resourceFile.ServerFileName;
+                }
+                if (string.IsNullOrEmpty(fileName))
+                {
+                    response.ReturnCode = GrpcReturnCode.Error_201;
+                    return response;
+                }
+
+                //Read excel
+                var excelData = ReadExcelFile(fileName);
+
+                //Insert to DB
+                if (excelData != null && excelData.Rows.Count > 0)
+                {
+                    int dspOrder = 9000;
+                    foreach (DataRow row in excelData.Rows)
+                    {
+                        //City
+                        if (request.Level == 1)
+                        {
+                            string itemID = row[0] == DBNull.Value ? "" : ((string)row[0]).Trim();
+                            string itemName = row[1] == DBNull.Value ? "" : ((string)row[1]).Trim();
+                            if (!string.IsNullOrWhiteSpace(itemID))
+                            {
+                                var saveRequest = new SaveAddressMaster_Request();
+                                saveRequest.Record = new grpcAddressModel();
+                                saveRequest.Record.DspOrder = dspOrder;
+                                saveRequest.Record.Level = 1;
+                                saveRequest.Record.CityID = "";
+                                saveRequest.Record.DistrictID = "";
+                                saveRequest.Record.ItemID = itemID;
+                                saveRequest.Record.ItemName = itemName;
+                                saveRequest.Record.ItemNameEN = "";
+                                saveRequest.Record.UpdMode = 1;
+                                //
+                                var saveResponse = await SaveAddressMaster(saveRequest, context);
+                                //
+                                dspOrder += 1;
+                            }
+                        }
+                        //District
+                        if (request.Level == 2)
+                        {
+                            string itemID = row[0] == DBNull.Value ? "" : ((string)row[0]).Trim();
+                            string itemName = row[1] == DBNull.Value ? "" : ((string)row[1]).Trim();
+                            string cityID = row[4] == DBNull.Value ? "" : ((string)row[4]).Trim();
+                            if (!string.IsNullOrWhiteSpace(itemID))
+                            {
+                                var saveRequest = new SaveAddressMaster_Request();
+                                saveRequest.Record = new grpcAddressModel();
+                                saveRequest.Record.DspOrder = dspOrder;
+                                saveRequest.Record.Level = 2;
+                                saveRequest.Record.CityID = cityID;
+                                saveRequest.Record.DistrictID = "";
+                                saveRequest.Record.ItemID = itemID;
+                                saveRequest.Record.ItemName = itemName;
+                                saveRequest.Record.ItemNameEN = "";
+                                saveRequest.Record.UpdMode = 1;
+                                //
+                                var saveResponse = await SaveAddressMaster(saveRequest, context);
+                                //
+                                dspOrder += 1;
+                            }
+                        }
+                        //Ward
+                        if (request.Level == 3)
+                        {
+                            string itemID = row[0] == DBNull.Value ? "" : ((string)row[0]).Trim();
+                            string itemName = row[1] == DBNull.Value ? "" : ((string)row[1]).Trim();
+                            string districtID = row[4] == DBNull.Value ? "" : ((string)row[4]).Trim();
+                            string cityID = row[6] == DBNull.Value ? "" : ((string)row[6]).Trim();
+                            if (!string.IsNullOrWhiteSpace(itemID))
+                            {
+                                var saveRequest = new SaveAddressMaster_Request();
+                                saveRequest.Record = new grpcAddressModel();
+                                saveRequest.Record.DspOrder = dspOrder;
+                                saveRequest.Record.Level = 3;
+                                saveRequest.Record.CityID = cityID;
+                                saveRequest.Record.DistrictID = districtID;
+                                saveRequest.Record.ItemID = itemID;
+                                saveRequest.Record.ItemName = itemName;
+                                saveRequest.Record.ItemNameEN = "";
+                                saveRequest.Record.UpdMode = 1;
+                                //
+                                var saveResponse = await SaveAddressMaster(saveRequest, context);
+                                //
+                                dspOrder += 1;
+                            }
+                        }
+                    }
+                }
+
+                //Delete old file
+                var deleteFile = new grpcResourceFileModel();
+                deleteFile.ResourceID = request.ResourceID;
+                deleteFile.UpdMode = 3;
+                //
+                var deleteResponse = await ResourceService.SaveResourceFile(deleteFile);
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "ImportAddressList", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
+
+        private DataTable ReadExcelFile(string fileName)
+        {
+            string fileExt = MyFile.Get_FileExtention(fileName);
+            string conn = string.Empty;
+            DataTable dtexcel = new DataTable();
+
+            conn = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + fileName + ";Extended Properties='Excel 12.0;HDR=NO';"; //for above excel 2007  
+
+            //if (fileExt.CompareTo("xls") == 0)
+            //    conn = @"provider=microsoft.jet.oledb.4.0;data source=" + fileName + ";extended properties='excel 8.0;hrd=yes;imex=1';"; //for below excel 2007  
+            //else
+            //    conn = @"Provider=Microsoft.ACE.OLEDB.12.0;Data Source=" + fileName + ";Extended Properties='Excel 12.0;HDR=NO';"; //for above excel 2007  
+            //
+            using (OleDbConnection con = new OleDbConnection(conn))
+            {
+                try
+                {
+                    OleDbDataAdapter oleAdpt = new OleDbDataAdapter("select * from [Sheet1$]", con); //here we read data from sheet1  
+                    oleAdpt.Fill(dtexcel); //fill excel data into dataTable  
+                }
+                catch { }
+            }
+            //
+            return dtexcel;
+
+        }
 
 
     }//End class

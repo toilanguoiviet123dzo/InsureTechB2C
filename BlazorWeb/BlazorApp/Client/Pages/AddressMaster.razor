@@ -1,0 +1,327 @@
+﻿@page "/AddressMaster"
+@using Admin.Services
+@using System.Collections.ObjectModel
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<!--Header-->
+<MyPanels>
+    <MyPanel Title="Bộ lọc">
+        <div class="container-fluid">
+            <!--Row 1-------------------------------------------------->
+            <div class="row align-items-end">
+                <!--City-->
+                <div class="col-12 col-lg-3">
+                    <MyComboBox Value="SelectedCity"
+                                Data="CityList"
+                                ValueChanged="@((AddressModel value) => CityChanged_Handle(value))"
+                                Clearable="true"
+                                TextFieldName="@(nameof(AddressModel.ItemName))"
+                                Literal="Thành phố" />
+                </div>
+                <!--District-->
+                <div class="col-12 col-lg-3">
+                    <MyComboBox @bind-Value="SelectedDistrict"
+                                Data="DistrictList"
+                                Clearable="true"
+                                TextFieldName="@(nameof(AddressModel.ItemName))"
+                                Literal="Quận/Huyện" />
+                </div>
+                <!--Search buttion-->
+                <div class="col-12 col-lg-2">
+                    <MyButtonSearch OnClick="DisplayMain" />
+                </div>
+                <!--Search buttion-->
+                <div class="col-12 col-lg-2">
+                    <MyFileUpLoad CategoryID="@CategoryID"
+                                  OwnerID="@OwnerID"
+                                  Accept="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel"
+                                  OnSubmit="@((List<UpLoadFileModel> files) => ImportFile_Handle(files))" />
+                </div>
+                <div class="col-12 col-lg-2">
+                    <MyNumEdit Literal="Cấp Import"
+                               @bind-Value=Selectedlevel
+                               Min=1
+                               Max=3
+                               T=int />
+                </div>
+            </div>
+
+        </div><!--End container-->
+    </MyPanel>
+</MyPanels>
+
+
+<!--Grid-->
+<MyDataGrid @ref="@grid"
+            T="AddressModel"
+            Title="Danh sách yêu cầu bồi thường"
+            Items="@DetailData"
+            Dense=true
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((AddressModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((AddressModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 4rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 20rem;" />
+        <col style="width: 15rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<AddressModel, object>(x => x.DspOrder)">No.</MudTableSortLabel></MudTh>
+        <MudTh>Mã</MudTh>
+        <MudTh>Tên</MudTh>
+        <MudTh>Tên(EN)</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center;">@context.DspOrder.ToString()</MudTd>
+        <MudTd>@context.ItemID</MudTd>
+        <MudTd>@context.ItemName</MudTd>
+        <MudTd>@context.ItemNameEN</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<AddressModel> grid;
+    List<AddressModel> DetailData = new List<AddressModel>();
+    List<AddressModel> CityList = new List<AddressModel>();
+    List<AddressModel> DistrictList = new List<AddressModel>();
+    //
+    AddressModel SelectedCity;
+    AddressModel SelectedDistrict;
+    //
+    int Selectedlevel = 1;
+    string CategoryID = "002";
+    string OwnerID = "AddressMasterImport";
+
+
+    // Init
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        CityList = await masterService.Load_CityList();
+
+    }
+
+    #region Load data
+
+
+
+    // Load SettingMaster
+    async Task DisplayMain()
+    {
+        try
+        {
+            int level = 1;
+            if (SelectedCity != null) level += 1;
+            if (SelectedDistrict != null) level += 1;
+            //
+            var request = new GetAddressList_Request();
+            request.Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Level = level;
+            request.CityID = SelectedCity == null ? "" : SelectedCity.ItemID;
+            request.DistrictID = SelectedDistrict == null ? "" : SelectedDistrict.ItemID;
+            //Get data from DB
+            DetailData.Clear();
+            var response = await adminServiceClient.GetAddressListAsync(request);
+            if (response != null && response.ReturnCode == 200)
+            {
+                foreach (var item in response.Records)
+                {
+                    AddressModel dataRow = new AddressModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    // Set Updmode
+                    dataRow.UpdMode = 0;
+                    //
+                    DetailData.Add(dataRow);
+                }
+                //Refresh grid
+                grid.Refresh();
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+
+    }
+
+    async void ImportFile_Handle(List<UpLoadFileModel> files)
+    {
+        if (files != null && files.Count > 0)
+        {
+            var request = new ImportAddressList_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    ResourceID = files[0].ResourceID,
+                    Level = Selectedlevel
+                };
+            var response = await adminServiceClient.ImportAddressListAsync(request);
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Info_ImportSucess, Severity.Success);
+                await DisplayMain();
+            }
+            else
+            {
+                Snackbar.Add(MyMessage.Error_ImportFile, Severity.Error);
+            }
+        }
+    }
+
+    #endregion
+
+    #region DataGrid
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new AddressModel();
+        newRow.Level = 1;
+        //City
+        if (SelectedCity != null)
+        {
+            newRow.Level += 1;
+            newRow.CityID = SelectedCity.ItemID;
+        }
+
+        //District
+        if (SelectedDistrict != null)
+        {
+            newRow.Level += 1;
+            newRow.DistrictID = SelectedDistrict.ItemID;
+        }
+        newRow.UpdMode = 1;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<AddressMasterEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (AddressModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(AddressModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<AddressMasterEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (AddressModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ItemID == retModel.ItemID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(AddressModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+    // Save edit main
+    async Task<bool> SaveRow(AddressModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveAddressMaster_Request();
+            var Credential = new Admin.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcAddressModel();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await adminServiceClient.SaveAddressMasterAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    async void CityChanged_Handle(AddressModel value)
+    {
+        SelectedCity = value;
+        //Load district list
+        if (SelectedCity != null) DistrictList = await masterService.Load_DistrictList(SelectedCity.ItemID);
+    }
+
+    #endregion
+}

@@ -117,14 +117,18 @@ namespace BlazorApp.Server.Services
                     saveRecord.IssueDate = DateTime.UtcNow;
 
                     //Full image
-                    if (saveRecord.IsMakeFullImage && ImageHelper.IsImage(saveRecord.FileType))
+                    if (saveRecord.IsImage && saveRecord.IsMakeFullImage)
                     {
                         saveRecord.FileContent = saveRecord.FileContent;
                         saveRecord.HasFullImage = true;
                     }
+                    else
+                    {
+                        saveRecord.FileContent = saveRecord.FileContent;
+                    }
 
                     //Thumbnail
-                    if (saveRecord.IsMakeThumbnail && ImageHelper.IsImage(saveRecord.FileType))
+                    if (saveRecord.IsImage && saveRecord.IsMakeThumbnail)
                     {
                         saveRecord.Thumbnail = ImageHelper.MakeThumbnail(saveRecord.FileContent, saveRecord.ThumbnailWidth, saveRecord.ThumbnailHeight);
                         saveRecord.HasThumbnail = true;
@@ -135,7 +139,7 @@ namespace BlazorApp.Server.Services
                     {
                         string fileName = "";
                         //Full
-                        if (saveRecord.IsMakeFullImage)
+                        if (saveRecord.IsMakeFullImage || !saveRecord.IsImage)
                         {
                             saveRecord.ServerFileName = saveRecord.ResourceID + "_" + saveRecord.FileName;
                             fileName = archiveFolder + saveRecord.ServerFileName;
@@ -143,7 +147,7 @@ namespace BlazorApp.Server.Services
                         }
 
                         //Thumbnail
-                        if (saveRecord.IsMakeThumbnail)
+                        if (saveRecord.IsImage && saveRecord.IsMakeThumbnail)
                         {
                             saveRecord.ServerThumbnailFileName = saveRecord.ResourceID + "_T_" + saveRecord.FileName;
                             fileName = archiveFolder + saveRecord.ServerThumbnailFileName;

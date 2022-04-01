@@ -16,6 +16,7 @@ namespace BlazorApp.Client.Common
         public const string Error_DownloadFile = "Download file thất bại!";
         public const string Error_LoadFile = "Load file bị lỗi!";
         public const string Error_DeleteFile = "Xóa file thất bại";
+        public const string Error_ImportFile = "Import file thất bại";
 
         //Warnning
         public const string Warning_NoData = "Không có dữ liệu";
@@ -27,6 +28,7 @@ namespace BlazorApp.Client.Common
 
         //Infor
         public const string Info_SaveSucess = "Lưu dữ liệu thành công";
+        public const string Info_ImportSucess = "Import dữ liệu thành công";
         public const string Info_DeleteSucess = "Xóa dữ liệu thành công";
         public const string Info_NothingChanged = "Không có dữ liệu thay đổi";
 

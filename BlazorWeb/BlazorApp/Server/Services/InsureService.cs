@@ -183,11 +183,11 @@ namespace BlazorApp.Server.Services
         }
 
         //-------------------------------------------------------------------------------------------------------/
-        // CreateSaleOrder
+        // InitOrder
         //-------------------------------------------------------------------------------------------------------/
-        public override async Task<Insure.Services.String_Response> CreateSaleOrder(CreateSaleOrder_Request request, ServerCallContext context)
+        public override async Task<Insure.Services.InitOrder_Response> InitOrder(InitOrder_Request request, ServerCallContext context)
         {
-            var response = new Insure.Services.String_Response();
+            var response = new Insure.Services.InitOrder_Response();
             response.ReturnCode = GrpcReturnCode.OK;
             try
             {
@@ -196,21 +196,28 @@ namespace BlazorApp.Server.Services
                 ClassHelper.CopyPropertiesData(request.Record, saveRecord);
                 //
                 saveRecord.ID = saveRecord.GenerateNewID();
-                saveRecord.OrderID = await MyVoucher.GetVoucherNo("001");
+                saveRecord.TransactionID = MyCodeGenerator.GenTransactionID();
+                saveRecord.OrderID = await MyVoucher.CommitVoucherNo("001", saveRecord.OrderID);
+                //Time
+                saveRecord.RequestTime = DateTime.UtcNow;
                 saveRecord.ModifiedOn = DateTime.Now;
+                saveRecord.UpdMode = 1;
                 //
                 await saveRecord.SaveAsync();
                 //
-                response.StringValue = saveRecord.OrderID;
+                response.InitOrderToken = MyTokenService.GenInitOrderToken(saveRecord.TransactionID);
+                response.TransactionID = saveRecord.TransactionID;
             }
             catch (Exception ex)
             {
                 response.ReturnCode = GrpcReturnCode.Error_ByServer;
                 response.MsgCode = ex.Message;
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "CreateSaleOrder", "Exception", response.ReturnCode, ex.Message);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "InitOrder", "Exception", response.ReturnCode, ex.Message);
             }
             return await Task.FromResult(response);
         }
+
+        
 
 
 

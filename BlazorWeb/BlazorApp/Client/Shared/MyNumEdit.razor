@@ -6,6 +6,7 @@
                  Value="@Value"
                  ValueChanged="@((T value) => OnValueChanged(value))"
                  TextChanged="@((string text) => OnTextChanged(text))"
+                 OnBlur="OnBlur_Handle"
                  Immediate="false"
                  Label="@Literal"
                  Placeholder="@Placeholder"
@@ -25,6 +26,8 @@
                  Class="@Class"
                  Style="@Style"
                  Tag="@Tag"
+                 Min=Min
+                 Max=Max
                  @attributes="@Attributes"/>
 
 
@@ -48,6 +51,8 @@
     [Parameter] public string Format { get; set; } = "N0";
     [Parameter] public bool IsFontBold { get; set; } = false;
     [Parameter] public string TextColor { get; set; } = "";
+    [Parameter] public T Min { get; set; }
+    [Parameter] public T Max { get; set; }
 
 
     //ValueChanged
@@ -65,6 +70,13 @@
     {
         await TextChanged.InvokeAsync(newValue);
     }
+    //OnBlur
+    [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
+    private async void OnBlur_Handle(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync(e);
+    }
+
     //Culture
     public CultureInfo _en = CultureInfo.GetCultureInfo("en-US");
     //Attributes

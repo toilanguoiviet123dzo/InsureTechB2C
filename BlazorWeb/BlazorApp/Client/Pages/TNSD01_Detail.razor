@@ -1,5 +1,4 @@
-﻿@page "/TNSD01_Detail/{ProductID}"
-@using Insure.Services
+﻿@using Insure.Services
 @using Resource.Services
 @using System.Collections.ObjectModel;
 @inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
@@ -9,14 +8,25 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<MudCard Style="border-radius: 10px; max-width: 600px" Class="mx-auto mt-8">
-    <MudCardHeader>
-        <MudAvatar Class="mx-auto mt-n10" Size="Size.Large" Color="Color.Primary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.LogoContent))" Alt="Vendor Avatar" />
-    </MudCardHeader>
-
-    <MudCardContent Style="@($"max-height: 100vh; overflow-y: scroll")">
+<MyAppBarForm Title="Chi tiết sản phẩm" ShowCloseButton=true>
+    <ChildContent>
+        <!--Avatar-->
+        <div class="p-2" style="text-align:center">
+            <MudAvatar Size="Size.Large" Color="Color.Primary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.LogoContent))" Alt="Vendor Avatar" />
+        </div>
+        
+        <!--ProductName-->
         <MudText Typo="Typo.h5" Align=Align.Center Style="font-weight: bold">@Model.ProductName</MudText>
-        <MudText Typo="Typo.h6" Align=Align.Center Class="text-muted">@Model.VendorName</MudText>
+        <!--VendorName-->
+        <div class="d-flex justify-content-center align-items-center">
+            <div class="mr-3">
+                <MudAvatar Size="Size.Medium" Color="Color.Secondary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.VendorLogoContent))" Alt="Vendor Avatar" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Align=Align.Center Class="text-muted">@Model.VendorName</MudText>
+            </div>
+        </div>
+        <!--InsureAmount-->
         <div class="d-flex justify-space-between align-center px-2 m-2" style="border-radius: 5px; background-color:#ebe8f2; height: 40px; font-size: large; font-weight:bold; color: #180653">
             <div>
                 Số tiền bảo hiểm:
@@ -35,7 +45,7 @@
         @if (Model.Specifications != null && Model.Specifications.Count > 0)
         {
             <MyPanels Elevation=1>
-                @foreach (var item in Model.Specifications)
+                @foreach (var item in Specifications)
                 {
                     <MyPanel Title=@item.Title IsInitiallyExpanded=false>
                         <div style="margin: 8px 8px 8px 48px; word-wrap: break-word;">
@@ -45,8 +55,8 @@
                 }
             </MyPanels>
         }
-    </MudCardContent>
-    <MudCardActions Class="justify-space-around align-center">
+    </ChildContent>
+    <ActionButtons>
         <div class="d-flex align-end">
             <MudText Typo="Typo.h5" Style="font-weight: bold; color: #2453c4">@(Model.UnitPrice.ToString("N0") + "đ")</MudText>
             <MudText Typo="Typo.inherit" Class="text-muted ml-1" Style="font-weight: bold; color: gray">/năm</MudText>
@@ -54,14 +64,13 @@
         <div>
             <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.ShoppingCartCheckout" OnClick="SelectBuy">Chọn mua</MudButton>
         </div>
-    </MudCardActions>
-</MudCard>
-
+    </ActionButtons>
+</MyAppBarForm>
 
 @code {
-    [Parameter] public string ProductID { get; set; } = "TNDS01";
-
-    ProductModel Model = new ProductModel();
+    [Parameter] public ProductModel Model { get; set; }
+    //
+    List<SpecificationModel> Specifications = new List<SpecificationModel>();
     string Title_0 = "";
     string Content_0 = "";
 
@@ -71,70 +80,21 @@
     {
         base.OnInitialized();
 
-        //Load data
-        await DisplayMain();
+        //Split specifications
+        if (Model.Specifications != null && Model.Specifications.Count > 0)
+        {
+            Title_0 = Model.Specifications[0].Title;
+            Content_0 = Model.Specifications[0].Content;
+
+            //Remain list
+            for (var i = 1; i < Model.Specifications.Count; i++)
+            {
+                Specifications.Add(Model.Specifications[i]);
+            }
+        }
 
         //Logo
         await LoadVendorLogo();
-    }
-
-    //Load data
-    async Task DisplayMain()
-    {
-        try
-        {
-            //Validate
-            if (string.IsNullOrWhiteSpace(ProductID)) return;
-
-            //Filter
-            var requestString = new Insure.Services.String_Request()
-                {
-                    Credential = new Insure.Services.UserCredential()
-                    {
-                        Username = WebUserCredential.Username,
-                        RoleID = WebUserCredential.RoleID,
-                        AccessToken = WebUserCredential.AccessToken,
-                        ApiKey = WebUserCredential.ApiKey
-                    },
-                    StringValue = ProductID
-                };
-
-            //Get data from DB
-            var response = await insureServiceClient.GetProductAsync(requestString);
-            if (response != null && response.ReturnCode == 200)
-            {
-                ClassHelper.CopyPropertiesDataDateConverted(response.Record, Model);
-
-                //Specifications
-                var fisrtItem = true;
-                if (response.Record.Specifications != null)
-                {
-                    foreach (var item in response.Record.Specifications)
-                    {
-                        var specItem = new SpecificationModel();
-                        ClassHelper.CopyPropertiesData(item, specItem);
-                        //
-                        if (fisrtItem)
-                        {
-                            Title_0 = specItem.Title;
-                            Content_0 = specItem.Content;
-                            fisrtItem = false;
-                        }
-                        else
-                        {
-                            Model.Specifications.Add(specItem);
-                        }
-                    }
-                }
-
-                //Load vendor logo
-                await LoadVendorLogo();
-            }
-        }
-        catch
-        {
-            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
-        }
     }
 
     //Load Logo image
@@ -164,10 +124,21 @@
         }
     }
 
-    void SelectBuy()
+    //SelectBuy
+    async void SelectBuy()
     {
-
+        var parameters = new DialogParameters();
+        parameters.Add("Product", Model);
+        //
+        var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (ProductModel)result.Data;
+            
+        }
     }
 
+
+    //
 }
 

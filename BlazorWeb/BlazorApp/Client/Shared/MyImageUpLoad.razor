@@ -4,7 +4,7 @@
 @inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
 @inject ISnackbar Snackbar
 
-<InputFile id="fileInput" hidden multiple
+<InputFile id="@Id" hidden multiple
            OnChange="@(async(e) => await LoadFile(e))"
            @attributes="Attributes" />
 
@@ -12,9 +12,10 @@
         Color="Color.Secondary"
         StartIcon="@Icon"
         Size="@Size"
-        for="fileInput" />
+        for="@Id" />
 
 @code {
+    [Parameter] public string Id { get; set; } = "fileInput";
     [Parameter] public string OwnerID { get; set; } = "";
     [Parameter] public string CategoryID { get; set; } = "";
     [Parameter] public bool IsMakeThumbnail { get; set; } = true;
@@ -68,6 +69,8 @@
                 uploadItem.FileType = MyFile.Get_FileExtention(file.Name);
                 uploadItem.FileName = file.Name;
                 uploadItem.FileContent = ms.ToArray();
+                uploadItem.IsImage = true;
+                uploadItem.IsMakeFullImage = IsMakeFullImage;
                 uploadItem.IsMakeThumbnail = IsMakeThumbnail;
                 uploadItem.ThumbnailWidth = ThumbnailWidth;
                 uploadItem.ThumbnailHeight = ThumbnailHeight;

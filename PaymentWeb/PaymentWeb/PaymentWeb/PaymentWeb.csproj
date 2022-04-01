@@ -1,0 +1,34 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\DatabaseConfig.cs" Link="Common\DatabaseConfig.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyAppLog.cs" Link="Common\MyAppLog.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyConstant.cs" Link="Common\MyConstant.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyTokenService.cs" Link="Common\MyTokenService.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\SettingMasterModel.cs" Link="Common\SettingMasterModel.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />
+    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="MongoDB.Entities" Version="20.26.3" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Cores\Cores.csproj" />
+  </ItemGroup>
+
+</Project>

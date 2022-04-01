@@ -10,12 +10,20 @@
 
 <MudCard Style="border-radius: 10px; max-width: 600px" Class="mx-auto mt-8">
     <MudCardHeader>
-        <MudAvatar Class="mx-auto mt-n10" Size="Size.Large" Color="Color.Primary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.LogoContent))" Alt="Vendor Avatar" />
+        <MudAvatar Class="mx-auto mt-n10" Size="Size.Large" Color="Color.Primary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.LogoContent))" Alt="Product Avatar" />
     </MudCardHeader>
     
     <MudCardContent>
-        <MudText Typo="Typo.h5" Align=Align.Center Style="font-weight: bold">@Model.ProductName</MudText>
-        <MudText Typo="Typo.h6" Align=Align.Center Class="text-muted">@Model.VendorName</MudText>
+        <MudText Typo="Typo.h6" Align=Align.Center Style="font-weight: bold">@Model.ProductName</MudText>
+        <div class="d-flex justify-content-center align-items-center">
+            <div class="mr-3">
+                <MudAvatar Size="Size.Medium" Color="Color.Secondary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.VendorLogoContent))" Alt="Vendor Avatar" />
+            </div>
+            <div>
+                <MudText Typo="Typo.h6" Align=Align.Center Class="text-muted">@Model.VendorName</MudText>
+            </div>
+        </div>
+                
         <div class="d-flex justify-space-between align-center px-2 m-2" style="border-radius: 5px; background-color:#ebe8f2; height: 40px; font-size: large; font-weight:bold; color: #180653">
             <div>
                 Số tiền bảo hiểm:
@@ -27,13 +35,13 @@
 
         @if (Model.Specifications != null && Model.Specifications.Count > 0)
         {
-            <MudText Typo="Typo.h6" Style="font-weight: bold">@Model.Specifications[0].Title</MudText>
+            <MudText Typo="Typo.subtitle1" Style="font-weight: bold">@Model.Specifications[0].Title</MudText>
             <div style="margin: 8px 8px 8px 24px; word-wrap: break-word;">
                 @((MarkupString)Model.Specifications[0].Content)
             </div>
         }
         <div class="d-flex align-center">
-            <MudLink Href=@($"/TNSD01_Detail/{ProductID}")>Chi tiết quyền lợi</MudLink>
+            <MudLink @onclick="ShowDetail" Style="cursor:pointer">Chi tiết quyền lợi</MudLink>
             <MudText Typo="Typo.h5" Class="ml-2" Style="font-weight: bold; color: gray; font-size:small">></MudText>
         </div>
     </MudCardContent>
@@ -62,7 +70,8 @@
         await DisplayMain();
 
         //Logo
-        await LoadVendorLogo();
+        Model.LogoContent = await masterService.GetThumbnail(Model.LogoID);
+        Model.VendorLogoContent = await masterService.GetThumbnail(Model.VendorLogoID);
     }
 
     //Load data
@@ -141,9 +150,25 @@
         }
     }
 
-    void SelectBuy()
+    async void SelectBuy()
     {
+        var parameters = new DialogParameters();
+        parameters.Add("Product", Model);
+        //
+        var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (ProductModel)result.Data;
+            
+        }
+    }
 
+    async void ShowDetail()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("Model", Model);
+        //
+        var result = await DialogService.Show<TNSD01_Detail>("", parameters, MyOptions.ShowAppbarOptions()).Result;
     }
 
 }

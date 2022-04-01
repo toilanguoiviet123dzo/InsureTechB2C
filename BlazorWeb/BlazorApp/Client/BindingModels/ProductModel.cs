@@ -25,6 +25,9 @@ namespace BlazorApp.Client.BindingModels
         public string QALinks { get; set; } = "";
         public string LogoID { get; set; } = "";
         public byte[] LogoContent { get; set; } = new byte[] { };
+        public string VendorLogoID { get; set; } = "";
+        public byte[] VendorLogoContent { get; set; } = new byte[] { };
+        public string BuyPolicy { get; set; } = "";
         public string Notes { get; set; } = "";
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

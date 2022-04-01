@@ -8,6 +8,20 @@ namespace BlazorApp.Client.Common
 {
     public static class MyOptions
     {
+        public static DialogOptions ShowAppbarOptions(MaxWidth size = MaxWidth.Small)
+        {
+            var options = new DialogOptions()
+            {
+                MaxWidth = size,
+                Position = DialogPosition.Center,
+                CloseOnEscapeKey = false,
+                DisableBackdropClick = true,
+                CloseButton = false,
+                FullWidth = false
+            };
+            return options;
+        }
+
         public static DialogOptions GetMyFormOptions(MaxWidth size = MaxWidth.Large)
         {
             var options = new DialogOptions()
@@ -17,7 +31,7 @@ namespace BlazorApp.Client.Common
                 CloseOnEscapeKey = true,
                 DisableBackdropClick = true,
                 CloseButton = false,
-                FullWidth = true
+                FullWidth = false
             };
             return options;
         }
@@ -31,7 +45,7 @@ namespace BlazorApp.Client.Common
                 CloseOnEscapeKey = true,
                 DisableBackdropClick = false,
                 CloseButton = true,
-                FullWidth = true
+                FullWidth = false
             };
             return options;
         }
@@ -45,10 +59,12 @@ namespace BlazorApp.Client.Common
                 CloseOnEscapeKey = true,
                 DisableBackdropClick = true,
                 CloseButton = false,
-                FullWidth = true
+                FullWidth = false
             };
             return options;
         }
+
+        
 
         public static DialogOptions GetEditorOptions(MaxWidth size = MaxWidth.Large)
         {
@@ -59,7 +75,7 @@ namespace BlazorApp.Client.Common
                 CloseOnEscapeKey = false,
                 DisableBackdropClick = true,
                 CloseButton = false,
-                FullWidth = true
+                FullWidth = false
             };
             return options;
         }
@@ -73,7 +89,7 @@ namespace BlazorApp.Client.Common
                 CloseOnEscapeKey = true,
                 DisableBackdropClick = true,
                 CloseButton = false,
-                FullWidth = true
+                FullWidth = false
             };
             return options;
         }

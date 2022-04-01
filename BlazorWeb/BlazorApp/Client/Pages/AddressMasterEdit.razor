@@ -1,0 +1,37 @@
+﻿
+<MyPopupEdit Title="Update address"
+             T="AddressModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MudNumericField Label="No." @bind-Value="DspModel.DspOrder" T=Int32/>
+    <MudTextField Label="Mã" @bind-Value="DspModel.ItemID" For="@(() => DspModel.ItemID)" />
+    <MudTextField Label="Tên" @bind-Value="DspModel.ItemName" For="@(() => DspModel.ItemID)"/>
+    <MudTextField Label="Tên EN" @bind-Value="DspModel.ItemNameEN" />
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public AddressModel Model { get; set; }
+    //
+    AddressModel DspModel = new AddressModel();
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+}

@@ -30,7 +30,9 @@ service grpcAdminService {
 
     //AddressMaster
     rpc SaveAddressMaster (SaveAddressMaster_Request) returns (String_Response);
-    rpc GetAddressList (Empty_Request) returns (GetAddressList_Response);
+    rpc GetFullAddressList (Empty_Request) returns (GetFullAddressList_Response);
+    rpc GetAddressList (GetAddressList_Request) returns (GetAddressList_Response);
+    rpc ImportAddressList (ImportAddressList_Request) returns (Empty_Response);
 }
 //======================================================
 // Common Messages
@@ -267,7 +269,7 @@ message grpcAddressModel {
     int32 UpdMode = 9;
 }
 
-message GetAddressList_Response {
+message GetFullAddressList_Response {
     int32 ReturnCode = 1;
     string MsgCode = 2;
     //
@@ -296,5 +298,24 @@ message grpcWardModel {
     string WardNameEN = 4;
 }
 
+message GetAddressList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcAddressModel Records = 3;
+}
+message GetAddressList_Request {
+    UserCredential Credential = 1;
+    //
+    int32 Level = 2;
+    string CityID = 3;
+    string DistrictID = 4;
+}
+message ImportAddressList_Request {
+    UserCredential Credential = 1;
+    //
+    string ResourceID = 3;
+    int32 Level = 4;
+}
 
 

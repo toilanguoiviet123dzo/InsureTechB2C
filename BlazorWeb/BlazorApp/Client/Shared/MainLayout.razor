@@ -11,6 +11,11 @@
         padding-top: 10px !important;
     }
 
+    /*body {
+        background-image: url("./images/background-main.jpg");
+        background-color: transparent;
+        object-fit:cover;
+    }*/
 </style>
 
 <MudThemeProvider />
@@ -21,7 +26,7 @@
     <!--Top App bar-->
     <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
         <MudAvatar Color="Color.Default" Variant="Variant.Filled" Class="mr-3">
-            <MudIcon Color="Color.Secondary" Icon="@Icons.Filled.HealthAndSafety" Size="Size.Large" 
+            <MudIcon Color="Color.Secondary" Image="./images/Logo1.png" Size="Size.Large"
                      @onclick="@(async () => await JsRuntime.InvokeAsync<object>("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
         </MudAvatar>
         @if (string.IsNullOrWhiteSpace(WebUserCredential.Program.ProgramName))
@@ -44,7 +49,7 @@
     </MudMainContent>
 
     <!--Bottom App bar-->
-    <MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
+    @*<MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
         <!--Admin-->
         <MudMenu @ref="@adminMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
             <ActivatorContent>
@@ -68,29 +73,13 @@
             <ChildContent>
                 <MudNavMenu Color="Color.Info">
                     <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.LocationOn" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("AddressMaster","Danh mục địa chỉ")))">Danh mục địa chỉ</MudNavLink>
                 </MudNavMenu>
             </ChildContent>
         </MudMenu>
+    </MudAppBar>*@
 
-        <!---->
-        @*<MudMenu @ref="@claimMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
-            <ActivatorContent>
-                <MudChip Icon="@Icons.Custom.Uncategorized.Radioactive" Color="Color.Success" Style="width: 120px;">Claim</MudChip>
-            </ActivatorContent>
-            <ChildContent>
-                <MudNavMenu Color="Color.Info">
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.AddAlert" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimRequest","Tiếp nhận")))">Tiếp nhận</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.PlayArrow" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimProcess","Xử lý")))">Xử lý</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.GetApp" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimPickup","Lấy thiết bị")))">Lấy thiết bị</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Calculate" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimRepair","Báo giá & sửa chữa")))">Báo giá & sửa chữa</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Check" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimApprove","Duyệt")))">Duyệt</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.DeliveryDining" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimReturn","Trả thiết bị")))">Trả thiết bị</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Payment" OnClick="@(() => ShowProgram(claimMenu, new ProgramInfo("ClaimPayment","Chi trả")))">Chi trả</MudNavLink>
-                </MudNavMenu>
-            </ChildContent>
-        </MudMenu>*@
 
-    </MudAppBar>
 </MudLayout>
 @code {
     public ProgramInfo Program { get; set; } = new ProgramInfo("", "");
@@ -112,6 +101,6 @@
         Navigation.NavigateTo($"/{program.ProgramID}");
     }
 
-    
+
 }
 

@@ -1,0 +1,373 @@
+﻿@using Insure.Services
+@using Resource.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject VoucherService voucherService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+
+<MyAppBarForm Title="Thông tin mua bảo hiểm" ShowCloseButton=true>
+    <ChildContent>
+        <MyPanels>
+            <MyPanel Title="Thông tin xe">
+                <MyTextEdit Literal="Họ và tên chủ xe"
+                            IsFontBold=true
+                            Text=@Model.OwnerFullname
+                            TextChanged="@((string text) => OwnerFullname_TextChanged(text))"
+                            AutoFocus=true
+                            @ref=RefOwnerFullname />
+
+                <div class="row align-items-end">
+                    <div class="col-6">
+                        <MyTextEdit Literal="Biển số xe"
+                                    IsFontBold=true
+                                    IsUpperCase=true
+                                    TextColor=@MyTextColor.Blue
+                                    OnBlur="OnBlur_LicensePlate"
+                                    Mask=@licensePlateMask
+                                    @bind-Text=Model.LicensePlate
+                                    @ref=RefLicensePlate />
+                    </div>
+                    <div class="col-6">
+                        <MyCheckBox Literal="@FormatText"
+                                    TabStop=false
+                                    CheckedChanged="@((bool value) => UseFormat_Changed(value))"
+                                    Checked=@UseFormat_LicLicensePlate />
+                    </div>
+                </div>
+
+            </MyPanel>
+
+            <MyPanel Title="Thông tin chủ hợp đồng">
+                <MyTextEdit Literal="Họ và tên"
+                            IsFontBold=true
+                            TabStop=false
+                            @bind-Text=Model.CusFullname
+                            @ref=RefCusFullname />
+                <MyTextEdit Literal="Điện thoại"
+                            IsFontBold=true
+                            @bind-Text=Model.CusPhone
+                            @ref=RefCusPhone />
+                <MyTextEdit Literal="Email"
+                            TextColor=@MyTextColor.Blue
+                            @bind-Text=Model.CusEmail
+                            OnBlur="OnBlur_CusEmail"
+                            @ref=RefCusEmail />
+                <MyDateEdit Literal="Ngày hiệu lực"
+                            TabStop=false
+                            @bind-Date=Model.EffectiveSttDate
+                            @ref=RefEffectiveSttDate />
+
+                <MyComboBox Value="SelectedCity"
+                            Data="CityList"
+                            TValue=AddressModel
+                            ValueChanged="@((AddressModel value) => CityChanged_Handle(value))"
+                            Clearable="true"
+                            TextFieldName="@(nameof(AddressModel.ItemName))"
+                            Literal="Tỉnh thành phố"
+                            @ref="@RefCity" />
+                <MyComboBox Value="SelectedDistrict"
+                            Data="DistrictList"
+                            ValueChanged="@((AddressModel value) => DistrictChanged_Handle(value))"
+                            Clearable="true"
+                            TextFieldName="@(nameof(AddressModel.ItemName))"
+                            Literal="Quận huyện"
+                            @ref="@RefDistrict" />
+                <MyComboBox Value="SelectedWard"
+                            Data="WardList"
+                            ValueChanged="@((AddressModel value) => WardChanged_Handle(value))"
+                            Clearable="true"
+                            TextFieldName="@(nameof(AddressModel.ItemName))"
+                            Literal="Phường xã"
+                            @ref="@RefWard" />
+
+                <MyTextEdit Literal="Địa chỉ"
+                            @bind-Text=Model.Address
+                            @ref=RefAddress />
+            </MyPanel>
+        </MyPanels>
+
+        <p class="text-muted text-justify m-3">
+            Lưu ý: Giấy chứng nhận bảo hiểm bắt buộc và trách nhiệm dân sự và bảo hiểm tự nguyện chủ xe mô tô - xe gắn máy
+            được cấp Giấy chứng nhận bảo hiểm điện tử qua email hoặc tin nhắn SMS.
+        </p>
+    </ChildContent>
+    <ActionButtons>
+        <div class="d-flex align-end">
+            <MudText Typo="Typo.h5" Style="font-weight: bold; color: #2453c4">@(Model.UnitPrice.ToString("N0") + "đ")</MudText>
+            <MudText Typo="Typo.inherit" Class="text-muted ml-1" Style="font-weight: bold; color: gray">/năm</MudText>
+        </div>
+        <div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Payments" OnClick="SelectGo">Tiếp tục</MudButton>
+        </div>
+    </ActionButtons>
+</MyAppBarForm>
+
+@code {
+    [Parameter] public ProductModel Product { get; set; }
+    //SO
+    SaleOrderModel Model = new SaleOrderModel();
+    //Master
+    List<AddressModel> CityList = new List<AddressModel>();
+    List<AddressModel> DistrictList = new List<AddressModel>();
+    List<AddressModel> WardList = new List<AddressModel>();
+    //Selected
+    AddressModel SelectedCity;
+    AddressModel SelectedDistrict;
+    AddressModel SelectedWard;
+    //Ref
+    MyTextEdit RefCusFullname;
+    MyTextEdit RefCusEmail;
+    MyTextEdit RefCusPhone;
+    MyTextEdit RefAddress;
+    MyTextEdit RefOwnerFullname;
+    MyTextEdit RefLicensePlate;
+    MyDateEdit RefEffectiveSttDate;
+    MyComboBox<AddressModel> RefCity;
+    MyComboBox<AddressModel> RefDistrict;
+    MyComboBox<AddressModel> RefWard;
+    //format
+    string FormatText = "Nhập theo định dạng";
+    bool UseFormat_LicLicensePlate = true;
+    IMask licensePlateMask = new PatternMask("00-a0 00.000");
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Set Product
+        Model.OrderID = await voucherService.Get_NewVoucherNo("001");
+        Model.VendorID = Product.VendorID;
+        Model.VendorName = Product.VendorName;
+        Model.ProductID = Product.ProductID;
+        Model.ProductName = Product.ProductName;
+        Model.Duration = Product.Duration;
+        Model.DurationUnit = Product.DurationUnit;
+        Model.Quantity = 1;
+        Model.UnitPrice = Product.UnitPrice;
+        Model.Amount = Product.UnitPrice;
+        Model.IsIncludeVAT = Product.IsIncludeVAT;
+        Model.TaxRate = Product.TaxRate;
+        Model.TaxAmount = Math.Round(Model.Amount * Product.TaxRate, 0);
+        Model.EffectiveSttDate = DateTime.Now;
+        Model.LogoContent = Product.LogoContent;
+        Model.VendorLogoContent = Product.VendorLogoContent;
+        Model.BuyPolicy = Product.BuyPolicy;
+        //Mode
+        Model.ModifiedOn = DateTime.Now;
+        Model.UpdMode = 1;
+
+        //Load city list
+        CityList = await masterService.Load_CityList();
+    }
+
+    //UseFormat_Changed
+    void UseFormat_Changed(bool useFormat)
+    {
+        UseFormat_LicLicensePlate = useFormat;
+        if (useFormat)
+        {
+            FormatText = "Nhập theo định dạng";
+            licensePlateMask = new PatternMask("00-a0 00.000");
+        }
+        else
+        {
+            FormatText = "Nhập tự do";
+            licensePlateMask = null;
+        }
+    }
+
+    //City
+    async void CityChanged_Handle(AddressModel value)
+    {
+        SelectedCity = value;
+        //Clear district
+        SelectedDistrict = null;
+        //Load district list
+        if (SelectedCity != null) DistrictList = await masterService.Load_DistrictList(SelectedCity.ItemID);
+
+        //Show District
+        await RefDistrict.ToggleMenu();
+    }
+    //Distric
+    async void DistrictChanged_Handle(AddressModel value)
+    {
+        SelectedDistrict = value;
+        //Clear Ward
+        SelectedWard = null;
+        //Load Ward list
+        if (SelectedCity != null && SelectedDistrict != null)
+        {
+            WardList = await masterService.Load_WardList(SelectedCity.ItemID, SelectedDistrict.ItemID);
+        }
+
+        //Show Ward
+        await RefWard.ToggleMenu();
+    }
+    //Ward
+    void WardChanged_Handle(AddressModel value)
+    {
+        SelectedWard = value;
+        //Focus to address
+        RefAddress.Focus();
+    }
+
+    void OwnerFullname_TextChanged(string text)
+    {
+        Model.OwnerFullname = text.Beautify_VnName();
+        //
+        if (string.IsNullOrWhiteSpace(Model.CusFullname))
+        {
+            Model.CusFullname = Model.OwnerFullname;
+        }
+    }
+    //OnBlur_CusEmail
+    async void OnBlur_CusEmail(FocusEventArgs e)
+    {
+        //Show City
+        if (SelectedCity == null)
+        {
+            await RefCity.ToggleMenu();
+        }
+    }
+
+    //OnBlur_LicensePlate
+    void OnBlur_LicensePlate(FocusEventArgs e)
+    {
+        RefCusPhone.Focus();
+    }
+
+    bool Validate_Main()
+    {
+        //RefOwnerFullname
+        if (string.IsNullOrWhiteSpace(Model.OwnerFullname))
+        {
+            Snackbar.Add("Chưa nhập: Họ và tên chủ xe", Severity.Error);
+            RefOwnerFullname.Focus();
+            return false;
+        }
+        //RefLicensePlate
+        if (string.IsNullOrWhiteSpace(Model.LicensePlate))
+        {
+            Snackbar.Add("Chưa nhập: Biển số xe", Severity.Error);
+            RefLicensePlate.Focus();
+            return false;
+        }
+        //RefCusFullname
+        if (string.IsNullOrWhiteSpace(Model.CusFullname))
+        {
+            Snackbar.Add("Chưa nhập: Tên chủ hợp đồng", Severity.Error);
+            RefCusFullname.Focus();
+            return false;
+        }
+        //RefCusPhone
+        if (string.IsNullOrWhiteSpace(Model.CusPhone))
+        {
+            Snackbar.Add("Chưa nhập: Điện thoại", Severity.Error);
+            RefCusPhone.Focus();
+            return false;
+        }
+        else if (!Model.CusPhone.IsPhoneNumber())
+        {
+            Snackbar.Add("Số điện thoại không hợp lệ", Severity.Error);
+            RefCusPhone.Focus();
+            return false;
+        }
+        //RefCusEmail
+        if (string.IsNullOrWhiteSpace(Model.CusEmail))
+        {
+            Snackbar.Add("Chưa nhập: Email", Severity.Error);
+            RefCusEmail.Focus();
+            return false;
+        }
+        else if (!Model.CusEmail.IsEmail())
+        {
+            Snackbar.Add("Email không hợp lệ", Severity.Error);
+            RefCusEmail.Focus();
+            return false;
+        }
+        //RefCusEmail
+        if (string.IsNullOrWhiteSpace(Model.CusFullname))
+        {
+            Snackbar.Add("Chưa nhập: Email", Severity.Error);
+            RefCusEmail.Focus();
+            return false;
+        }
+        //City
+        if (SelectedCity == null)
+        {
+            Snackbar.Add("Chưa nhập: Tỉnh thành phố", Severity.Error);
+            RefCity.Focus();
+            return false;
+        }
+        //District
+        if (SelectedDistrict == null)
+        {
+            Snackbar.Add("Chưa nhập: Quận huyện", Severity.Error);
+            RefDistrict.Focus();
+            return false;
+        }
+        //Ward
+        if (SelectedWard == null)
+        {
+            Snackbar.Add("Chưa nhập: Phường xã", Severity.Error);
+            RefWard.Focus();
+            return false;
+        }
+        //Address
+        if (string.IsNullOrWhiteSpace(Model.Address))
+        {
+            Snackbar.Add("Chưa nhập: Địa chỉ", Severity.Error);
+            RefAddress.Focus();
+            return false;
+        }
+        //
+        return true;
+    }
+
+    async void SelectGo()
+    {
+        //Validate
+        if (!Validate_Main()) return;
+
+        //City
+        if (SelectedCity != null)
+        {
+            Model.CityID = SelectedCity.ItemID;
+            Model.CityName = SelectedCity.ItemName;
+        }
+        //District
+        if (SelectedDistrict != null)
+        {
+            Model.DistrictID = SelectedDistrict.ItemID;
+            Model.DistrictName = SelectedDistrict.ItemName;
+        }
+        //Ward
+        if (SelectedWard != null)
+        {
+            Model.WardID = SelectedWard.ItemID;
+            Model.WardName = SelectedWard.ItemName;
+        }
+        Model.CusFullname = Model.CusFullname.Beautify_VnName();
+        //EffectiveEndDate
+        if (Model.DurationUnit == "Ngày") Model.EffectiveEndDate = Model.EffectiveSttDate.AddDays(Model.Duration);
+        if (Model.DurationUnit == "Tháng") Model.EffectiveEndDate = Model.EffectiveSttDate.AddMonths(Model.Duration);
+        if (Model.DurationUnit == "Năm") Model.EffectiveEndDate = Model.EffectiveSttDate.AddYears(Model.Duration);
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", Model);
+        //
+        var result = await DialogService.Show<TNSD01_SO_Step2>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (ProductModel)result.Data;
+
+        }
+    }
+
+}
+

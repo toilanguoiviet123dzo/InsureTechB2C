@@ -12,22 +12,25 @@
          Rounded="true"
          Centered=true
          ApplyEffectsToContainer="true"
-         PanelClass="pa-6"
+         PanelClass="p-0 p-lg-6"
          Class="m-auto"
-         Style="@($"height: 100vh; max-height: 100vh; overflow-y: scroll")">
-    <MudTabPanel Text="Bảo hiểm xe gắn máy">
-        <!--Xe gắn máy-->
-        <TNSD01_Compact ProductID="TNDS_HV" />
-        <TNSD01_Compact ProductID="TNDS_BM" />
+         Style="@($"height: 100vh; max-height: 100vh; max-width:var(--mysize-maxwidth); overflow-y: scroll")">
+    <MudTabPanel Text=@Tab1Text Icon="@Icons.Filled.AddShoppingCart" Style="font-size:medium">
+        <div class="productlist m-1 m-md-4">
+            <!--Xe gắn máy-->
+            <TNSD01_Compact ProductID="TNDS_HV" />
+            <TNSD01_Compact ProductID="TNDS_BM" />
+        </div>
     </MudTabPanel>
-    <MudTabPanel Text="Bảo hiểm xe ô tô">
-        <MudText>Bảo hiểm tai nạn</MudText>
+    <MudTabPanel Text=@Tab2Text Icon="fa fa-certificate" Style="font-size:medium">
+        <div class="productlist m-1 m-md-4">
+        </div>
     </MudTabPanel>
 </MudTabs>
 
 @code {
-
-    string MaxHeight = "100%";
+    string Tab1Text = "Mua bảo hiểm";
+    string Tab2Text = "Chứng nhận bảo hiểm";
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
@@ -35,8 +38,12 @@
         // Get browser info
         await Get_BrowserInfo();
 
-        //Height
-        MaxHeight = Math.Round(BrowserInfo.Height * 0.8, 0) + "px";
+        if (BrowserInfo.IsMobile)
+        {
+            Tab1Text = "Mua bảo hiểm";
+            Tab2Text = "Chứng nhận";
+        }
+
     }
 
     async Task Get_BrowserInfo()

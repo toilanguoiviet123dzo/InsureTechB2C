@@ -3,6 +3,7 @@
               T="string"
               Text="@Text"
               TextChanged="@((string x) => OnTextChanged(x))"
+              OnBlur="OnBlur_Handle"
               Label="@Literal"
               Variant="@Variant"
               AutoFocus="@AutoFocus"
@@ -45,6 +46,12 @@
     private async Task OnTextChanged(string newValue)
     {
         await TextChanged.InvokeAsync(newValue);
+    }
+    //OnBlur
+    [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
+    private async void OnBlur_Handle(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync(e);
     }
 
     //Attributes

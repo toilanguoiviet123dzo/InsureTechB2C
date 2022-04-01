@@ -24,7 +24,9 @@ namespace BlazorApp.Server.Models
         public string VendorLinks { get; set; } = "";
         public string QALinks { get; set; } = "";
         public string LogoID { get; set; } = "";
+        public string VendorLogoID { get; set; } = "";
         public string Notes { get; set; } = "";
+        public string BuyPolicy { get; set; } = "";
         public List<SpecificationModel> Specifications { get; set; } = new List<SpecificationModel>();
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

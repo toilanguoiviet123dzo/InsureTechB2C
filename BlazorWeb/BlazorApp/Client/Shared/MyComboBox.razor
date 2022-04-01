@@ -8,6 +8,7 @@
            ValueChanged="@((TValue value) => OnValueChanged(value))"
            SelectedValuesChanged="@((IEnumerable<TValue> selectedValue) => OnSelectedItemChanged(selectedValue))"
            TextChanged="@((string value) => OnTextChanged(value))"
+           OnBlur="OnBlur_Handle"
            Error="@Error"
            ErrorText="@ErrorText"
            Required="@Required"
@@ -107,6 +108,14 @@
         }
     }
 
+    //OnBlur
+    [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
+    private async void OnBlur_Handle(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync(e);
+    }
+
+
     //Ref
     private MudSelect<TValue> Ref;
 
@@ -159,6 +168,12 @@
     public async void Focus()
     {
         await Ref.FocusAsync();
+    }
+
+    //Toggle Menu
+    public async Task ToggleMenu()
+    {
+        await Ref.ToggleMenu();
     }
 
 
