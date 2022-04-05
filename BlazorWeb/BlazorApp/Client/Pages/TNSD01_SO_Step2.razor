@@ -227,7 +227,7 @@
         }
 
         //Request payment
-        string paymentLink = $@"https://shop.insurtechvietnam.com.vn/InitOrder/InitOrderToken={response.InitOrderToken};TransactionID={response.TransactionID}";
+        string paymentLink = $@"https://localhost:7194/InitPayment/{response.InitOrderToken}/{response.TransactionID}/1";
         var initResponse = await JsRuntime.InvokeAsync<object>("open", paymentLink, "_blank");
 
         //Show waiting dialog

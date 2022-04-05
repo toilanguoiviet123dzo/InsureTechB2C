@@ -35,6 +35,78 @@ namespace BlazorApp.Server.Common
             //
             return null;
         }
+        /// <summary>
+        /// Get string setting value
+        /// </summary>
+        /// <param name="settingCode"></param>
+        /// <returns></returns>
+        public async static Task<string> GetString1(string settingCode)
+        {
+            var ret = new SettingMasterModel();
+            try
+            {
+                //Load for the first time
+                if (SettingMasters.Count == 0)
+                {
+                    await Load_Setting();
+                }
+
+                //Get setting
+                ret = SettingMasters.Find(x => x.Code == settingCode);
+                return ret == null ? "" : ret.StringValue1;
+            }
+            catch { }
+            //
+            return "";
+        }
+        /// <summary>
+        /// Get int setting value
+        /// </summary>
+        /// <param name="settingCode"></param>
+        /// <returns></returns>
+        public async static Task<int> GetInt1(string settingCode)
+        {
+            var ret = new SettingMasterModel();
+            try
+            {
+                //Load for the first time
+                if (SettingMasters.Count == 0)
+                {
+                    await Load_Setting();
+                }
+
+                //Get setting
+                ret = SettingMasters.Find(x => x.Code == settingCode);
+                return ret == null ? 0 : ret.IntValue1;
+            }
+            catch { }
+            //
+            return 0;
+        }
+        /// <summary>
+        /// Get double setting value
+        /// </summary>
+        /// <param name="settingCode"></param>
+        /// <returns></returns>
+        public async static Task<double> GetDouble1(string settingCode)
+        {
+            var ret = new SettingMasterModel();
+            try
+            {
+                //Load for the first time
+                if (SettingMasters.Count == 0)
+                {
+                    await Load_Setting();
+                }
+
+                //Get setting
+                ret = SettingMasters.Find(x => x.Code == settingCode);
+                return ret == null ? 0.0 : ret.DoubleValue1;
+            }
+            catch { }
+            //
+            return 0.0;
+        }
         //
         public async static Task Load_Setting()
         {

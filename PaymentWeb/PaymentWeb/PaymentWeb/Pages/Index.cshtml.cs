@@ -14,7 +14,7 @@ namespace PaymentWeb.Pages
 
         public void OnGet()
         {
-
+            
         }
     }
 }

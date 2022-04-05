@@ -16,7 +16,7 @@ namespace BlazorApp.Server.Common
             string token = $"123dzo|7|{transactionID}|8|456dzo|9|{strTimeOut}";
 
             //Return
-            return token.EncryptMD5();
+            return token.EncryptString();
         }
 
         public static string GenFinishOrderToken(string transactionID)
@@ -26,7 +26,7 @@ namespace BlazorApp.Server.Common
             string token = $"dzo123|10|{transactionID}|11|dzo456|12|{strTimeOut}";
 
             //Return
-            return token.EncryptMD5();
+            return token.EncryptString();
         }
 
         public static bool Check_InitOrderToken(string token, string transactionID)
@@ -35,7 +35,7 @@ namespace BlazorApp.Server.Common
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(transactionID)) return false;
 
             //Parse token to check
-            string DecryptedAccessToken = token.DecryptMD5();
+            string DecryptedAccessToken = token.DecryptString();
             var strArray = DecryptedAccessToken.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             if (strArray == null || strArray.Length != 7) return false;
 
@@ -58,7 +58,7 @@ namespace BlazorApp.Server.Common
             if (string.IsNullOrWhiteSpace(token) || string.IsNullOrWhiteSpace(transactionID)) return false;
 
             //Parse token to check
-            string DecryptedAccessToken = token.DecryptMD5();
+            string DecryptedAccessToken = token.DecryptString();
             var strArray = DecryptedAccessToken.Split("|".ToCharArray(), StringSplitOptions.RemoveEmptyEntries);
             if (strArray == null || strArray.Length != 7) return false;
 

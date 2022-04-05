@@ -47,10 +47,11 @@ namespace BlazorApp.Client.BindingModels
         public DateTime ExpiredTime { get; set; }
         public bool IsPayRequest { get; set; }
         public bool IsPayDone { get; set; }
+        public bool IsPayError { get; set; }
+        public bool IsProcessDone { get; set; }
+        public bool IsProcessError { get; set; }
         public bool IsIssueCertificate { get; set; }
         public bool IsDelivery { get; set; }
-        public bool IsCancel { get; set; }
-        public bool IsPayError { get; set; }
         //Payment
         public string PaymentRefID { get; set; } = "";
         public string PaymentResponseCode { get; set; } = "";

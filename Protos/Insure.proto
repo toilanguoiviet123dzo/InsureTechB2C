@@ -154,15 +154,16 @@ message grpcSaleOrderModel {
     google.protobuf.Timestamp ExpiredTime  = 31;
     bool IsPayRequest = 32;
     bool IsPayDone = 33;
-    bool IsIssueCertificate = 34;
-    bool IsDelivery = 35;
-    bool IsCancel = 36;
-    bool IsPayError = 37;
+    bool IsPayError = 34;
+    bool IsProcessDone = 35;
+    bool IsProcessError = 36;
+    bool IsIssueCertificate = 37;
+    bool IsDelivery = 38;
     //
-    string TransactionID = 38;
+    string TransactionID = 39;
     //
-    google.protobuf.Timestamp ModifiedOn  = 39;
-    int32 UpdMode = 40;
+    google.protobuf.Timestamp ModifiedOn  = 40;
+    int32 UpdMode = 41;
 }
 
 message InitOrder_Request{
