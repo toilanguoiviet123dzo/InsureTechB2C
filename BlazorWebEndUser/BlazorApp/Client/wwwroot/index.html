@@ -1,0 +1,53 @@
+﻿<!DOCTYPE html>
+<html>
+<head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+    <title>InsurTech Việt Nam</title>
+    <base href="/" />
+    <!--PWA-->
+    <link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <!--jquery-->
+    <script src="js/jquery/jquery.min.js"></script>
+    <!--bootstrap-->
+    <link href="css/bootstrap/bootstrap.min.css" rel="stylesheet" />
+    <!--fontawesome-->
+    <link href="css/fontawesome/css/all.css" rel="stylesheet" />
+    <!--MudBlazor-->
+    <link href="https://fonts.googleapis.com/css?family=Roboto:300,400,500,700&display=swap" rel="stylesheet" />
+    <link href="_content/MudBlazor/MudBlazor.min.css" rel="stylesheet" />
+
+    <!--frame work-->
+    <link href="css/styles.css?v=221402" rel="stylesheet" />
+    <link href="BlazorApp.Client.styles.css" rel="stylesheet" />
+
+</head>
+<body>
+
+    <div id="app">
+        <script type="text/javascript">
+            if (/MSIE \d|Trident.*rv:/.test(window.navigator.userAgent))
+                window.location.href = "ieNotSupported.html";
+        </script>
+        <!--<div class="splash-screen">
+            <div class="spinner-border"></div>
+            <div class="splash-screen-caption">InsurTech Việt Nam</div>
+            <div class="splash-screen-text">Loading...</div>
+        </div>-->
+    </div>
+
+    <!--script-->
+    <script src="js/Common.js"></script>
+    <script src="js/pushNotifications.js"></script>
+    <script src="_content/MudBlazor/MudBlazor.min.js"></script>
+    <script src="_framework/blazor.webassembly.js" autostart="false"></script>
+    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <script>
+        Blazor.start({
+            environment: "Development"
+        });
+    </script>
+    <!--Development, Production-->
+</body>
+</html>

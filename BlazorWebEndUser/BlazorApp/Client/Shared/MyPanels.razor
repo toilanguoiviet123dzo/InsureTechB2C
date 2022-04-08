@@ -1,0 +1,8 @@
+﻿<MudExpansionPanels MultiExpansion="true" Elevation=@Elevation>
+    @ChildContent
+</MudExpansionPanels>
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public int Elevation { get; set; } = 3;
+}

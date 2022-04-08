@@ -82,6 +82,8 @@
 <div class="container">
     <div class="row">
         <div class="col-md-6 mx-auto mt-5">
+            <h3>ReturnCode: @Model.ReturnCode</h3>
+            <h3>ErrorMessage: @Model.ErrorMessage</h3>
             <!--Success-->
             @if (Model.ReturnCode == ReturnCode.OK)
             {
@@ -96,7 +98,7 @@
                         Chứng nhận bảo hiểm sẽ được sẽ được gởi qua email <span style="color:blue">@Model.Record.CusEmail</span>
                         hoặc sms qua số điện thoại <span style="color:blue">@Model.Record.CusPhone</span>
                     </p>
-                    <a href="#">Download giấy chứng nhận bảo hiểm</a>
+                    <a href="@Model.Record.CertificateLink">Download giấy chứng nhận bảo hiểm</a>
                 </div>
             }
 

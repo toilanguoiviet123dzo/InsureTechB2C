@@ -63,6 +63,40 @@ namespace Cores.Utilities
                 return true;
             }
         }
+        /// <summary>
+        /// Get first name
+        /// </summary>
+        /// <param name="s"></param>
+        /// <returns></returns>
+        public static string GetFirstName(this string fullName)
+        {
+            var indexof = fullName.IndexOf(' ');
+            if (indexof > 0)
+            {
+                return fullName.Substring(0, indexof);
+            }
+            else
+            {
+                return fullName;
+            }
+        }
+        /// <summary>
+        /// Get last name
+        /// </summary>
+        /// <param name="fullName"></param>
+        /// <returns></returns>
+        public static string GetLastName(this string fullName)
+        {
+            var indexof = fullName.IndexOf(' ');
+            if (indexof > 0)
+            {
+                return fullName.Substring(indexof + 1, fullName.Length - indexof - 1);
+            }
+            else
+            {
+                return fullName;
+            }
+        }
         #endregion
 
         #region conversion
@@ -278,9 +312,9 @@ namespace Cores.Utilities
             }
         }
 
-        public static string hmacSHA256(string data, string key)
+        public static string hmacSHA256(this string data)
         {
-            using (HMACSHA256 hmac = new HMACSHA256(Encoding.ASCII.GetBytes(key)))
+            using (HMACSHA256 hmac = new HMACSHA256(Encoding.ASCII.GetBytes(_key)))
             {
                 byte[] arr = hmac.ComputeHash(Encoding.ASCII.GetBytes(data));
                 return BitConverter.ToString(arr).Replace("-", "").ToLower();

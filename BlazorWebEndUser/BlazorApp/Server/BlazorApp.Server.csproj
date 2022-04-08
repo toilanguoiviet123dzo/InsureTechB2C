@@ -1,0 +1,47 @@
+<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>6ec37e95-9132-410f-816b-f3065fee138c</UserSecretsId>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\..\..\Configs\GrpcConfig.cs" Link="Configs\GrpcConfig.cs" />
+    <Compile Include="..\..\..\Models\mdAddressMaster.cs" Link="Models\mdAddressMaster.cs" />
+    <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
+    <Compile Include="..\..\..\Models\mdFirebasePushMessageQueue.cs" Link="Models\mdFirebasePushMessageQueue.cs" />
+    <Compile Include="..\..\..\Models\mdNotificationSubcribe.cs" Link="Models\mdNotificationSubcribe.cs" />
+    <Compile Include="..\..\..\Models\mdOptionList.cs" Link="Models\mdOptionList.cs" />
+    <Compile Include="..\..\..\Models\mdOptionListHeader.cs" Link="Models\mdOptionListHeader.cs" />
+    <Compile Include="..\..\..\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
+    <Compile Include="..\..\..\Models\mdResourceFile.cs" Link="Models\mdResourceFile.cs" />
+    <Compile Include="..\..\..\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />
+    <Compile Include="..\..\..\Models\mdSaleOrderLog.cs" Link="Models\mdSaleOrderLog.cs" />
+    <Compile Include="..\..\..\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
+    <Compile Include="..\..\..\Models\mdUserAccount.cs" Link="Models\mdUserAccount.cs" />
+    <Compile Include="..\..\..\Models\mdVoucherMaster.cs" Link="Models\mdVoucherMaster.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.41.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.41.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.1" />
+    <PackageReference Include="MongoDB.Entities" Version="20.26.1" />
+    <PackageReference Include="System.Data.OleDb" Version="6.0.0" />
+    <PackageReference Include="WebPush" Version="1.0.12" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\..\Cores\Cores.csproj" />
+    <ProjectReference Include="..\Client\BlazorApp.Client.csproj" />
+    <ProjectReference Include="..\Shared\BlazorApp.Shared.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Controllers\" />
+    <Folder Include="Configs\" />
+    <Folder Include="Models\" />
+  </ItemGroup>
+
+
+</Project>

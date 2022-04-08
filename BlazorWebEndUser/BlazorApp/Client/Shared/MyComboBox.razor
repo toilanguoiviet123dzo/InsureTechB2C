@@ -1,0 +1,180 @@
+﻿@using System.Linq.Expressions
+@using System.Globalization
+@typeparam TValue
+
+<MudSelect @ref="@Ref"
+           Value="Value"
+           SelectedValues="SelectedValues"
+           ValueChanged="@((TValue value) => OnValueChanged(value))"
+           SelectedValuesChanged="@((IEnumerable<TValue> selectedValue) => OnSelectedItemChanged(selectedValue))"
+           TextChanged="@((string value) => OnTextChanged(value))"
+           OnBlur="OnBlur_Handle"
+           Error="@Error"
+           ErrorText="@ErrorText"
+           Required="@Required"
+           Validation="@Validation"
+           AutoFocus="@AutoFocus"
+           Clearable="@Clearable"
+           Culture="@Culture"
+           Disabled="@Disabled"
+           ReadOnly="@ReadOnly"
+           HelperTextOnFocus="true"
+           AdornmentIcon="@AdornmentIcon"
+           AdornmentColor="@AdornmentColor"
+           HelperText="@HelperText"
+           InputMode="@InputMode"
+           Placeholder="@Placeholder"
+           Strict="@Strict"
+           FullWidth="@FullWidth"
+           SelectAll="@SelectAll"
+           ToStringFunc="@ToStringFunc"
+           Dense="@Dense"
+           MaxHeight="@MaxHeight"
+           Class="@Class"
+           Style="@Style"
+           Tag="@Tag"
+           MultiSelection="false"
+           @attributes="@Attributes"
+           Label="@Literal">
+    @foreach (TValue item in Data)
+    {
+        <MudSelectItem Value="@item">@(ClassHelper.GetPropertiesData<string>(item,TextFieldName))</MudSelectItem>
+    }
+</MudSelect>
+
+@code {
+
+    [Parameter] public bool TabStop { get; set; } = true;
+    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string AdornmentIcon { get; set; } = "";
+    [Parameter] public string Literal { get; set; } = "";
+    [Parameter] public string HelperText { get; set; } = "";
+    [Parameter] public string ErrorText { get; set; } = "";
+    [Parameter] public bool Error { get; set; } = false;
+    [Parameter] public bool Required { get; set; } = false;
+    [Parameter] public object Validation { get; set; }
+    [Parameter] public bool AutoFocus { get; set; } = false;
+    [Parameter] public bool Clearable { get; set; } = false;
+    [Parameter] public CultureInfo Culture { get; set; }
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public InputMode InputMode { get; set; } = InputMode.text;
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public bool Strict { get; set; } = false;
+    [Parameter] public Color AdornmentColor { get; set; } = Color.Default;
+    [Parameter] public bool FullWidth { get; set; } = false;
+    [Parameter] public bool SelectAll { get; set; } = false;
+    [Parameter] public bool Dense { get; set; } = true;
+    [Parameter] public int MaxHeight { get; set; } = 300;
+    [Parameter] public Func<TValue, string> ToStringFunc { get; set; }
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public object Tag { get; set; }
+    [Parameter] public string TextFieldName { get; set; } = "";
+    [Parameter] public bool IsFontBold { get; set; } = false;
+    [Parameter] public string TextColor { get; set; } = "";
+    //
+    [Parameter] public List<TValue> Data { get; set; } = new List<TValue>();
+
+    //Value
+    [Parameter] public TValue Value { get; set; }
+    [Parameter] public IEnumerable<TValue> SelectedValues { get; set; }
+
+    //ValueChanged
+    [Parameter] public EventCallback<TValue> ValueChanged { get; set; }
+    private async Task OnValueChanged(TValue newValue)
+    {
+        Value = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+        await TextChanged.InvokeAsync(ClassHelper.GetPropertiesData<string>(newValue, TextFieldName));
+    }
+
+    //TextChanged
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
+    private async Task OnTextChanged(string newValue)
+    {
+        await TextChanged.InvokeAsync(newValue);
+    }
+
+    //SelectedItemChanged
+    [Parameter]
+    public EventCallback<TValue> SelectedItemChanged { get; set; }
+    private async void OnSelectedItemChanged(IEnumerable<TValue> newValue)
+    {
+        SelectedValues = newValue;
+        if (newValue != null && newValue.Count<TValue>() > 0)
+        {
+            await SelectedItemChanged.InvokeAsync(newValue.ToList<TValue>().FirstOrDefault());
+        }
+    }
+
+    //OnBlur
+    [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
+    private async void OnBlur_Handle(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync(e);
+    }
+
+
+    //Ref
+    private MudSelect<TValue> Ref;
+
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //ReadOnly -> Disable
+        Disabled = false;
+        if (ReadOnly) Disabled = true;
+
+        //IsFontBold
+        if (IsFontBold)
+        {
+            if (!Style.Contains("font-weight: bold;")) Style = $"font-weight: bold; {Style}";
+        }
+
+        //Text Color
+        if (!string.IsNullOrWhiteSpace(TextColor))
+        {
+            if (TextColor == MyTextColor.Green && !Style.Contains(MyTextColor.Green)) Style = $"{MyTextColor.Green}; {Style}";
+            if (TextColor == MyTextColor.Blue && !Style.Contains(MyTextColor.Blue)) Style = $"{MyTextColor.Blue}; {Style}";
+            if (TextColor == MyTextColor.Navy && !Style.Contains(MyTextColor.Navy)) Style = $"{MyTextColor.Navy}; {Style}";
+            if (TextColor == MyTextColor.Maroon && !Style.Contains(MyTextColor.Maroon)) Style = $"{MyTextColor.Maroon}; {Style}";
+            if (TextColor == MyTextColor.Purple && !Style.Contains(MyTextColor.Purple)) Style = $"{MyTextColor.Purple}; {Style}";
+            if (TextColor == MyTextColor.Red && !Style.Contains(MyTextColor.Red)) Style = $"{MyTextColor.Red}; {Style}";
+        }
+
+        //Width
+        if (!string.IsNullOrWhiteSpace(Width))
+        {
+            FullWidth = false;
+            if (!Style.Contains($"width:{Width};")) Style = $"width:{Width}; {Style}";
+        }
+
+        //ReadOnly
+        if (ReadOnly || !TabStop)
+        {
+            Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "tabIndex", "-1" }
+                                            };
+        }
+        //String function
+        this.ToStringFunc = (value) => ClassHelper.GetPropertiesData<string>(value, TextFieldName);
+    }
+    //Focus
+    public async void Focus()
+    {
+        await Ref.FocusAsync();
+    }
+
+    //Toggle Menu
+    public async Task ToggleMenu()
+    {
+        await Ref.ToggleMenu();
+    }
+
+
+}

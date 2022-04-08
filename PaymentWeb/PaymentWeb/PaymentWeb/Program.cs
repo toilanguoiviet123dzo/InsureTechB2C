@@ -1,9 +1,11 @@
-using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Hosting;
 using BlazorApp.Server.Common;
 using MongoDB.Driver;
 using MongoDB.Entities;
 using PaymentWeb.Services;
+using Microsoft.Extensions.DependencyInjection.Extensions;
+using Polly.Extensions.Http;
+using Polly;
+using System.Net.Http.Headers;
 
 //WebApplication
 var builder = WebApplication.CreateBuilder(args);
@@ -11,9 +13,30 @@ var builder = WebApplication.CreateBuilder(args);
 // AddRazorPages
 builder.Services.AddRazorPages();
 
+//HttpContextAccessor
+builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
+
+//Http client
+// Create the retry policy we want
+var retryPolicy = HttpPolicyExtensions
+                .HandleTransientHttpError() // HttpRequestException, 5XX and 408
+                .WaitAndRetryAsync(3, retryAttempt => TimeSpan.FromSeconds(retryAttempt));
+
+builder.Services.AddHttpClient(MyConstant.HttpClient_Common, c =>
+{
+    //Time out 5s
+    c.Timeout = TimeSpan.FromSeconds(5);
+    c.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
+}
+).AddPolicyHandler(retryPolicy);
+
+
 //Hosted Service
 builder.Services.AddHostedService<PaymentWorker>();
 
+//Servies
+builder.Services.AddSingleton<eBaoService>();
+builder.Services.AddSingleton<PaymentService>();
 
 //Mongle DB
 bool IsTaskDone = false;

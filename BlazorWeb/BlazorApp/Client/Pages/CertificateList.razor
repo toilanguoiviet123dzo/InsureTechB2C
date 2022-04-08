@@ -1,0 +1,150 @@
+﻿@using Insure.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyPanels>
+    <MyPanel Title="Nhập điều kiện tìm kiếm">
+        <div class="row align-end">
+            <div class="col-12 col-sm-3">
+                <MyTextEdit Literal="Điện thoại"
+                            @ref=@RefCusPhone
+                            @bind-Text="@FilterCusPhone"
+                            IsFontBold=true />
+            </div>
+            <div class="col-12 col-sm-3">
+                <MyTextEdit Literal="CMND/CCCD"
+                            @ref=@RefCusCitizenID
+                            @bind-Text="@FilterCusCitizenID"
+                            IsFontBold=true />
+            </div>
+            <!--Search buttion-->
+            <div class="col-12 col-sm-3">
+                <MyButtonSearch OnClick="@(() => DisplayMain())" />
+            </div>
+        </div>
+    </MyPanel>
+</MyPanels>
+
+<MyDataGrid @ref="@grid"
+            T="SaleOrderModel"
+            ShowSearchBox=false
+            Title="Chứng nhận bảo hiểm của bạn"
+            Items="@DetailData"
+            OnViewRow="@((SaleOrderModel row) => OnViewRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 7rem;" />
+        <col style="width: 7rem;" />
+        <col style="width: 6rem;" />
+        <col />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SaleOrderModel, object>(x => x.EffectiveSttDate)">Từ ngày</MudTableSortLabel></MudTh>
+        <MudTh>Đến ngày</MudTh>
+        <MudTh>Biển số</MudTh>
+        <MudTh>Link download</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center;">@context.EffectiveSttDate.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd Style="text-align:center;">@context.EffectiveEndDate.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd>@context.LicensePlate</MudTd>
+        <MudTd Style="color:blue; text-decoration:underline; cursor:pointer"> <a @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", @context.CertificateLink, "_blank"))">@context.PolicyNo</a></MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<SaleOrderModel> grid;
+    readonly List<SaleOrderModel> DetailData = new List<SaleOrderModel>();
+    //
+    string FilterCusPhone = "";
+    string FilterCusCitizenID = "";
+    MyTextEdit RefCusPhone;
+    MyTextEdit RefCusCitizenID;
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Display data ..
+    }
+    #region Load data
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //RefCusPhone
+            if (string.IsNullOrWhiteSpace(FilterCusPhone))
+            {
+                Snackbar.Add("Chưa nhập: Điện thoại", Severity.Error);
+                RefCusPhone.Focus();
+                return;
+            }
+            //RefCusPhone
+            if (string.IsNullOrWhiteSpace(FilterCusCitizenID))
+            {
+                Snackbar.Add("Chưa nhập: CMND/CCCD", Severity.Error);
+                RefCusCitizenID.Focus();
+                return;
+            }
+
+            //Filter
+            var requestString = new GetCertificateList_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    CusPhone = FilterCusPhone,
+                    CusCitizenID = FilterCusCitizenID,
+                };
+
+            //Get data from DB
+            DetailData.Clear();
+            var response = await insureServiceClient.GetCertificateListAsync(requestString);
+            if (response != null && response.ReturnCode == 200)
+            {
+                foreach (var record in response.Records)
+                {
+                    SaleOrderModel dataRow = new SaleOrderModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(record, dataRow);
+                    //
+                    DetailData.Add(dataRow);
+                }
+            }
+            //Not found
+            if (DetailData.Count == 0) Snackbar.Add(MyMessage.Warning_NoData, Severity.Warning);
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    #endregion
+
+
+    #region Grid main
+
+    //Update row
+    async void OnViewRow_Handle(SaleOrderModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<TNSD01_SO_Detail>("", parameters, MyOptions.GetEditFormOptions(MaxWidth.Large)).Result;
+    }
+    #endregion
+    //
+}

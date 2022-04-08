@@ -11,9 +11,15 @@ using BlazorApp.Server.Models;
 
 namespace PaymentWeb.Services
 {
-    public static class PaymentService
+    public class PaymentService
     {
-        public static Dictionary<string, string> VnPay_ErrorDic { get; set; } = new Dictionary<string, string>()
+        private eBaoService _ebaoService;
+        public PaymentService(eBaoService ebaoService)
+        {
+            _ebaoService = ebaoService;
+        }
+        //
+        public Dictionary<string, string> VnPay_ErrorDic { get; set; } = new Dictionary<string, string>()
         {
             {"00","Giao dịch thành công" },
             {"07","Trừ tiền thành công. Giao dịch bị nghi ngờ (liên quan tới lừa đảo, giao dịch bất thường)." },
@@ -31,7 +37,7 @@ namespace PaymentWeb.Services
         };
 
         //InitPayment
-        public static async Task<InitPaymentResult> InitPayment(string initOrderToken, string transactionID)
+        public async Task<InitPaymentResult> InitPayment(string initOrderToken, string transactionID)
         {
             var ret = new InitPaymentResult();
             ret.ReturnCode = ReturnCode.OK;
@@ -51,13 +57,14 @@ namespace PaymentWeb.Services
                 var orderRecord = await DB.Find<mdSaleOrder>()
                                           .Match(x => x.TransactionID == transactionID)
                                           .Match(x => x.IsPayRequest == false)
-                                          .ExecuteSingleAsync();
+                                          .ExecuteFirstAsync();
                 //No data
                 if (orderRecord == null)
                 {
                     ret.ReturnCode = ReturnCode.Error_202;
                     return ret;
                 }
+                ret.Record = orderRecord;
 
                 //Update requested status
                 orderRecord.IsPayRequest = true;
@@ -74,7 +81,7 @@ namespace PaymentWeb.Services
             return ret;
         }
 
-        public static async Task<string> Gen_PaymentRedirectLink(string paymentChannel, string ipAddress, mdSaleOrder record)
+        public async Task<string> Gen_PaymentRedirectLink(string paymentChannel, string ipAddress, mdSaleOrder record)
         {
             string paymentUrl = "";
             //VnPay
@@ -97,7 +104,7 @@ namespace PaymentWeb.Services
                 vnpay.AddRequestData("vnp_CurrCode", "VND");
                 vnpay.AddRequestData("vnp_IpAddr", ipAddress);
                 vnpay.AddRequestData("vnp_Locale", "vn");
-                vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan hop dong bao hiem so {record.OrderID}: {record.ProductName}");
+                vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan hop dong bao hiem so {record.OrderID}");
                 vnpay.AddRequestData("vnp_OrderType", "other"); //default value: other
                 vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
                 vnpay.AddRequestData("vnp_TxnRef", record.TransactionID); // Mã tham chiếu của giao dịch tại hệ thống của merchant. Mã này là duy nhất dùng để phân biệt các đơn hàng gửi sang VNPAY. Không được trùng lặp trong ngày
@@ -110,8 +117,16 @@ namespace PaymentWeb.Services
                 if (!String.IsNullOrEmpty(record.CusFullname))
                 {
                     var indexof = record.CusFullname.IndexOf(' ');
-                    vnpay.AddRequestData("vnp_Bill_FirstName", record.CusFullname.Substring(0, indexof));
-                    vnpay.AddRequestData("vnp_Bill_LastName", record.CusFullname.Substring(indexof + 1, record.CusFullname.Length - indexof - 1));
+                    if (indexof > 0)
+                    {
+                        vnpay.AddRequestData("vnp_Bill_FirstName", record.CusFullname.Substring(0, indexof));
+                        vnpay.AddRequestData("vnp_Bill_LastName", record.CusFullname.Substring(indexof + 1, record.CusFullname.Length - indexof - 1));
+                    }
+                    else
+                    {
+                        vnpay.AddRequestData("vnp_Bill_FirstName", record.CusFullname);
+                        vnpay.AddRequestData("vnp_Bill_LastName", record.CusFullname);
+                    }
                 }
                 vnpay.AddRequestData("vnp_Bill_Address", record.Address);
                 vnpay.AddRequestData("vnp_Bill_City", record.CityName);
@@ -133,7 +148,7 @@ namespace PaymentWeb.Services
             return paymentUrl;
         }
 
-        public static async Task<FinishPaymentResult> FinishVnPay(VnPayResult result)
+        public async Task<FinishPaymentResult> FinishVnPay(VnPayResult result, IQueryCollection query)
         {
             var ret = new FinishPaymentResult();
             ret.ReturnCode = ReturnCode.OK;
@@ -141,6 +156,16 @@ namespace PaymentWeb.Services
             try
             {
                 VnPayLibrary vnpay = new VnPayLibrary();
+
+                //get all querystring data
+                foreach (var param in query)
+                {
+                    //get all querystring data
+                    if (!string.IsNullOrEmpty(param.Key) && param.Key.StartsWith("vnp_"))
+                    {
+                        vnpay.AddResponseData(param.Key, param.Value);
+                    }
+                }
 
                 //Security check
                 string vnp_TmnCode = await SettingMaster.GetString1("004"); //Ma website
@@ -166,7 +191,7 @@ namespace PaymentWeb.Services
                 //Get SaleOrder
                 var record = await DB.Find<mdSaleOrder>()
                                      .Match(x => x.TransactionID == result.vnp_TxnRef)
-                                     .ExecuteSingleAsync();
+                                     .ExecuteFirstAsync();
                 if (record == null)
                 {
                     ret.ReturnCode = ReturnCode.Error_202; //Order not found
@@ -219,25 +244,50 @@ namespace PaymentWeb.Services
                 //Payment failed
                 if (record.IsPayError) return ret;
 
+
                 //Update successfull
-                TaskHelper.RunBg(() =>
+                //Issue Order to eBao
+                try
                 {
-                    try
+                    var res = await _ebaoService.CreateToIssue(record);
+                    if (res != null && res.data != null && res.data.processStatus == "PASS")
                     {
-                        //Issue Order to eBao
-
-
-
+                        //Success
+                        record.IsProcessDone = true;
+                        record.IsProcessError = false;
+                        record.PolicyID = res.data.policyId;
+                        record.PolicyNo = res.data.policyNo;
+                        record.QuoteNo = res.data.quoteNo;
 
                         //Download certificate
-
-
-
+                        record.CertificateLink = await _ebaoService.GetCertificateLink(record.PolicyID);
                     }
-                    catch { }
-                    //
-                    return Task.FromResult(0);
-                });
+                    else
+                    {
+                        //Failed
+                        record.IsProcessDone = false;
+                        record.IsProcessError = true;
+                        //Log
+                        MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Failed", ReturnCode.Error_ByServer, $"Call eBao api failed for {record.TransactionID}_{record.LicensePlate}_{record.CusPhone}_{record.CusFullname}");
+                    }
+                    await record.SaveAsync();
+                }
+                catch (Exception ex)
+                {
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                }
+
+                //Return record
+                ret.Record = record;
+                //TaskHelper.RunBg(async () =>
+                //{
+                //    try
+                //    {
+
+                //    }
+                //    catch { }
+                //    //
+                //});
             }
             catch (Exception ex)
             {

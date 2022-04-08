@@ -12,6 +12,9 @@ service grpcInsureService {
    
     //Order
     rpc InitOrder (InitOrder_Request) returns (InitOrder_Response);
+    rpc CheckPayStatus (String_Request) returns (CheckPayStatus_Response);
+    rpc GetCertificateList (GetCertificateList_Request) returns (GetCertificateList_Response);
+    rpc GetSaleOrderByPhone (String_Request) returns (GetSaleOrderByPhone_Response);
 
 }
 
@@ -161,9 +164,17 @@ message grpcSaleOrderModel {
     bool IsDelivery = 38;
     //
     string TransactionID = 39;
+    string PolicyID = 40;
+    string QuoteNo = 41;
+    string PolicyNo = 42;
+    string CusCitizenID = 43;
+    string CertificateLink = 44;
     //
-    google.protobuf.Timestamp ModifiedOn  = 40;
-    int32 UpdMode = 41;
+    string ProductType = 45;
+    string PostalCode = 46;
+    //
+    google.protobuf.Timestamp ModifiedOn  = 47;
+    int32 UpdMode = 48;
 }
 
 message InitOrder_Request{
@@ -178,6 +189,32 @@ message InitOrder_Response {
     string InitOrderToken = 3;
     string TransactionID = 4;
 }
+message CheckPayStatus_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    bool IsPayDone = 3;
+    bool IsPayError = 4;
+}
+message GetCertificateList_Request {
+    UserCredential Credential = 1;
+    //
+    string CusPhone = 2;
+    string CusCitizenID = 3;
+}
+message GetCertificateList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcSaleOrderModel Records = 3;
+}
+message GetSaleOrderByPhone_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    grpcSaleOrderModel Record = 3;
+}
+
 
 
 

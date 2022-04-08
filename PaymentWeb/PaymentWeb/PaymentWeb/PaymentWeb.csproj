@@ -13,14 +13,18 @@
     <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyTokenService.cs" Link="Common\MyTokenService.cs" />
     <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />
     <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\SettingMasterModel.cs" Link="Common\SettingMasterModel.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
+    <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
+    <Compile Include="..\..\..\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
+    <Compile Include="..\..\..\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />
+    <Compile Include="..\..\..\Models\mdSaleOrderLog.cs" Link="Models\mdSaleOrderLog.cs" />
+    <Compile Include="..\..\..\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.3" />
     <PackageReference Include="MongoDB.Entities" Version="20.26.3" />
+    <PackageReference Include="Polly" Version="7.2.3" />
   </ItemGroup>
 
   <ItemGroup>

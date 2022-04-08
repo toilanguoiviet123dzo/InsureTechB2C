@@ -1,6 +1,7 @@
 ﻿using Cores.Utilities;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Net;
 using System.Net.Http;
@@ -23,7 +24,7 @@ namespace Cores.Helpers
             _httpClientFactory = httpClientFactory;
         }
 
-        public async Task<TResult> GetFromJsonAsync<TResult>(string requestUri)
+        public async Task<TResult> GetFromJsonAsync<TResult>(string requestUri, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
         {
             //Validate
             if (requestUri == null || requestUri.Trim() == "") return default(TResult);
@@ -31,6 +32,20 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                //Authorization
+                if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
+                }
+                //Header
+                if (headers != null && headers.Count > 0)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
                 //Reuquest
                 return await client.GetFromJsonAsync<TResult>(requestUri);
             }
@@ -40,8 +55,7 @@ namespace Cores.Helpers
             }
         }
 
-        //
-        public async Task<TResult> PostAsJsonAsync<T, TResult>(string requestUri, T objData)
+        public async Task<TResult> GetAsNewtonsoftJsonAsync<TResult>(string requestUri, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
         {
             //Validate
             if (requestUri == null || requestUri.Trim() == "") return default(TResult);
@@ -49,6 +63,62 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                //Authorization
+                if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
+                }
+                //Header
+                if (headers != null && headers.Count > 0)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
+                //Reuquest
+                var response = await client.GetAsync(requestUri);
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    response.EnsureSuccessStatusCode();
+                    var sr = new StreamReader(await response.Content.ReadAsStreamAsync());
+                    return MyJson.Deserialize<TResult>(sr);
+                }
+                else
+                {
+                    return default(TResult);
+                }
+            }
+            catch
+            {
+                return default(TResult);
+            }
+        }
+
+        //
+        public async Task<TResult> PostAsJsonAsync<T, TResult>(string requestUri, T objData, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
+        {
+            //Validate
+            if (requestUri == null || requestUri.Trim() == "") return default(TResult);
+            var client = _httpClientFactory.CreateClient(_clientName);
+            //Make request
+            try
+            {
+                //Authorization
+                if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
+                }
+                //Header
+                if (headers != null && headers.Count > 0)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
                 //Reuquest
                 HttpResponseMessage response = await client.PostAsJsonAsync<T>(requestUri, objData, new JsonSerializerOptions() { Encoder = System.Text.Encodings.Web.JavaScriptEncoder.Create(System.Text.Unicode.UnicodeRanges.All) });
                 // return
@@ -69,7 +139,7 @@ namespace Cores.Helpers
             }
         }
 
-        public async Task<TResult> PostAsNewtonsoftJsonAsync<T, TResult>(string requestUri, T objData)
+        public async Task<TResult> PostAsNewtonsoftJsonAsync<T, TResult>(string requestUri, T objData, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
         {
             //Validate
             if (requestUri == null || requestUri.Trim() == "") return default(TResult);
@@ -77,6 +147,20 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                //Authorization
+                if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
+                }
+                //Header
+                if (headers != null && headers.Count > 0)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
                 //Content
                 string json = JsonConvert.SerializeObject(objData, Formatting.Indented);
                 var content = new StringContent(json, Encoding.UTF8, "application/json");
@@ -88,7 +172,7 @@ namespace Cores.Helpers
                     response.EnsureSuccessStatusCode();
                     var sr = new StreamReader(await response.Content.ReadAsStreamAsync());
                     return MyJson.Deserialize<TResult>(sr);
-                }
+                } 
                 else
                 {
                     return default(TResult);

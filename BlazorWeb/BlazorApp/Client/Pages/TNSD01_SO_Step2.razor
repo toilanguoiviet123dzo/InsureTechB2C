@@ -1,11 +1,14 @@
-﻿@using Insure.Services
+﻿@using System.Threading;
+@using Insure.Services
 @using Resource.Services
 @using System.Collections.ObjectModel;
 @inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
 @inject MasterService masterService;
+@inject SettingService settingService;
 @inject IJSRuntime JsRuntime;
 @inject ISnackbar Snackbar;
 @inject IDialogService DialogService;
+@inject NavigationManager NavManager
 
 <MyAppBarForm Title="Thanh toán" ShowCloseButton=true>
     <ChildContent>
@@ -64,13 +67,22 @@
             <!--Thông tin chủ hợp đồng-->
             <MyPanel Title="Thông tin chủ hợp đồng">
                 <div class="container-fluid p-0">
-                    <!--OrderID-->
+                    <!--CusFullname-->
                     <div class="row m-1 m-lg-2">
                         <div class="col text-left">
                             Họ và tên
                         </div>
                         <div class="col font-weight-bold text-right">
                             @Model.CusFullname
+                        </div>
+                    </div>
+                    <!--CusCitizenID-->
+                    <div class="row m-1 m-lg-2">
+                        <div class="col text-left">
+                            CMND/CCCD
+                        </div>
+                        <div class="col font-weight-bold text-right">
+                            @Model.CusCitizenID
                         </div>
                     </div>
                     <!--CusPhone-->
@@ -200,38 +212,49 @@
 
     async void CreateSO()
     {
-        //Validate
-        if (!Validate_Main()) return;
-
-        //Init Order
-        //Request
-        var request = new InitOrder_Request();
-        var Credential = new Insure.Services.UserCredential()
-            {
-                Username = WebUserCredential.Username,
-                RoleID = WebUserCredential.RoleID,
-                AccessToken = WebUserCredential.AccessToken,
-                ApiKey = WebUserCredential.ApiKey
-            };
-        request.Credential = Credential;
-        // Convert to DB row
-        request.Record = new grpcSaleOrderModel();
-        ClassHelper.CopyPropertiesDataDateConverted(Model, request.Record);
-        // Call api
-        var response = await insureServiceClient.InitOrderAsync(request);
-        // Success
-        if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+        try
         {
-            Snackbar.Add("Khởi tạo thanh toán thất bại", Severity.Error);
-            return;
+            //Validate
+            if (!Validate_Main()) return;
+
+            //Init Order
+            //Request
+            var request = new InitOrder_Request();
+            var Credential = new Insure.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcSaleOrderModel();
+            ClassHelper.CopyPropertiesDataDateConverted(Model, request.Record);
+            // Call api
+            var response = await insureServiceClient.InitOrderAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add("Khởi tạo thanh toán thất bại", Severity.Error);
+                return;
+            }
+
+            //Request payment
+            var internalPaymentUrl = await settingService.GetString1("006");
+            string paymentLink = $@"{internalPaymentUrl}{response.InitOrderToken}/{response.TransactionID}/1";
+            await JsRuntime.InvokeVoidAsync("open", paymentLink, "_blank");
+
+            //go to product list
+            var ret = new MyDialogResult();
+            ret.IsCloseAll = true;
+            //
+            MudDialog.Close(ret);
         }
-
-        //Request payment
-        string paymentLink = $@"https://localhost:7194/InitPayment/{response.InitOrderToken}/{response.TransactionID}/1";
-        var initResponse = await JsRuntime.InvokeAsync<object>("open", paymentLink, "_blank");
-
-        //Show waiting dialog
-
+        catch (Exception ex)
+        {
+            Snackbar.Add(ex.Message, Severity.Error);
+        }
     }
 
     //

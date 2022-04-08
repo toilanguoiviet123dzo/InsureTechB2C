@@ -10,6 +10,10 @@
     .mud-main-content {
         padding-top: 10px !important;
     }
+    body {
+        max-height: 100vh;
+        overflow-y: scroll;
+    }
 
     /*body {
         background-image: url("./images/background-main.jpg");
@@ -26,12 +30,12 @@
     <!--Top App bar-->
     <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
         <MudAvatar Color="Color.Default" Variant="Variant.Filled" Class="mr-3">
-            <MudIcon Color="Color.Secondary" Image="./images/Logo1.png" Size="Size.Large"
-                     @onclick="@(async () => await JsRuntime.InvokeAsync<object>("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
+            <MudAvatar Color="Color.Secondary" Image="./images/Logo1.png" Size="Size.Large"
+                     @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
         </MudAvatar>
         @if (string.IsNullOrWhiteSpace(WebUserCredential.Program.ProgramName))
         {
-            <h5 class="m-auto">InsureTech Việt Nam</h5>
+            <h5 class="m-auto">InsurTech Việt Nam</h5>
         }
         else
         {

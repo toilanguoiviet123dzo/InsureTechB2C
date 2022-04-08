@@ -1,0 +1,127 @@
+﻿@import url('open-iconic/font/css/open-iconic-bootstrap.min.css');
+
+:root {
+    /*Color*/
+    --mycolor-text-primary: black;
+    --mycolor-text-secondary: white;
+    /*Background*/
+    --mycolor-bg-header-appbar: #594AE1;
+    --mycolor-bg-footer-appbar: #BCBCBC;
+    /*size*/
+    --mysize-maxwidth: 1024px;
+}
+
+/*Reset css*/
+* {
+    margin: 0;
+    padding: 0;
+    border: 0;
+    font-size: 100%;
+    box-sizing: border-box;
+}
+
+/*Hide scroll*/
+/* Hide scrollbar for Chrome, Safari and Opera */
+.hidescroll::-webkit-scrollbar {
+    display: none;
+}
+
+/* Hide scrollbar for IE, Edge and Firefox */
+.hidescroll {
+    -ms-overflow-style: none; /* IE and Edge */
+    scrollbar-width: none; /* Firefox */
+}
+
+
+/*Text color STT*/
+.text-green {
+    color: green !important;
+}
+
+.text-blue {
+    color: blue !important;
+}
+
+.text-navy {
+    color: navy !important;
+}
+
+.text-maroon {
+    color: maroon !important;
+}
+
+.text-red {
+    color: red !important;
+}
+
+.text-purple {
+    color: purple !important;
+}
+
+.font-italic {
+    font-style: italic !important;
+}
+
+.font-normal {
+    font-style: normal !important;
+}
+
+.font-weight-bold {
+    font-weight: bold !important;
+}
+
+.font-weight-light {
+    font-weight: lighter !important;
+}
+
+.text-justify {
+    text-align: justify !important;
+}
+
+/*Text color END*/
+
+
+/*Mud STT*/
+:root {
+    --mud-zindex-drawer: 100 !important;
+    --mud-zindex-appbar: 300 !important;
+    --mud-zindex-dialog: 400 !important;
+    --mud-zindex-popover: 200 !important;
+    --mud-zindex-snackbar: 500 !important;
+    --mud-zindex-tooltip: 600 !important;
+}
+/*Mud END*/
+
+
+
+/*splash-screen*/
+.splash-screen {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    flex-flow: column nowrap;
+    height: 100vh;
+    font-family: "Segoe UI",Roboto,"Helvetica Neue","-apple-system",BlinkMacSystemFont,Arial,sans-serif,"Apple Color Emoji","Segoe UI Emoji","Segoe UI Symbol";
+    font-size: .88rem;
+    font-weight: 400;
+    line-height: 1.5;
+    text-align: center;
+}
+
+    .splash-screen .spinner-border {
+        border: .2em solid;
+        border-color: #5f368d #bfbfbf #bfbfbf;
+        width: 120px;
+        height: 120px;
+    }
+
+.splash-screen-caption {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin-top: 1.5rem;
+}
+
+.splash-screen-text {
+    color: #a1a1a1;
+    margin-top: .5rem;
+}

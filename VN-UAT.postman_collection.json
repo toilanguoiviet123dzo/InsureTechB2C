@@ -1,0 +1,800 @@
+{
+	"info": {
+		"_postman_id": "65f4bde2-0240-440e-8676-d6b88255403a",
+		"name": "VN-UAT",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "ITB_SALES",
+			"item": [
+				{
+					"name": "TPL",
+					"item": [
+						{
+							"name": "gateway token",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "5397c1ea-dc22-48fd-9137-4945f381568b",
+										"exec": [
+											"var resp = JSON.parse(responseBody);",
+											"var token = resp.access_token;",
+											"console.log(\"token:\"+token)",
+											"pm.environment.set(\"access_token\", token);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Cache-Control",
+										"type": "text",
+										"value": "no-cache"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"username\": \"ddpc.admin\",\n    \"password\": \"eBaosg1234\"\n}"
+								},
+								"url": {
+									"raw": "https://sandbox.sg.ebaocloud.com/cas/ebao/v1/json/tickets",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"cas",
+										"ebao",
+										"v1",
+										"json",
+										"tickets"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "GrandCode",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3ad632dd-a9e1-47cc-9339-d69956b4d9b2",
+										"exec": [
+											"var resp = JSON.parse(responseBody);",
+											"var grantCode = resp.data;",
+											"pm.environment.set(\"grantCode\", grantCode);"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "\r\n{\r\n  \"username\": \"itb_sales\",\r\n  \"password\": \"eBao1234\"\r\n}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/utils/grantCode",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"utils",
+										"grantCode"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Createqutation-auto",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "d52e9d49-f55c-4c35-959b-44880a2fca94",
+										"exec": [
+											"function GetDateStr1(AddDayCount) { ",
+											"   var dd = new Date();",
+											"   dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期",
+											"   var y = dd.getFullYear(); ",
+											"   var m = (dd.getMonth()+1)<10?\"0\"+(dd.getMonth()+1):(dd.getMonth()+1);//获取当前月份的日期，不足10补0",
+											"   var d = dd.getDate()<10?\"0\"+dd.getDate():dd.getDate();//获取当前几号，不足10补0",
+											"   return \"\"+d+\"/\"+m+\"/\"+y; ",
+											"}",
+											"",
+											"//随机产生泰国身份证号码",
+											"function randomTHid(){",
+											"var d1=Math.floor(Math.random()*10);",
+											"var d2=Math.floor(Math.random()*10);",
+											"var d3=Math.floor(Math.random()*10);",
+											"var d4=Math.floor(Math.random()*10);",
+											"var d5=Math.floor(Math.random()*10);",
+											"var d6=Math.floor(Math.random()*10);",
+											"var d7=Math.floor(Math.random()*10);",
+											"var d8=Math.floor(Math.random()*10);",
+											"var d9=Math.floor(Math.random()*10);",
+											"var d10=Math.floor(Math.random()*10);",
+											"var d11=Math.floor(Math.random()*10);",
+											"var d12=Math.floor(Math.random()*10);",
+											"var n13=11-(((d1*13)+(d2*12)+(d3*11)+(d4*10)+(d5*9)+(d6*8)+(d7*7)+(d8*6)+(d9*5)+(d10*4)+(d11*3)+(d12*2))%11);",
+											"if(n13==10)",
+											"{var d13=0;",
+											"}",
+											"else if(n13==11)",
+											"{var d13=1;",
+											"}else",
+											"{var d13=n13;",
+											"}",
+											"var id=(''+d1+d2+d3+d4+d5+d6+d7+d8+d9+d10+d11+d12+d13);",
+											"return id;",
+											"}",
+											"",
+											"function GetDateStr2(AddDayCount) { ",
+											"   var dd = new Date();",
+											"   dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期",
+											"   var y = dd.getFullYear()+1; ",
+											"   var m = (dd.getMonth()+1)<10?\"0\"+(dd.getMonth()+1):(dd.getMonth()+1);//获取当前月份的日期，不足10补0",
+											"   var d = dd.getDate()<10?\"0\"+dd.getDate():dd.getDate();//获取当前几号，不足10补0",
+											"   return \"\"+d+\"/\"+m+\"/\"+y; ",
+											"}",
+											"function addNumber(r)",
+											" {",
+											"   var str = '';",
+											"   for(var i = 0; i < r; i += 1)",
+											"   {",
+											"   str += Math.floor(Math.random() * 10);",
+											"   }",
+											"   return str;",
+											" }",
+											"//参数化生效期和到期日",
+											"var EffectiveDate=GetDateStr1(0)+\" 16:30:00\";",
+											"var ExpireDate=GetDateStr1(365)+\" 16:30:00\";",
+											"//参数化masterPolicyNo ",
+											"var referenceNo=\"Testref\"+addNumber(5);",
+											"var vehicleChassisNo=\"Chassis\"+addNumber(8);",
+											"var idNo=randomTHid();",
+											"pm.environment.set(\"EffectiveDate\", EffectiveDate);",
+											"pm.environment.set(\"ExpireDate\", ExpireDate);",
+											"pm.environment.set(\"referenceNo\", referenceNo);",
+											"pm.environment.set(\"vehicleChassisNo\", vehicleChassisNo);",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "4a8f3201-7627-4532-a6db-2d00ae77628a",
+										"exec": [
+											"",
+											"var result = JSON.parse(responseBody);",
+											"var policyId = result.data.policyId;",
+											"var quoteNo = result.data.quoteNo;",
+											"pm.environment.set(\"policyId\",  policyId);",
+											"pm.environment.set(\"quoteNo\",  quoteNo);",
+											"",
+											"",
+											"var requestBody = JSON.parse(request.data);",
+											"console.log(\"Got 1st comp plan and chosen it: \" + JSON.stringify(requestBody));",
+											"pm.environment.set(\"policy\",  JSON.stringify(requestBody));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n    \"insurerTenantCode\": \"BM_VN\",\r\n    \"proposalDate\": \"{{EffectiveDate}}\",\r\n    \"effDate\": \"{{EffectiveDate}}\",\r\n    \"expDate\": \"{{ExpireDate}}\",\r\n    \"prdtCode\": \"TPL\",\r\n    \"referenceNo\": \"{{referenceNo}}\",\r\n    \"insureds\": [\r\n        {\r\n            \"detail\": {\r\n                \"insuredType\": 2,\r\n                \"extInfo\": {\r\n                    \"infoType\": \"AutoMotor\",\r\n                    \"vehicleCategory\": 1,\r\n                    \"vehicleType\": 1\r\n                },\r\n                \"vehicleId\": 2,\r\n                \"vehicleCode\": \"1.10\",\r\n                \"vehicleCountry\": \"VNM\",\r\n                \"vehicleProvince\": \"10\",\r\n                \"vehicleChassisNo\": \"{{vehicleChassisNo}}\",\r\n                \"vehicleRegNo\": \"Regno0001\",\r\n                \"vehicleEngineNo\": \"Engine0001\",\r\n                \"vehicleRegYear\": 2020,\r\n                \"isNewVehicle\": false,\r\n                \"capacity\": 0,\r\n                \"numOfSeat\": 0,\r\n                \"tonnage\":0\r\n            }\r\n        }\r\n    ],\r\n    \"policyholder\": {\r\n        \"isSameAsInsured\": false,\r\n        \"customer\": {\r\n            \"customerType\": 1,\r\n            \"extInfo\": {\r\n                \"phoneNo\": \"6518888\",\r\n                \"preferredLang\": 2\r\n            },\r\n            \"idType\": 5,\r\n            \"idNo\": \"340885\",\r\n            \"prefix\": 6,\r\n            \"firstName\": \"Mike1\",\r\n            \"lastName\": \"Gao1\",\r\n            \"nationality\": \"THA\",\r\n            \"mobile\": \"0876575656\",\r\n            \"email\": \"mike@ebao.com\",\r\n            \"occupation\": \"1001\",\r\n            \"taxNo\": \"99575657\",\r\n            \"branch\": \"00000\",\r\n            \"dob\":\"01/01/1989\",\r\n            \"age\":32,\r\n            \"address\": {\r\n                \"addressType\": 1,\r\n                \"province\": \"10\",\r\n                \"district\": \"084\",\r\n                \"subDistrict\": \"02815\",\r\n                \"postalCode\": \"02815\",\r\n                \"addressLine1\": \"string\"\r\n            }\r\n        }\r\n    },\r\n    \"payer\": {\r\n        \"payerType\": 2,\r\n        \"customer\": {\r\n            \"customerType\": 1,\r\n            \"extInfo\": {\r\n                \"preferredLang\": 2\r\n            },\r\n            \"idType\": 5,\r\n            \"idNo\": \"98567464\",\r\n            \"prefix\": 6,\r\n            \"firstName\": \"Mike\",\r\n            \"lastName\": \"gm\",\r\n            \"nationality\": \"THA\",\r\n            \"mobile\": \"0876575656\",\r\n            \"email\": \"mike@ebao.com\",\r\n            \"occupation\": \"1001\",\r\n            \"taxNo\": \"99575656\",\r\n            \"branch\": \"00000\",\r\n            \"address\": {\r\n                \"addressType\": 1,\r\n                \"province\": \"10\",\r\n                \"district\": \"084\",\r\n                \"subDistrict\": \"02815\",\r\n                \"postalCode\": \"02815\",\r\n                \"addressLine1\": \"string2\"\r\n            }\r\n        }\r\n    },\r\n    \"deliveryInfo\": {\r\n        \"deliveryMethod\": 1,\r\n        \"firstName\": \"Mike\",\r\n        \"lastName\": \"string\",\r\n        \"extInfo\": {\r\n            \"contactNo\": \"034543545\",\r\n            \"sendTo\": 1\r\n        },\r\n        \"address\": {\r\n            \"addressType\": 1,\r\n            \"province\": \"10\",\r\n            \"district\": \"084\",\r\n            \"subDistrict\": \"02815\",\r\n            \"postalCode\": \"02815\",\r\n            \"addressLine1\": \"string\",\r\n            \"addressLine2\": \"string\"\r\n        }\r\n    },\r\n    \"documents\": [],\r\n    \"payMode\": {\r\n        \"payMode\": \"credit\",\r\n        \"extInfo\": {}\r\n    },\r\n    \"extInfo\": {}\r\n}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/quotation/create",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"quotation",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Createqutation motorcycle",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "d52e9d49-f55c-4c35-959b-44880a2fca94",
+										"exec": [
+											"function GetDateStr1(AddDayCount) { ",
+											"   var dd = new Date();",
+											"   dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期",
+											"   var y = dd.getFullYear(); ",
+											"   var m = (dd.getMonth()+1)<10?\"0\"+(dd.getMonth()+1):(dd.getMonth()+1);//获取当前月份的日期，不足10补0",
+											"   var d = dd.getDate()<10?\"0\"+dd.getDate():dd.getDate();//获取当前几号，不足10补0",
+											"   return \"\"+d+\"/\"+m+\"/\"+y; ",
+											"}",
+											"",
+											"//随机产生泰国身份证号码",
+											"function randomTHid(){",
+											"var d1=Math.floor(Math.random()*10);",
+											"var d2=Math.floor(Math.random()*10);",
+											"var d3=Math.floor(Math.random()*10);",
+											"var d4=Math.floor(Math.random()*10);",
+											"var d5=Math.floor(Math.random()*10);",
+											"var d6=Math.floor(Math.random()*10);",
+											"var d7=Math.floor(Math.random()*10);",
+											"var d8=Math.floor(Math.random()*10);",
+											"var d9=Math.floor(Math.random()*10);",
+											"var d10=Math.floor(Math.random()*10);",
+											"var d11=Math.floor(Math.random()*10);",
+											"var d12=Math.floor(Math.random()*10);",
+											"var n13=11-(((d1*13)+(d2*12)+(d3*11)+(d4*10)+(d5*9)+(d6*8)+(d7*7)+(d8*6)+(d9*5)+(d10*4)+(d11*3)+(d12*2))%11);",
+											"if(n13==10)",
+											"{var d13=0;",
+											"}",
+											"else if(n13==11)",
+											"{var d13=1;",
+											"}else",
+											"{var d13=n13;",
+											"}",
+											"var id=(''+d1+d2+d3+d4+d5+d6+d7+d8+d9+d10+d11+d12+d13);",
+											"return id;",
+											"}",
+											"",
+											"function GetDateStr2(AddDayCount) { ",
+											"   var dd = new Date();",
+											"   dd.setDate(dd.getDate()+AddDayCount);//获取AddDayCount天后的日期",
+											"   var y = dd.getFullYear()+1; ",
+											"   var m = (dd.getMonth()+1)<10?\"0\"+(dd.getMonth()+1):(dd.getMonth()+1);//获取当前月份的日期，不足10补0",
+											"   var d = dd.getDate()<10?\"0\"+dd.getDate():dd.getDate();//获取当前几号，不足10补0",
+											"   return \"\"+d+\"/\"+m+\"/\"+y; ",
+											"}",
+											"function addNumber(r)",
+											" {",
+											"   var str = '';",
+											"   for(var i = 0; i < r; i += 1)",
+											"   {",
+											"   str += Math.floor(Math.random() * 10);",
+											"   }",
+											"   return str;",
+											" }",
+											"//参数化生效期和到期日",
+											"var EffectiveDate=GetDateStr1(0)+\" 16:30:00\";",
+											"var ExpireDate=GetDateStr1(365)+\" 16:30:00\";",
+											"//参数化masterPolicyNo ",
+											"var referenceNo=\"Testref\"+addNumber(5);",
+											"var vehicleChassisNo=\"Chassis\"+addNumber(8);",
+											"var idNo=randomTHid();",
+											"pm.environment.set(\"EffectiveDate\", EffectiveDate);",
+											"pm.environment.set(\"ExpireDate\", ExpireDate);",
+											"pm.environment.set(\"referenceNo\", referenceNo);",
+											"pm.environment.set(\"vehicleChassisNo\", vehicleChassisNo);",
+											"",
+											"",
+											"",
+											"",
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "test",
+									"script": {
+										"id": "4a8f3201-7627-4532-a6db-2d00ae77628a",
+										"exec": [
+											"",
+											"var result = JSON.parse(responseBody);",
+											"var policyId = result.data.policyId;",
+											"var quoteNo = result.data.quoteNo;",
+											"pm.environment.set(\"policyId\",  policyId);",
+											"pm.environment.set(\"quoteNo\",  quoteNo);",
+											"",
+											"",
+											"var requestBody = JSON.parse(request.data);",
+											"console.log(\"Got 1st comp plan and chosen it: \" + JSON.stringify(requestBody));",
+											"pm.environment.set(\"policy\",  JSON.stringify(requestBody));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\n    \"insurerTenantCode\": \"BM_VN\",\n    \"proposalDate\": \"{{EffectiveDate}}\",\n    \"effDate\": \"{{EffectiveDate}}\",\n    \"expDate\": \"{{ExpireDate}}\",\n    \"prdtCode\": \"TPL\",\n    \"referenceNo\": \"{{referenceNo}}\",\n    \"insureds\": [\n        {\n            \"detail\": {\n                \"insuredType\": 2,\n                \"extInfo\": {\n\t                \"infoType\": \"Motorcycle\",\n                    \"vehicleType\": 6,\n                    \"coverPA\":false\n                },\n                \"vehicleId\":2,\n                \"vehicleCountry\": \"VNM\",\n                \"vehicleProvince\": \"10\",\n                \"vehicleChassisNo\": \"{{vehicleChassisNo}}\",\n                \"vehicleRegNo\": \"RESNO32333\",\n                \"vehicleEngineNo\": \"ENGINENO334\",\n                \"vehicleRegYear\": 2020,\n                \"isNewVehicle\": false,\n                \"capacity\": 51\n            }\n        }\n    ],\n    \"policyholder\": {\n        \"isSameAsInsured\": false,\n        \"customer\": {\n            \"customerType\": 1,\n            \"extInfo\": {\n                \"phoneNo\": \"6518888\",\n                \"preferredLang\": 2\n            },\n            \"idType\": 5,\n            \"idNo\": \"340881\",\n            \"prefix\": 6,\n            \"firstName\": \"Mike\",\n            \"lastName\": \"Gao\",\n            \"nationality\": \"THA\",\n            \"mobile\": \"0876575656\",\n            \"email\": \"mike@ebao.com\",\n            \"occupation\": \"1001\",\n            \"taxNo\": \"99575657\",\n            \"branch\": \"00000\",\n            \"dob\": \"11/11/2010\",\n            \"age\":11,\n            \"address\": {\n                \"addressType\": 1,\n                \"province\": \"10\",\n                \"district\": \"084\",\n                \"subDistrict\": \"02815\",\n                \"postalCode\": \"02815\",\n                \"addressLine1\": \"string\"\n            }\n        }\n    },\n    \"payer\": {\n        \"payerType\": 2,\n        \"customer\": {\n            \"customerType\": 1,\n            \"extInfo\": {\n                \"preferredLang\": 2\n            },\n            \"idType\": 5,\n            \"idNo\": \"98567464\",\n            \"prefix\": 6,\n            \"firstName\": \"Mike\",\n            \"lastName\": \"gm\",\n            \"nationality\": \"THA\",\n            \"mobile\": \"0876575656\",\n            \"email\": \"mike@ebao.com\",\n            \"occupation\": \"1001\",\n            \"taxNo\": \"99575656\",\n            \"branch\": \"00000\",\n            \"address\": {\n                \"addressType\": 1,\n                \"province\": \"10\",\n                \"district\": \"084\",\n                \"subDistrict\": \"02815\",\n                \"postalCode\": \"02815\",\n                \"addressLine1\": \"string2\"\n            }\n        }\n    },\n    \"deliveryInfo\": {\n        \"deliveryMethod\": 1,\n        \"firstName\": \"Mike\",\n        \"lastName\": \"string\",\n        \"extInfo\": {\n            \"contactNo\": \"034543545\",\n            \"sendTo\": 1\n        },\n        \"address\": {\n            \"addressType\": 1,\n            \"province\": \"10\",\n            \"district\": \"084\",\n            \"subDistrict\": \"02815\",\n            \"postalCode\": \"02815\",\n            \"addressLine1\": \"string\",\n            \"addressLine2\": \"string\"\n        }\n    },\n    \"documents\": [],\n    \"payMode\": {\n        \"payMode\": \"credit\",\n        \"extInfo\": {}\n    },\n    \"extInfo\": {}\n}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/quotation/create",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"quotation",
+										"create"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Bind quotation",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "eac6a43c-7104-42f6-88da-5bc20bff66c9",
+										"exec": [
+											"var requestBody = pm.environment.get(\"policy\");",
+											"",
+											"var request = JSON.parse(requestBody);",
+											"request.policyId = pm.environment.get(\"policyId\");",
+											"",
+											"console.log(JSON.stringify(request));",
+											"pm.environment.set(\"policy\",  JSON.stringify(request));"
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{{policy}}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/quotation/bind",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"quotation",
+										"bind"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "confirm  quotation",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "eac6a43c-7104-42f6-88da-5bc20bff66c9",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{  \n   \n}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/quotation/confirm/{{policyId}}",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"quotation",
+										"confirm",
+										"{{policyId}}"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Pay and issue Credit",
+							"event": [
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "eac6a43c-7104-42f6-88da-5bc20bff66c9",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\"policyId\": {{policyId}},\r\n\"payMode\": {\r\n\"payMode\": \"credit\",\r\n\"extInfo\": { }\r\n}\r\n}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/quotation/pay",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"quotation",
+										"pay"
+									]
+								}
+							},
+							"response": []
+						},
+						{
+							"name": "Query Print document",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3ad632dd-a9e1-47cc-9339-d69956b4d9b2",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "37cc72d0-ce1e-43a6-a76c-2c78f73f90f8",
+										"exec": [
+											"//The data file type: 1. Underwriting Data, 2. Issued Policy Data for Insurer, 3. Issued Policy Data for Channel, 5. Cancellation Data for Insurer, 6. Cancellation Data for Channel , 7. Endorsement Request Data for Insurer, 8. Endorsement Request Data for Channel",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"protocolProfileBehavior": {
+								"disableBodyPruning": true
+							},
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "GET",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": ""
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/policy/printFile/list/{{policyId}}",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"policy",
+										"printFile",
+										"list",
+										"{{policyId}}"
+									]
+								},
+								"description": "        policyNo: \"P100000001\"\r\n        coreReferenceNo: \"XXXXXXXXXXXXXX\"\r\n        channelReferenceNo: \"XXXXXXXXXXXXXX\"\r\n        vehicleRegNo: \"RESNO32323\"\r\n        vehicleChassisNo: \"CHSNO0392032\"\r\n        insuredFirstName: \"insured first name, exact match.\"\r\n        insuredLastName: \"insured last name, exact match.\"\r\n        insuredFullName: \"insured full name, exact match.\"\r\n        insuredIdNo: \"insured ID No. Apply to all ID types.\"\r\n        phFirstName: \"policyholder first name, exact match\"\r\n        phLastName: \"policyholder last name, exact match\"\r\n        phFullName: \"policyholder full name, exact match\"\r\n        phIdNo: \"policyholder ID No.  Apply to all ID types.\""
+							},
+							"response": []
+						},
+						{
+							"name": "Download document",
+							"event": [
+								{
+									"listen": "test",
+									"script": {
+										"id": "3ad632dd-a9e1-47cc-9339-d69956b4d9b2",
+										"exec": [
+											""
+										],
+										"type": "text/javascript"
+									}
+								},
+								{
+									"listen": "prerequest",
+									"script": {
+										"id": "37cc72d0-ce1e-43a6-a76c-2c78f73f90f8",
+										"exec": [
+											"//The data file type: 1. Underwriting Data, 2. Issued Policy Data for Insurer, 3. Issued Policy Data for Channel, 5. Cancellation Data for Insurer, 6. Cancellation Data for Channel , 7. Endorsement Request Data for Insurer, 8. Endorsement Request Data for Channel",
+											""
+										],
+										"type": "text/javascript"
+									}
+								}
+							],
+							"request": {
+								"auth": {
+									"type": "noauth"
+								},
+								"method": "POST",
+								"header": [
+									{
+										"key": "Content-Type",
+										"name": "Content-Type",
+										"type": "text",
+										"value": "application/json"
+									},
+									{
+										"key": "grantCode",
+										"type": "text",
+										"value": "{{grantCode}}"
+									},
+									{
+										"key": "Authorization",
+										"type": "text",
+										"value": "Bearer {{access_token}}"
+									}
+								],
+								"body": {
+									"mode": "raw",
+									"raw": "{\r\n\"policyId\": \"{{policyId}}\",\r\n\"prdtCode\": \"TPL\",\r\n\"printFileType\": \"PolicyDocuments\"\r\n}"
+								},
+								"url": {
+									"raw": "https://sandbox.gw.sg.ebaocloud.com/ddpc/1.0.0/api/pub/std/policy/printFile/download",
+									"protocol": "https",
+									"host": [
+										"sandbox",
+										"gw",
+										"sg",
+										"ebaocloud",
+										"com"
+									],
+									"path": [
+										"ddpc",
+										"1.0.0",
+										"api",
+										"pub",
+										"std",
+										"policy",
+										"printFile",
+										"download"
+									]
+								},
+								"description": "        policyNo: \"P100000001\"\r\n        coreReferenceNo: \"XXXXXXXXXXXXXX\"\r\n        channelReferenceNo: \"XXXXXXXXXXXXXX\"\r\n        vehicleRegNo: \"RESNO32323\"\r\n        vehicleChassisNo: \"CHSNO0392032\"\r\n        insuredFirstName: \"insured first name, exact match.\"\r\n        insuredLastName: \"insured last name, exact match.\"\r\n        insuredFullName: \"insured full name, exact match.\"\r\n        insuredIdNo: \"insured ID No. Apply to all ID types.\"\r\n        phFirstName: \"policyholder first name, exact match\"\r\n        phLastName: \"policyholder last name, exact match\"\r\n        phFullName: \"policyholder full name, exact match\"\r\n        phIdNo: \"policyholder ID No.  Apply to all ID types.\""
+							},
+							"response": []
+						}
+					],
+					"_postman_isSubFolder": true
+				}
+			]
+		}
+	]
+}

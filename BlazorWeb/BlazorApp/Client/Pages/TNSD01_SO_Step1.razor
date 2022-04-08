@@ -47,6 +47,10 @@
                             TabStop=false
                             @bind-Text=Model.CusFullname
                             @ref=RefCusFullname />
+                <MyTextEdit Literal="CMND/CCCD"
+                            IsFontBold=true
+                            @bind-Text=Model.CusCitizenID
+                            @ref=RefCusCitizenID />
                 <MyTextEdit Literal="Điện thoại"
                             IsFontBold=true
                             @bind-Text=Model.CusPhone
@@ -101,12 +105,13 @@
             <MudText Typo="Typo.inherit" Class="text-muted ml-1" Style="font-weight: bold; color: gray">/năm</MudText>
         </div>
         <div>
-            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Payments" OnClick="SelectGo">Tiếp tục</MudButton>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.ArrowForwardIos" OnClick="SelectGo">Tiếp tục</MudButton>
         </div>
     </ActionButtons>
 </MyAppBarForm>
 
 @code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
     [Parameter] public ProductModel Product { get; set; }
     //SO
     SaleOrderModel Model = new SaleOrderModel();
@@ -120,6 +125,7 @@
     AddressModel SelectedWard;
     //Ref
     MyTextEdit RefCusFullname;
+    MyTextEdit RefCusCitizenID;
     MyTextEdit RefCusEmail;
     MyTextEdit RefCusPhone;
     MyTextEdit RefAddress;
@@ -238,7 +244,7 @@
     //OnBlur_LicensePlate
     void OnBlur_LicensePlate(FocusEventArgs e)
     {
-        RefCusPhone.Focus();
+        RefCusCitizenID.Focus();
     }
 
     bool Validate_Main()
@@ -262,6 +268,13 @@
         {
             Snackbar.Add("Chưa nhập: Tên chủ hợp đồng", Severity.Error);
             RefCusFullname.Focus();
+            return false;
+        }
+        //RefCusCitizenID
+        if (string.IsNullOrWhiteSpace(Model.CusCitizenID))
+        {
+            Snackbar.Add("Chưa nhập: CMND/CCCD", Severity.Error);
+            RefCusCitizenID.Focus();
             return false;
         }
         //RefCusPhone
@@ -364,8 +377,14 @@
         var result = await DialogService.Show<TNSD01_SO_Step2>("", parameters, MyOptions.ShowAppbarOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
-            var retModel = (ProductModel)result.Data;
-
+            var ret = (MyDialogResult)result.Data;
+            if (ret.IsCloseAll)
+            {
+                var ret2 = new MyDialogResult();
+                ret2.IsCloseAll = true;
+                //
+                MudDialog.Close(ret2);
+            }
         }
     }
 

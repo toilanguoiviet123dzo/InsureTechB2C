@@ -8,6 +8,12 @@ namespace PaymentWeb.Pages
 {
     public class VnPayReturnModel : PageModel
     {
+        private readonly PaymentService _paymentService;
+        public VnPayReturnModel(PaymentService paymentService)
+        {
+            _paymentService = paymentService;
+        }
+
         [BindProperty(SupportsGet = true)]
         public string vnp_TmnCode { get; set; } = "";
         [BindProperty(SupportsGet = true)]
@@ -41,27 +47,37 @@ namespace PaymentWeb.Pages
         public mdSaleOrder Record { get; set; } = new mdSaleOrder();
 
         //
-        public async void OnGet()
+        public async Task<IActionResult> OnGet()
         {
-            var result = new VnPayResult();
-            result.vnp_TmnCode = vnp_TmnCode;
-            result.vnp_Amount = vnp_Amount;
-            result.vnp_BankCode = vnp_BankCode;
-            result.vnp_BankTranNo = vnp_BankTranNo;
-            result.vnp_CardType = vnp_CardType;
-            result.vnp_PayDate = vnp_PayDate;
-            result.vnp_TransactionNo = vnp_TransactionNo;
-            result.vnp_ResponseCode = vnp_ResponseCode;
-            result.vnp_TransactionStatus = vnp_TransactionStatus;
-            result.vnp_TxnRef = vnp_TxnRef;
-            result.vnp_SecureHashType = vnp_SecureHashType;
-            result.vnp_SecureHash = vnp_SecureHash;
-            //Finish payment
-            var ret = await PaymentService.FinishVnPay(result);
+            try
+            {
+                var result = new VnPayResult();
+                result.vnp_TmnCode = vnp_TmnCode;
+                result.vnp_Amount = vnp_Amount;
+                result.vnp_BankCode = vnp_BankCode;
+                result.vnp_BankTranNo = vnp_BankTranNo;
+                result.vnp_CardType = vnp_CardType;
+                result.vnp_PayDate = vnp_PayDate;
+                result.vnp_TransactionNo = vnp_TransactionNo;
+                result.vnp_ResponseCode = vnp_ResponseCode;
+                result.vnp_TransactionStatus = vnp_TransactionStatus;
+                result.vnp_TxnRef = vnp_TxnRef;
+                result.vnp_SecureHashType = vnp_SecureHashType;
+                result.vnp_SecureHash = vnp_SecureHash;
+                //Finish payment
+                var ret = await _paymentService.FinishVnPay(result, HttpContext.Request.Query);
+                //
+                ReturnCode = ret.ReturnCode;
+                ErrorMessage = ret.ErrorMessage;
+                Record = ret.Record;
+            }
+            catch 
+            {
+                ReturnCode = 500;
+                ErrorMessage = "Server đang tạm ngưng phục vụ, xin hãy quay lại sau.";
+            }
             //
-            ReturnCode = ret.ReturnCode;
-            ErrorMessage = ret.ErrorMessage;
-            Record = ret.Record;
+            return Page();
         }
     }
 }

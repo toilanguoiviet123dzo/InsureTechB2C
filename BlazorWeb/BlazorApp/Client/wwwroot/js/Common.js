@@ -5,10 +5,10 @@ function focusEditor(className) {
     document.getElementsByClassName(className)[0].querySelector("input").focus();
 }
 /* Warning F5 */
-$(window).bind('beforeunload', function (e) {
-    return "Load lại trang có thể bị mất dữ liệu. Bạn có muốn tiếp tục..."
-    e.preventDefault();
-});
+//$(window).bind('beforeunload', function (e) {
+//    return "Load lại trang có thể bị mất dữ liệu. Bạn có muốn tiếp tục..."
+//    e.preventDefault();
+//});
 /* getDimensions*/
 window.getDimensions = function () {
     var myWidth = 0, myHeight = 0;

@@ -1,0 +1,81 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime;
+
+<style>
+    #bottomAppBar .mud-toolbar {
+        margin: auto !important;
+    }
+
+    .mud-main-content {
+        padding-top: 10px !important;
+    }
+
+    body {
+        max-height: 100vh;
+        overflow-y: scroll;
+    }
+
+    /*body {
+                background-image: url("./images/background-main.jpg");
+                background-color: transparent;
+                object-fit:cover;
+            }*/
+</style>
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <!--Top App bar-->
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+        <MudAvatar Color="Color.Default" Variant="Variant.Filled" Class="mr-3">
+            <MudAvatar Color="Color.Secondary" Image="./images/Logo1.png" Size="Size.Large"
+                       @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
+        </MudAvatar>
+        @if (string.IsNullOrWhiteSpace(WebUserCredential.Program.ProgramName))
+        {
+            <h5 class="m-auto">InsurTech Việt Nam</h5>
+        }
+        else
+        {
+            <h5 class="m-auto">@WebUserCredential.Program.ProgramName</h5>
+        }
+        <MudSpacer />
+        <MudHidden Breakpoint="Breakpoint.SmAndDown">
+            <h5 class="m-auto">Bảo hiểm kỹ thuật số</h5>
+        </MudHidden>
+    </MudAppBar>
+
+    <!--Body content-->
+    <MudMainContent>
+        <CascadingValue Value="Program">
+            @Body
+        </CascadingValue>
+    </MudMainContent>
+
+</MudLayout>
+@code {
+    public ProgramInfo Program { get; set; } = new ProgramInfo("", "");
+    private MudMenu adminMenu;
+    private MudMenu masterMenu;
+    private MudMenu claimMenu;
+
+    bool _drawerOpen = false;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void ShowProgram(MudMenu menu, ProgramInfo program)
+    {
+        menu.CloseMenu();
+        WebUserCredential.Program = program;
+        Navigation.NavigateTo($"/{program.ProgramID}");
+    }
+
+
+}
+

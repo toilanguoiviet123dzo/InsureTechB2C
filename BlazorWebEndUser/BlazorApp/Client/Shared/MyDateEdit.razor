@@ -1,0 +1,111 @@
+﻿<MudDatePicker @ref="@Ref"
+               Date="Date"
+               DateChanged="@((DateTime? value) => OnDateChanged(value))"
+               TextChanged="@((string value) => OnTextChanged(value))"
+               Label="@Literal"
+               HelperText="@HelperText"
+               Editable="@Editable"
+               ReadOnly="@ReadOnly"
+               DateFormat="@Format"
+               PickerVariant="@PickerVariant"
+               Color="@Color"
+               Rounded="true"
+               Elevation="12"
+               Class="@Class"
+               Style="@Style"
+               Tag="@Tag"
+               MinDate="@MinDate"
+               MaxDate="@MaxDate"
+               Required="@Required"
+               StartMonth="@StartMonth"
+               DisplayMonths="@DisplayMonths"
+               @attributes="@Attributes"/>
+
+@code {
+    [Parameter] public bool TabStop { get; set; } = true;
+    [Parameter] public string Literal { get; set; } = "";
+    [Parameter] public string HelperText { get; set; } = "";
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool Editable { get; set; } = true;
+    [Parameter] public PickerVariant PickerVariant { get; set; } = PickerVariant.Dialog;
+    [Parameter] public Color Color { get; set; } = Color.Success;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public object Tag { get; set; }
+    [Parameter] public string Width { get; set; } = "10rem";
+    [Parameter] public string Format { get; set; } = "dd/MM/yyyy";
+    [Parameter] public DateTime? MinDate { get; set; } = null;
+    [Parameter] public DateTime? MaxDate { get; set; } = null;
+    [Parameter] public bool Required { get; set; } = true;
+    [Parameter] public DateTime? StartMonth { get; set; } = DateTime.Now;
+    [Parameter] public int DisplayMonths { get; set; } = 2;
+    [Parameter] public bool IsFontBold { get; set; } = false;
+    [Parameter] public string TextColor { get; set; } = "";
+
+    //DateChanged
+    [Parameter] public DateTime Date { get; set; } = DateTime.Today;
+    [Parameter] public EventCallback<DateTime> DateChanged { get; set; }
+    private async void OnDateChanged(DateTime? newValue)
+    {
+        if (newValue != null)
+        {
+            Date = (DateTime)newValue;
+            await DateChanged.InvokeAsync((DateTime)newValue);
+        }
+        await TextChanged.InvokeAsync(newValue.ToString());
+    }
+    //
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
+    private async void OnTextChanged(string newValue)
+    {
+        await TextChanged.InvokeAsync(newValue);
+    }
+
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Mobile
+        if (BrowserInfo.IsMobile) DisplayMonths = 1;
+
+        //Editable
+        if (ReadOnly) Editable = false;
+
+        //IsFontBold
+        if (IsFontBold)
+        {
+            if (!Style.Contains("font-weight: bold;")) Style = $"font-weight: bold; {Style}";
+        }
+
+        //Text Color
+        if (!string.IsNullOrWhiteSpace(TextColor))
+        {
+            if (TextColor == MyTextColor.Green && !Style.Contains(MyTextColor.Green)) Style = $"{MyTextColor.Green}; {Style}";
+            if (TextColor == MyTextColor.Blue && !Style.Contains(MyTextColor.Blue)) Style = $"{MyTextColor.Blue}; {Style}";
+            if (TextColor == MyTextColor.Navy && !Style.Contains(MyTextColor.Navy)) Style = $"{MyTextColor.Navy}; {Style}";
+            if (TextColor == MyTextColor.Maroon && !Style.Contains(MyTextColor.Maroon)) Style = $"{MyTextColor.Maroon}; {Style}";
+            if (TextColor == MyTextColor.Purple && !Style.Contains(MyTextColor.Purple)) Style = $"{MyTextColor.Purple}; {Style}";
+            if (TextColor == MyTextColor.Red && !Style.Contains(MyTextColor.Red)) Style = $"{MyTextColor.Red}; {Style}";
+        }
+
+        //Set width
+        if (!Style.Contains($"width:{Width};")) Style = $"width:{Width}; {Style}";
+
+        //ReadOnly
+        if (ReadOnly || !TabStop)
+        {
+            Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "tabIndex", "-1" }
+                                            };
+        }
+    }
+    //Focus
+    private MudDatePicker Ref;
+    public async void Focus()
+    {
+        await Ref.FocusAsync();
+    }
+}

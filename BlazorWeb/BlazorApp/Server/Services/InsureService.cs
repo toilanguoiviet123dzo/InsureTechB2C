@@ -47,7 +47,7 @@ namespace BlazorApp.Server.Services
                     {
                         saveRecord = await DB.Find<mdProduct>()
                                              .MatchID(request.Record.ID)
-                                             .ExecuteSingleAsync();
+                                             .ExecuteFirstAsync();
                     }
                     if (saveRecord != null)
                     {
@@ -101,7 +101,7 @@ namespace BlazorApp.Server.Services
             {
                 var gotRecord = await DB.Find<mdProduct>()
                                     .Match(x => x.ProductID == request.StringValue)
-                                    .ExecuteSingleAsync();
+                                    .ExecuteFirstAsync();
 
                 if (gotRecord != null)
                 {
@@ -217,7 +217,72 @@ namespace BlazorApp.Server.Services
             return await Task.FromResult(response);
         }
 
-        
+        //-------------------------------------------------------------------------------------------------------/
+        // CheckPayStatus
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.CheckPayStatus_Response> CheckPayStatus(String_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.CheckPayStatus_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var gotRecord = await DB.Find<mdSaleOrder>()
+                                        .Match(x => x.TransactionID == request.StringValue)
+                                        .ExecuteFirstAsync();
+
+                if (gotRecord != null)
+                {
+                    response.IsPayDone = gotRecord.IsPayDone;
+                    response.IsPayError = gotRecord.IsPayError;
+                }
+                else
+                {
+                    response.IsPayError = true;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "CheckPayStatus", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetCertificateList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.GetCertificateList_Response> GetCertificateList(GetCertificateList_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.GetCertificateList_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var gotRecords = await DB.Find<mdSaleOrderLog>()
+                                         .Match(x => x.CusPhone == request.CusPhone)
+                                         .Match(x => x.CusCitizenID == request.CusCitizenID)
+                                         .ExecuteAsync();
+                //
+                if (gotRecords != null)
+                {
+                    foreach (var item in gotRecords)
+                    {
+                        var retRecord = new grpcSaleOrderModel();
+                        ClassHelper.CopyPropertiesData(item, retRecord);
+                        //
+                        response.Records.Add(retRecord);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetCertificateList", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
 
 
 

@@ -9,11 +9,15 @@ namespace BlazorApp.Client.BindingModels
         //Order info
         public string TransactionID { get; set; } = "";
         public string OrderID { get; set; } = "";
+        public string PolicyID { get; set; } = "";
+        public string QuoteNo { get; set; } = "";
+        public string PolicyNo { get; set; } = "";
         public string OwnerFullname { get; set; } = "";
         public string LicensePlate { get; set; } = "";
         public string CusFullname { get; set; } = "";
         public string CusPhone { get; set; } = "";
         public string CusEmail { get; set; } = "";
+        public string CusCitizenID { get; set; } = "";
         public DateTime EffectiveSttDate { get; set; }
         public DateTime EffectiveEndDate { get; set; }
         public string CityID { get; set; } = "";
@@ -23,6 +27,7 @@ namespace BlazorApp.Client.BindingModels
         public string WardID { get; set; } = "";
         public string WardName { get; set; } = "";
         public string Address { get; set; } = "";
+        public string PostalCode { get; set; } = "";
         //Product
         public string VendorID { get; set; } = "";
         public string VendorName { get; set; } = "";
@@ -56,8 +61,14 @@ namespace BlazorApp.Client.BindingModels
         public string PaymentRefID { get; set; } = "";
         public string PaymentResponseCode { get; set; } = "";
         public string PaymentResponseData { get; set; } = "";
+        public string CertificateLink { get; set; } = "";
         //
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }
+
+        //Row mode
+        public bool RowMode_View { get; set; } = true;
+        public bool RowMode_Edit { get; set; } = false;
+        public bool RowMode_Delete { get; set; } = false;
     }
 }

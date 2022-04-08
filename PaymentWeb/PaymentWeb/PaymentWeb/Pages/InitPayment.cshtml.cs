@@ -9,9 +9,12 @@ namespace PaymentWeb.Pages
     public class InitPaymentModel : PageModel
     {
         private IHttpContextAccessor _accessor;
-        public InitPaymentModel(IHttpContextAccessor httpContextAccessor)
+        private PaymentService _paymentService;
+        public InitPaymentModel(IHttpContextAccessor httpContextAccessor,
+                                PaymentService paymentService)
         {
             _accessor = httpContextAccessor;
+            _paymentService = paymentService;
         }
         //Params
         [BindProperty(SupportsGet = true)]
@@ -28,7 +31,7 @@ namespace PaymentWeb.Pages
         public async Task<IActionResult> OnGet()
         {
             // InitPayment
-            var ret = await PaymentService.InitPayment(InitOrderToken, TransactionID);
+            var ret = await _paymentService.InitPayment(InitOrderToken, TransactionID);
             if (ret.ReturnCode != ReturnCode.OK)
             {
                 //Error_201
@@ -42,15 +45,13 @@ namespace PaymentWeb.Pages
                 return Page();
             }
 
-
-
             //Create redirect payment
             string ip = "";
-            if (_accessor.HttpContext != null 
+            if (_accessor.HttpContext != null
                 && _accessor.HttpContext.Connection != null
                 && _accessor.HttpContext.Connection.RemoteIpAddress != null) ip = _accessor.HttpContext.Connection.RemoteIpAddress.ToString();
             //
-            var url = await PaymentService.Gen_PaymentRedirectLink(PaymentChannel, ip, ret.Record);
+            var url = await _paymentService.Gen_PaymentRedirectLink(PaymentChannel, ip, ret.Record);
             //
             return Redirect(url);
         }

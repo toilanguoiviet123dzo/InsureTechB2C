@@ -10,6 +10,7 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 using BlazorApp.Server.Common;
 using BlazorApp.Server.Models;
+using Cores.Helpers;
 
 namespace PaymentWeb.Services
 {
@@ -30,14 +31,14 @@ namespace PaymentWeb.Services
             try
             {
                 //Get config from DB
-                var setting = await SettingMaster.GetSetting("004");
+                var setting = await SettingMaster.GetSetting("007");
                 if (setting != null && setting.IntValue1 != 0)
                 {
-                    DelayTime = setting.IntValue1;
+                    if (setting.IntValue1 != 0) DelayTime = setting.IntValue1;
                 }
                 else
                 {
-                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "SettingMaster", "004", "SettingMaster", ReturnCode.Error_ByServer, "SettingMaster.GetSetting_004: Not found");
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "SettingMaster", "007", "SettingMaster", ReturnCode.Error_ByServer, "SettingMaster.GetSetting_007: Not found");
                 }
             }
             catch (Exception ex)
@@ -59,7 +60,7 @@ namespace PaymentWeb.Services
                         await Init();
                         //
                         await Remove_TimemoutRequest();
-                        await Remove_Cancel();
+                        await Remove_ErrorPay();
                         await Backup_Log();
                     }
                     catch (Exception ex)
@@ -83,6 +84,7 @@ namespace PaymentWeb.Services
                 //Record chua duoc xu ly + ExpiredTime > DateTime.UtcNow
                 var queueRecords = await DB.Find<mdSaleOrder>()
                                          .Match(a => a.IsPayDone == false)
+                                         .Match(a => a.IsPayError == false)
                                          .Match(a => a.ExpiredTime < DateTime.UtcNow)
                                          .ExecuteAsync();
                 //
@@ -104,13 +106,13 @@ namespace PaymentWeb.Services
             }
         }
 
-        private async Task Remove_Cancel()
+        private async Task Remove_ErrorPay()
         {
             try
             {
                 //Canceled
                 var queueRecords = await DB.Find<mdSaleOrder>()
-                                         .Match(a => a.IsCancel)
+                                         .Match(a => a.IsPayError)
                                          .ExecuteAsync();
                 //
                 if (queueRecords != null && queueRecords.Count > 0)
@@ -135,9 +137,10 @@ namespace PaymentWeb.Services
         {
             try
             {
-                //Record da xu ly: thanh cong hoac loi
+                //Record da xu ly: thanh cong va da qua thoi gian timeout
                 var queueRecords = await DB.Find<mdSaleOrder>()
                                          .Match(a => a.IsPayDone)
+                                         .Match(a => a.IsProcessDone)
                                          .ExecuteAsync();
                 //
                 if (queueRecords != null && queueRecords.Count > 0)
@@ -145,9 +148,13 @@ namespace PaymentWeb.Services
                     foreach (var queueRecord in queueRecords)
                     {
                         //Insert to log
+                        var logRecord = new mdSaleOrderLog();
+                        ClassHelper.CopyPropertiesData(queueRecord, logRecord);
+                        //
+                        await logRecord.SaveAsync();
 
                         //Delete queue
-                        
+                        await DB.DeleteAsync<mdSaleOrder>(queueRecord.ID);
                     }
                 }
             }
