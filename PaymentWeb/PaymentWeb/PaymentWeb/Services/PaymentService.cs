@@ -267,6 +267,7 @@ namespace PaymentWeb.Services
                         //Failed
                         record.IsProcessDone = false;
                         record.IsProcessError = true;
+                        if (res != null && res.data != null) record.ProcessErrorMessage = res.data.processMsg;
                         //Log
                         MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Failed", ReturnCode.Error_ByServer, $"Call eBao api failed for {record.TransactionID}_{record.LicensePlate}_{record.CusPhone}_{record.CusFullname}");
                     }

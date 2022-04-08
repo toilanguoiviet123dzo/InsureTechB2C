@@ -53,7 +53,7 @@
     </MudMainContent>
 
     <!--Bottom App bar-->
-    @*<MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
+    <MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
         <!--Admin-->
         <MudMenu @ref="@adminMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
             <ActivatorContent>
@@ -64,7 +64,6 @@
                     <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Settings" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("SettingMaster","Cài đặt hệ thống")))">Cài đặt hệ thống</MudNavLink>
                     <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.List" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListHeader","Danh mục tùy chọn")))">Danh mục tùy chọn</MudNavLink>
                     <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.FormatListBulleted" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListDetail","Chi tiết danh mục tùy chọn")))">Chi tiết danh mục tùy chọn</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.AccountCircle" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("UserAccount","Quản lý account")))">Quản lý account</MudNavLink>
                 </MudNavMenu>
             </ChildContent>
         </MudMenu>
@@ -81,7 +80,7 @@
                 </MudNavMenu>
             </ChildContent>
         </MudMenu>
-    </MudAppBar>*@
+    </MudAppBar>
 
 
 </MudLayout>

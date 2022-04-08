@@ -6,30 +6,8 @@
 @inject IJSRuntime JsRuntime;
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject NavigationManager Navigation
 
-
-<MudTabs Elevation="0"
-         Rounded="true"
-         Centered=true
-         ApplyEffectsToContainer="true"
-         PanelClass="p-0 p-lg-6"
-         Class="m-auto"
-         Style="@($"max-width:var(--mysize-maxwidth);")">
-    <MudTabPanel Text=@Tab1Text Icon="@Icons.Filled.AddShoppingCart" Style="font-size:medium">
-        <div class="productlist m-1 m-md-4">
-            <!--Xe gắn máy-->
-            <TNSD01_Compact ProductID="TNDS_HV" />
-            <TNSD01_Compact ProductID="TNDS_BM" />
-            <TNSD01_Compact ProductID="TNDS_HV02" />
-            <TNSD01_Compact ProductID="TNDS_BM02" />
-        </div>
-    </MudTabPanel>
-    <MudTabPanel Text=@Tab2Text Icon="fa fa-certificate" Style="font-size:medium">
-        <div class="m-1 m-md-4">
-            <CertificateList />
-        </div>
-    </MudTabPanel>
-</MudTabs>
 
 @code {
     string Tab1Text = "&nbsp;&nbsp;Mua bảo hiểm&nbsp;&nbsp;";
@@ -47,6 +25,7 @@
             Tab2Text = "Chứng nhận";
         }
 
+        Navigation.NavigateTo("/ProductList");
     }
 
     async Task Get_BrowserInfo()

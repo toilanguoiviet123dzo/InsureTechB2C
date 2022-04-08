@@ -134,9 +134,9 @@ namespace PaymentWeb.Services
                 newForm.insurerTenantCode = "BM_VN";
                 //insureds
                 var veh = new InsuredModel();
-                veh.detail.vehicleChassisNo = saleOrder.LicensePlate;
+                veh.detail.vehicleChassisNo = "";
                 veh.detail.vehicleEngineNo = "";
-                veh.detail.vehicleRegNo = "";
+                veh.detail.vehicleRegNo = saleOrder.LicensePlate;
                 newForm.insureds.Add(veh);
 
                 //policyholder

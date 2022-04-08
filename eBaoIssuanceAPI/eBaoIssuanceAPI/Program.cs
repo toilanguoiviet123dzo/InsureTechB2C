@@ -55,9 +55,9 @@ namespace eBaoIssuanceAPI
             var randomGenerator = new Random();
             randomGenerator.Next(1, 1000000);
             newForm.referenceNo = "Test" + randomGenerator.Next(1, 1000000).ToString();
-            veh.detail.vehicleChassisNo = randomGenerator.Next(1, 1000000).ToString();
-            veh.detail.vehicleEngineNo = randomGenerator.Next(1, 1000000).ToString();
-            veh.detail.vehicleRegNo = randomGenerator.Next(1, 1000000).ToString();
+            veh.detail.vehicleChassisNo = "";
+            veh.detail.vehicleEngineNo = "";
+            veh.detail.vehicleRegNo = "555555555";
             newForm.insureds.Add(veh);
             ////////////////////////
 

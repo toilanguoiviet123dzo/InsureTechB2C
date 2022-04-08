@@ -14,7 +14,7 @@
 
     .payment {
         border: 1px solid #f2f2f2;
-        height: 280px;
+        height: 350px;
         border-radius: 20px;
         background: #fff;
     }
@@ -67,7 +67,7 @@
 
     .payment_error {
         border: 1px solid #f01b1b;
-        height: 280px;
+        height: 350px;
         border-radius: 20px;
         background: #fff;
     }
@@ -77,13 +77,40 @@
         padding: 20px;
         border-radius: 20px 20px 0px 0px;
     }
+
+    .btnStack {
+        font-family: Oswald;
+        background-color: orange;
+        color: white;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        padding: 6px 12px;
+        margin-bottom: 0;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 1.428571429;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+    }
+
+    a.btnStack:hover {
+        background-color: #000;
+    }
 </style>
 
 <div class="container">
     <div class="row">
         <div class="col-md-6 mx-auto mt-5">
-            <h3>ReturnCode: @Model.ReturnCode</h3>
-            <h3>ErrorMessage: @Model.ErrorMessage</h3>
             <!--Success-->
             @if (Model.ReturnCode == ReturnCode.OK)
             {
@@ -92,13 +119,17 @@
                         <div class="check"><i class="fa fa-check" aria-hidden="true"></i></div>
                     </div>
 
-                    <h1>Thanh toán thành công !</h1>
-                    <p>
-                        Cảm ơn bạn đã ủng hộ chúng tôi.
-                        Chứng nhận bảo hiểm sẽ được sẽ được gởi qua email <span style="color:blue">@Model.Record.CusEmail</span>
-                        hoặc sms qua số điện thoại <span style="color:blue">@Model.Record.CusPhone</span>
-                    </p>
-                    <a href="@Model.Record.CertificateLink">Download giấy chứng nhận bảo hiểm</a>
+                    <div class="m-2">
+                        <h2 class="mx-auto text-center mt-2">Thanh toán thành công !</h2>
+                        <h5 class="mx-auto text-center mt-3">Cảm ơn bạn đã ủng hộ chúng tôi.</h5>
+                        <p class="m-2 text-justify">
+                            Chứng nhận bảo hiểm sẽ được sẽ được gởi qua email <span style="color:blue">@Model.Record.CusEmail</span>
+                            hoặc sms qua số điện thoại <span style="color:blue">@Model.Record.CusPhone</span>
+                        </p>
+                    </div>
+                    <div class="m-2 text-center">
+                        <a class="m-2 btnStack" href="@Model.Record.CertificateLink">Download giấy chứng nhận</a>
+                    </div>
                 </div>
             }
 
@@ -110,11 +141,15 @@
                         <div class="check"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>
                     </div>
 
-                    <h1>Thanh toán thất bại !!!</h1>
-                    <p>
-                        @Model.ErrorMessage
-                    </p>
-                    <a onClick="javascript:window.close('','_parent','');">Trở lại</a>
+                    <div class="m-2">
+                        <h2 class="mx-auto text-center mt-2" style="color:red">Thanh toán thất bại !!!</h2>
+                        <p class="m-2 text-justify">
+                            @Model.ErrorMessage
+                        </p>
+                    </div>
+                    <div class="m-2 text-center">
+                        <a class="m-2 btnStack" onClick="javascript:window.close('','_parent','');">Trở lại</a>
+                    </div>
                 </div>
             }
         </div>

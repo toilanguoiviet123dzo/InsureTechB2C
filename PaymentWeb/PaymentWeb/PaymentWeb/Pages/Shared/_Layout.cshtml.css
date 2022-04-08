@@ -1,43 +1,38 @@
 ﻿/* Please see documentation at https://docs.microsoft.com/aspnet/core/client-side/bundling-and-minification
 for details on configuring this project to bundle and minify static web assets. */
 
-a.navbar-brand {
-  white-space: normal;
-  text-align: center;
-  word-break: break-all;
+.header {
+    display:flex;
+    background-color: #594AE2;
+    height: 48px;
+    width: 100%;
 }
 
-a {
-  color: #0077cc;
+.title {
+    height:48px;
+    line-height:48px;
+    color:white;
+    font-size:large;
+    font-weight:600;
+
 }
 
-.btn-primary {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
+#avatar {
+    margin-right: 1rem;
+    /* This image is 687 wide by 1024 tall, similar to your aspect ratio */
+    background-image: url('./images/Logo1.png');
+    /* make a square container */
+    width: 48px;
+    height: 48px;
+    /* fill the container, preserving aspect ratio, and cropping to fit */
+    background-size: cover;
+    /* center the image vertically and horizontally */
+    background-position: top center;
+    /* round the edges to a circle with border radius 1/2 container size */
+    border-radius: 50%;
 }
 
-.nav-pills .nav-link.active, .nav-pills .show > .nav-link {
-  color: #fff;
-  background-color: #1b6ec2;
-  border-color: #1861ac;
-}
 
-.border-top {
-  border-top: 1px solid #e5e5e5;
-}
-.border-bottom {
-  border-bottom: 1px solid #e5e5e5;
-}
-
-.box-shadow {
-  box-shadow: 0 .25rem .75rem rgba(0, 0, 0, .05);
-}
-
-button.accept-policy {
-  font-size: 1rem;
-  line-height: inherit;
-}
 
 .footer {
   position: absolute;

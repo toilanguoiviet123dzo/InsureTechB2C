@@ -14,7 +14,7 @@
         <div class="p-2" style="text-align:center">
             <MudAvatar Size="Size.Large" Color="Color.Primary" Variant="Variant.Outlined" Image="@("data:image/png;base64," + Convert.ToBase64String(Model.LogoContent))" Alt="Vendor Avatar" />
         </div>
-        
+
         <!--ProductName-->
         <MudText Typo="Typo.h5" Align=Align.Center Style="font-weight: bold">@Model.ProductName</MudText>
         <!--VendorName-->
@@ -55,6 +55,22 @@
                 }
             </MyPanels>
         }
+
+        <!--Product link-->
+        @if (!string.IsNullOrWhiteSpace(Model.VendorLinks))
+        {
+            <div m-2>
+                <MudLink Href="@Model.VendorLinks" Underline="Underline.Always">Chi tiết sản phẩm nhà cung cấp</MudLink>
+            </div>
+        }
+        @if (!string.IsNullOrWhiteSpace(Model.QALinks))
+        {
+            <div m-2>
+                <MudLink Href="@Model.QALinks" Underline="Underline.Always">Những câu hỏi thường gặp</MudLink>
+            </div>
+        }
+
+
     </ChildContent>
     <ActionButtons>
         <div class="d-flex align-end">
