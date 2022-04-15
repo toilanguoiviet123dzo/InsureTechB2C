@@ -67,8 +67,12 @@ namespace PaymentWeb.Services
                 ret.Record = orderRecord;
 
                 //Update requested status
+                int timeOutIn = await SettingMaster.GetInt1("017");
+                if (timeOutIn == 0) timeOutIn = 30;
+                //
                 orderRecord.IsPayRequest = true;
                 orderRecord.RequestTime = DateTime.UtcNow;
+                orderRecord.ExpiredTime = DateTime.UtcNow.AddMinutes(timeOutIn);
                 //
                 await orderRecord.SaveAsync();
             }
@@ -104,7 +108,7 @@ namespace PaymentWeb.Services
                 vnpay.AddRequestData("vnp_CurrCode", "VND");
                 vnpay.AddRequestData("vnp_IpAddr", ipAddress);
                 vnpay.AddRequestData("vnp_Locale", "vn");
-                vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan hop dong bao hiem so {record.OrderID}");
+                vnpay.AddRequestData("vnp_OrderInfo", $"Thanh toan mua bao hiem {record.ProductName.RemoveVietnameseSign()}");
                 vnpay.AddRequestData("vnp_OrderType", "other"); //default value: other
                 vnpay.AddRequestData("vnp_ReturnUrl", vnp_Returnurl);
                 vnpay.AddRequestData("vnp_TxnRef", record.TransactionID); // Mã tham chiếu của giao dịch tại hệ thống của merchant. Mã này là duy nhất dùng để phân biệt các đơn hàng gửi sang VNPAY. Không được trùng lặp trong ngày

@@ -57,7 +57,7 @@ namespace BlazorApp.Server.Models
         public bool IsPayError { get; set; }
         public bool IsProcessDone { get; set; }
         public bool IsProcessError { get; set; }
-        public string ProcessErrorMessage { get; set; }
+        public string ProcessErrorMessage { get; set; } = "";
         public bool IsIssueCertificate { get; set; }
         public bool IsDelivery { get; set; }
         //Payment
