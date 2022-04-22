@@ -24,6 +24,8 @@
               InputType="@InputType"
               Immediate="@Immediate"
               Mask=@Mask
+              Error=@Error
+              ErrorText=@ErrorText
               @attributes="@Attributes" />
 
 @code {
@@ -51,16 +53,27 @@
     [Parameter] public string TextColor { get; set; } = "";
     [Parameter] public bool Immediate { get; set; } = false;
     [Parameter] public IMask Mask { get; set; }
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public string ErrorText { get; set; } = "";
 
     //TextChanged
     [Parameter] public string Text { get; set; } = "";
     [Parameter] public EventCallback<string> TextChanged { get; set; }
     private async void OnTextChanged(string newValue)
     {
+        //Text
         if (IsUpperCase) newValue = newValue.ToUpper();
         Text = newValue;
         Value = newValue;
         await TextChanged.InvokeAsync(newValue);
+
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
 
     //OnBlur
@@ -131,6 +144,25 @@
     public async void Focus()
     {
         await Ref.FocusAsync();
+    }
+
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
 
 }

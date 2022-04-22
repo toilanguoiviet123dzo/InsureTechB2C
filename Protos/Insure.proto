@@ -14,7 +14,14 @@ service grpcInsureService {
     rpc InitOrder (InitOrder_Request) returns (InitOrder_Response);
     rpc CheckPayStatus (String_Request) returns (CheckPayStatus_Response);
     rpc GetCertificateList (GetCertificateList_Request) returns (GetCertificateList_Response);
-    rpc GetSaleOrderByPhone (String_Request) returns (GetSaleOrderByPhone_Response);
+    rpc GetSaleOrderByPhone (GetSaleOrderByPhone_Request) returns (GetSaleOrderByPhone_Response);
+    rpc DuplicatedCheck (DuplicatedCheck_Request) returns (Empty_Response);
+
+    //DiscountCode
+    rpc SaveDiscountCode (SaveDiscountCode_Request) returns (String_Response);
+    rpc GetDiscountCode (GetDiscountCode_Request) returns (GetDiscountCode_Response);
+    rpc GetUserDiscountCodeList (String_Request) returns (GetUserDiscountCodeList_Response);
+    rpc CheckDiscountCode (String_Request) returns (CheckDiscountCode_Response);
 
 }
 
@@ -172,9 +179,14 @@ message grpcSaleOrderModel {
     //
     string ProductType = 45;
     string PostalCode = 46;
+    //Discount
+    string DiscountCode = 47;
+    double DiscountRate = 48;
+    double DiscountAmount = 49;
+    double PaymentAmount = 50;
     //
-    google.protobuf.Timestamp ModifiedOn  = 47;
-    int32 UpdMode = 48;
+    google.protobuf.Timestamp ModifiedOn = 99;
+    int32 UpdMode = 100;
 }
 
 message InitOrder_Request{
@@ -212,12 +224,70 @@ message GetSaleOrderByPhone_Response {
     int32 ReturnCode = 1;
     string MsgCode = 2;
     //
-    grpcSaleOrderModel Record = 3;
+    bool IsMatchByProduct = 3;
+    grpcSaleOrderModel Record = 4;
 }
-
-
-
-
-
+message SaveDiscountCode_Request {
+    UserCredential Credential = 1;
+    //
+    grpcDiscountCodeModel Record = 2;
+}
+message grpcDiscountCodeModel {
+    string ID = 1;
+    string DiscountCode = 2;
+    string DiscountName = 3;
+    string Descriptions = 31;
+    string ProductID = 4;
+    string ProductName = 5;
+    google.protobuf.Timestamp FromDate = 6;
+    google.protobuf.Timestamp ToDate = 7;
+    double DiscountRate = 8;
+    double DiscountAmount = 9;
+    double UserMaxQty = 10;
+    double TotalMaxQty = 11;
+    double UsedQty = 12;
+    bool Enabled = 13;
+    string Notes = 14;
+    google.protobuf.Timestamp ModifiedOn = 15;
+    int32 UpdMode = 16;
+}
+message GetDiscountCode_Request {
+    UserCredential Credential = 1;
+    //
+    bool IsInTime = 2;
+    google.protobuf.Timestamp FromDate = 3;
+    google.protobuf.Timestamp ToDate = 4;
+}
+message GetDiscountCode_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcDiscountCodeModel Records = 3;
+}
+message GetUserDiscountCodeList_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcDiscountCodeModel Records = 3;
+}
+message CheckDiscountCode_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    grpcDiscountCodeModel Record = 3;
+}
+message DuplicatedCheck_Request {
+    UserCredential Credential = 1;
+    //
+    google.protobuf.Timestamp EffectiveSttDate = 2;
+    string ProductID = 3;
+    string LicensePlate = 4;
+}
+message GetSaleOrderByPhone_Request {
+    UserCredential Credential = 1;
+    //
+    string ProductID = 2;
+    string CusPhone = 3;
+}
 
 

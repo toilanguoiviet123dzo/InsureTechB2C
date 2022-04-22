@@ -34,6 +34,7 @@
            Style="@Style"
            Tag="@Tag"
            MultiSelection="false"
+           For="For"
            @attributes="@Attributes"
            Label="@Literal">
     @foreach (TValue item in Data)
@@ -73,6 +74,7 @@
     [Parameter] public string TextFieldName { get; set; } = "";
     [Parameter] public bool IsFontBold { get; set; } = false;
     [Parameter] public string TextColor { get; set; } = "";
+    [Parameter] public Expression<Func<TValue>> For { get; set; }
     //
     [Parameter] public List<TValue> Data { get; set; } = new List<TValue>();
 

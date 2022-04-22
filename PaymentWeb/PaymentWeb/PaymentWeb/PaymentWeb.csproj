@@ -7,12 +7,12 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\DatabaseConfig.cs" Link="Common\DatabaseConfig.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyAppLog.cs" Link="Common\MyAppLog.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyConstant.cs" Link="Common\MyConstant.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\MyTokenService.cs" Link="Common\MyTokenService.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />
-    <Compile Include="..\..\..\BlazorWeb\BlazorApp\Server\Common\SettingMasterModel.cs" Link="Common\SettingMasterModel.cs" />
+    <Compile Include="..\..\..\Common\DatabaseConfig.cs" Link="Common\DatabaseConfig.cs" />
+    <Compile Include="..\..\..\Common\MyAppLog.cs" Link="Common\MyAppLog.cs" />
+    <Compile Include="..\..\..\Common\MyConstant.cs" Link="Common\MyConstant.cs" />
+    <Compile Include="..\..\..\Common\MyTokenService.cs" Link="Common\MyTokenService.cs" />
+    <Compile Include="..\..\..\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />
+    <Compile Include="..\..\..\Common\SettingMasterModel.cs" Link="Common\SettingMasterModel.cs" />
     <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
     <Compile Include="..\..\..\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
     <Compile Include="..\..\..\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />

@@ -343,7 +343,38 @@ namespace BlazorApp.Client.Services
             return retThumbnail;
         }
 
+        public async Task<DiscountCodeModel> CheckDiscountCode(string discountCode)
+        {
+            DiscountCodeModel RetModel = null;
+            if (string.IsNullOrWhiteSpace(discountCode)) return RetModel;
+            //
+            try
+            {
+                //
+                var request = new Insure.Services.String_Request()
+                {
+                    Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = discountCode
+                };
 
+                //Get data from DB
+                var response = await _InsureServicesClient.CheckDiscountCodeAsync(request);
+                if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                {
+                    RetModel = new DiscountCodeModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(response.Record, RetModel);
+                }
+            }
+            catch { }
+            //
+            return RetModel;
+        }
 
 
 

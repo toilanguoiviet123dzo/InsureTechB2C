@@ -48,6 +48,11 @@ namespace BlazorApp.Server.Models
         public double TaxAmount { get; set; }
         public string Currency { get; set; } = "VND";
         public double ExchangeRate { get; set; } = 1;
+        //Discount
+        public string DiscountCode { get; set; } = "";
+        public double DiscountRate { get; set; }
+        public double DiscountAmount { get; set; }
+        public double PaymentAmount { get; set; }
         //Status
         public DateTime RequestTime { get; set; }
         public DateTime PaymentTime { get; set; }

@@ -343,7 +343,46 @@ namespace BlazorApp.Client.Services
             return retThumbnail;
         }
 
-
+        //ProductList
+        private List<ProductModel> ProductLists = new List<ProductModel>();
+        public async Task<List<ProductModel>> Load_ProductList()
+        {
+            try
+            {
+                if (ProductLists.Count == 0)
+                {
+                    var request = new Insure.Services.String_Request();
+                    request.Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    };
+                    //
+                    var response = await _InsureServicesClient.GetProductListAsync(request);
+                    if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                    {
+                        foreach (var item in response.Records)
+                        {
+                            //Parrent grid
+                            var dataRow = new ProductModel();
+                            ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                            //
+                            ProductLists.Add(dataRow);
+                        }
+                    }
+                    //Order
+                    if (ProductLists.Count > 0)
+                    {
+                        ProductLists = ProductLists.OrderBy(x => x.ProductID).ToList<ProductModel>();
+                    }
+                }
+            }
+            catch { }
+            //
+            return ProductLists;
+        }
 
 
 

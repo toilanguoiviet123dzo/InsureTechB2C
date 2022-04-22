@@ -1,0 +1,101 @@
+﻿@inject MasterService masterService;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyPopupEdit Title="Nhập mã khuyến mãi"
+             T="DiscountCodeModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MyTextEdit Literal="Mã" @bind-Text=DspModel.DiscountCode For="@(() => DspModel.DiscountCode)" IsUpperCase=true />
+    <MudTextField Label="Tên" @bind-Value="DspModel.DiscountName" For="@(() => DspModel.DiscountName)" />
+    <MudTextField @bind-Value="@DspModel.Descriptions"
+                  Label="Mô tả"
+                  OnAdornmentClick="ShowEditDescriptions"
+                  Variant="Variant.Text"
+                  Adornment="Adornment.End"
+                  ReadOnly=true
+                  AdornmentIcon="@Icons.Filled.Create"
+                  AdornmentColor="Color.Secondary" />
+    <MyComboBox Literal="Sản phẩm" @ref="RefProduct" @bind-Value="SelectedProduct" Data="@ProductList" TextFieldName="@(nameof(ProductModel.ProductName))" Clearable="true" />
+    <MyDateEdit Literal="Từ ngày" @bind-Date=DspModel.FromDate TextColor=@MyTextColor.Green />
+    <MyDateEdit Literal="Đến ngày" @bind-Date=DspModel.ToDate TextColor=@MyTextColor.Maroon />
+    <MyNumEdit Literal="% KM" @bind-Value=DspModel.DiscountRate Format="N0" Min=0.0 Max=100.0 T=double TextColor=@MyTextColor.Red />
+    <MyNumEdit Literal="Số tiền KM" @bind-Value=DspModel.DiscountAmount Format="N0" Min=0.0 Max=999999999.0 T=double TextColor=@MyTextColor.Maroon />
+    <MyNumEdit Literal="SL tối đa/người" @bind-Value=DspModel.UserMaxQty Format="N0" Min=0.0 Max=999999999.0 TextColor=@MyTextColor.Blue />
+    <MyNumEdit Literal="SL tổng" @bind-Value=DspModel.TotalMaxQty Format="N0" Min=0.0 Max=999999999.0 TextColor=@MyTextColor.Blue />
+    <MudTextField Label="Ghi chú" @bind-Value="DspModel.Notes" />
+    <MudSwitch @bind-Checked="@DspModel.Enabled" Color="Color.Primary">Hữu hiệu</MudSwitch>
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public DiscountCodeModel Model { get; set; }
+    //
+    DiscountCodeModel DspModel = new DiscountCodeModel();
+    private List<ProductModel> ProductList = new List<ProductModel>();
+    ProductModel SelectedProduct;
+    MyComboBox<ProductModel> RefProduct;
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+
+        //DiscountRate
+        DspModel.DiscountRate = DspModel.DiscountRate * 100;
+
+        //SelectedProduct
+        SelectedProduct = ProductList.Find(x => x.ProductID == DspModel.ProductID);
+    }
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Load master
+        ProductList = await masterService.Load_ProductList();
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        //Validate
+        if (SelectedProduct == null)
+        {
+            Snackbar.Add("Chưa nhập sản phẩm", Severity.Warning);
+            RefProduct.Focus();
+        }
+        DspModel.ProductID = SelectedProduct.ProductID;
+        DspModel.ProductName = SelectedProduct.ProductName;
+        //DiscountRate
+        DspModel.DiscountRate = DspModel.DiscountRate / 100;
+        //
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    async void ShowEditDescriptions()
+    {
+        var row = new SpecificationModel();
+        row.Title = "Mô tả code giảm giá";
+        row.Content = DspModel.Descriptions;
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditorOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (SpecificationModel)result.Data;
+            DspModel.Descriptions = retModel.Content;
+            //
+            this.StateHasChanged();
+        }
+    }
+
+}

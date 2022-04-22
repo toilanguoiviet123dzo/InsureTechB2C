@@ -28,6 +28,8 @@
                  Tag="@Tag"
                  Min=Min
                  Max=Max
+                 Error=@Error
+                 ErrorText=@ErrorText
                  @attributes="@Attributes"/>
 
 
@@ -53,6 +55,8 @@
     [Parameter] public string TextColor { get; set; } = "";
     [Parameter] public T Min { get; set; }
     [Parameter] public T Max { get; set; }
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public string ErrorText { get; set; } = "";
 
 
     //ValueChanged
@@ -69,6 +73,14 @@
     private async void OnTextChanged(string newValue)
     {
         await TextChanged.InvokeAsync(newValue);
+
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
     //OnBlur
     [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
@@ -129,4 +141,23 @@
     {
         await Ref.FocusAsync();
     }
+
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
+    }
+
 }

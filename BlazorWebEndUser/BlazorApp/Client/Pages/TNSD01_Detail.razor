@@ -95,7 +95,7 @@
     //OnInitializedAsync
     protected override async Task OnInitializedAsync()
     {
-        base.OnInitialized();
+        await base.OnInitializedAsync();
 
         //Split specifications
         if (Model.Specifications != null && Model.Specifications.Count > 0)
@@ -108,36 +108,6 @@
             {
                 Specifications.Add(Model.Specifications[i]);
             }
-        }
-
-        //Logo
-        await LoadVendorLogo();
-    }
-
-    //Load Logo image
-    async Task LoadVendorLogo()
-    {
-        if (string.IsNullOrWhiteSpace(Model.LogoID)) return;
-
-        //Load image from DB
-        var request = new Resource.Services.GetResourceFile_Request();
-        var Credential = new Resource.Services.UserCredential()
-            {
-                Username = WebUserCredential.Username,
-                RoleID = WebUserCredential.RoleID,
-                AccessToken = WebUserCredential.AccessToken,
-                ApiKey = WebUserCredential.ApiKey
-            };
-        request.Credential = Credential;
-        //ClaimNo
-        request.ResourceID = Model.LogoID;
-        request.IsGetThumbnail = true;
-        //Call api
-        var response = await resourceServiceClient.GetResourceFileAsync(request);
-        // Success
-        if (response != null && response.ReturnCode == GrpcReturnCode.OK)
-        {
-            Model.LogoContent = response.Record.Thumbnail.ToByteArray();
         }
     }
 

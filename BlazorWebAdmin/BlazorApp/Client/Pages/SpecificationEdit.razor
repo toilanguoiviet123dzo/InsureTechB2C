@@ -22,7 +22,8 @@
 
     <MudTextField @ref="@RefTitle" Label="Tiêu đề" @bind-Value="DspModel.Title" For="@(() => DspModel.Title)" AutoFocus=true  Style="font-weight:bold"/>
     <br />
-    <Editor Id="productEditor"
+    <div>
+        <Editor Id="productEditor"
             Inline=false
             CloudChannel="5"
             @bind-Value="DspModel.Content"
@@ -31,6 +32,7 @@
             JsConfSrc="tinyMCEconfig"
             ApiKey="drl7u5czy5p8ubduqdrt6t6v5bhf1gplqh32boqwfoxzz7ud"
             ClassName="tinymce-wrapper" />
+    </div>
 
 </MyPopupEdit>
 

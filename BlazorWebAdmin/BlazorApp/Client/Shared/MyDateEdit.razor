@@ -1,4 +1,5 @@
-﻿<MudDatePicker @ref="@Ref"
+﻿@using System.Linq.Expressions
+<MudDatePicker @ref="@Ref"
                Date="Date"
                DateChanged="@((DateTime? value) => OnDateChanged(value))"
                TextChanged="@((string value) => OnTextChanged(value))"
@@ -19,6 +20,7 @@
                Required="@Required"
                StartMonth="@StartMonth"
                DisplayMonths="@DisplayMonths"
+               For="For"
                @attributes="@Attributes"/>
 
 @code {
@@ -41,6 +43,7 @@
     [Parameter] public int DisplayMonths { get; set; } = 2;
     [Parameter] public bool IsFontBold { get; set; } = false;
     [Parameter] public string TextColor { get; set; } = "";
+    [Parameter] public Expression<Func<DateTime?>> For { get; set; }
 
     //DateChanged
     [Parameter] public DateTime Date { get; set; } = DateTime.Today;

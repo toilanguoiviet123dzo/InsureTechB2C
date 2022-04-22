@@ -1,4 +1,5 @@
-﻿@using Insure.Services
+﻿@page "/TNDS/{ProductID}/{DiscountCode}"
+@using Insure.Services
 @using Resource.Services
 @using System.Collections.ObjectModel;
 @inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
@@ -92,6 +93,17 @@
 
             </MyPanel>
 
+            <MyPanel Title="Nhập mã giảm giá">
+                <MudTextField @bind-Value="@($"{Model.DiscountAmount.ToString("N0")} - {Model.DiscountName}")"
+                              OnAdornmentClick=SelectDiscountCode_Click
+                              Label="Tiền giảm"
+                              ReadOnly=true
+                              Variant="Variant.Outlined"
+                              Adornment="Adornment.End"
+                              AdornmentIcon="@Icons.Filled.Search"
+                              AdornmentColor="Color.Secondary" />
+            </MyPanel>
+
         </MyPanels>
 
         <p class="text-muted text-justify m-3">
@@ -101,7 +113,7 @@
     </ChildContent>
     <ActionButtons>
         <div class="d-flex align-end">
-            <MudText Typo="Typo.h5" Style="font-weight: bold; color: #2453c4">@(Model.UnitPrice.ToString("N0") + "đ")</MudText>
+            <MudText Typo="Typo.h5" Style="font-weight: bold; color: #2453c4">@(Model.PaymentAmount.ToString("N0") + "đ")</MudText>
             <MudText Typo="Typo.inherit" Class="text-muted ml-1" Style="font-weight: bold; color: gray">/năm</MudText>
         </div>
         <div>
@@ -112,7 +124,9 @@
 
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
-    [Parameter] public ProductModel Product { get; set; }
+    [Parameter] public string ProductID { get; set; } = "";
+    [Parameter] public string DiscountCode { get; set; } = "";
+    [Parameter] public ProductModel Product { get; set; } = null;
     //SO
     SaleOrderModel Model = new SaleOrderModel();
     //Master
@@ -146,31 +160,104 @@
     {
         await base.OnInitializedAsync();
 
-        //Set Product
-        Model.OrderID = MyCodeGenerator.GenRecNo(); // await voucherService.Get_NewVoucherNo("001");
-        Model.ProductType = Product.ProductType;
-        Model.VendorID = Product.VendorID;
-        Model.VendorName = Product.VendorName;
-        Model.ProductID = Product.ProductID;
-        Model.ProductName = Product.ProductName;
-        Model.Duration = Product.Duration;
-        Model.DurationUnit = Product.DurationUnit;
-        Model.Quantity = 1;
-        Model.UnitPrice = Product.UnitPrice;
-        Model.Amount = Product.UnitPrice;
-        Model.IsIncludeVAT = Product.IsIncludeVAT;
-        Model.TaxRate = Product.TaxRate;
-        Model.TaxAmount = Math.Round(Model.Amount * Product.TaxRate, 0);
-        Model.EffectiveSttDate = DateTime.Now;
-        Model.LogoContent = Product.LogoContent;
-        Model.VendorLogoContent = Product.VendorLogoContent;
-        Model.BuyPolicy = Product.BuyPolicy;
-        //Mode
-        Model.ModifiedOn = DateTime.Now;
-        Model.UpdMode = 1;
-
         //Load city list
         CityList = await masterService.Load_CityList();
+
+        //Display main
+        await DisplayMain();
+    }
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Load product from parameters
+            if (Product == null && !string.IsNullOrWhiteSpace(ProductID))
+            {
+                var requestString = new Insure.Services.String_Request()
+                    {
+                        Credential = new Insure.Services.UserCredential()
+                        {
+                            Username = WebUserCredential.Username,
+                            RoleID = WebUserCredential.RoleID,
+                            AccessToken = WebUserCredential.AccessToken,
+                            ApiKey = WebUserCredential.ApiKey
+                        },
+                        StringValue = ProductID
+                    };
+
+                //
+                var response = await insureServiceClient.GetProductAsync(requestString);
+                if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                {
+                    ClassHelper.CopyPropertiesDataDateConverted(response.Record, Product);
+
+                    //Specifications
+                    if (response.Record.Specifications != null)
+                    {
+                        foreach (var item in response.Record.Specifications)
+                        {
+                            var specItem = new SpecificationModel();
+                            ClassHelper.CopyPropertiesData(item, specItem);
+                            //
+                            Product.Specifications.Add(specItem);
+                        }
+                    }
+
+                    //Logo
+                    Product.LogoContent = await masterService.GetThumbnail(Product.LogoID);
+                    Product.VendorLogoContent = await masterService.GetThumbnail(Product.VendorLogoID);
+                }
+
+                //Get discount code
+                var discountItem = await masterService.CheckDiscountCode(DiscountCode);
+                if (discountItem != null)
+                {
+                    Model.DiscountCode = discountItem.DiscountCode;
+                    Model.DiscountName = discountItem.DiscountName;
+                    Model.DiscountRate = discountItem.DiscountRate;
+                    Model.DiscountAmount = discountItem.DiscountAmount;
+                    //
+                    if (Model.DiscountRate != 0)
+                    {
+                        Model.DiscountAmount = Math.Round(Model.DiscountRate * Model.Amount, 0);
+                        Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
+                    }
+                    //
+                    SkipDiscountSelect = true;
+                }
+            }
+
+            //CreateSO
+            //Set Product
+            Model.OrderID = MyCodeGenerator.GenRecNo(); // await voucherService.Get_NewVoucherNo("001");
+            Model.ProductType = Product.ProductType;
+            Model.VendorID = Product.VendorID;
+            Model.VendorName = Product.VendorName;
+            Model.ProductID = Product.ProductID;
+            Model.ProductName = Product.ProductName;
+            Model.Duration = Product.Duration;
+            Model.DurationUnit = Product.DurationUnit;
+            Model.Quantity = 1;
+            Model.UnitPrice = Product.UnitPrice;
+            Model.Amount = Product.UnitPrice;
+            Model.PaymentAmount = Model.Amount;
+            Model.IsIncludeVAT = Product.IsIncludeVAT;
+            Model.TaxRate = Product.TaxRate;
+            Model.TaxAmount = Math.Round(Model.Amount * Product.TaxRate, 0);
+            Model.EffectiveSttDate = DateTime.Now;
+            Model.LogoContent = Product.LogoContent;
+            Model.VendorLogoContent = Product.VendorLogoContent;
+            Model.BuyPolicy = Product.BuyPolicy;
+            //Mode
+            Model.ModifiedOn = DateTime.Now;
+            Model.UpdMode = 1;
+
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
     }
 
     //UseFormat_Changed
@@ -240,7 +327,7 @@
         //Lookup history
         if (!string.IsNullOrWhiteSpace(Model.CusPhone) && string.IsNullOrWhiteSpace(Model.CusFullname))
         {
-            var requestString = new Insure.Services.String_Request()
+            var requestString = new Insure.Services.GetSaleOrderByPhone_Request()
                 {
                     Credential = new Insure.Services.UserCredential()
                     {
@@ -249,7 +336,8 @@
                         AccessToken = WebUserCredential.AccessToken,
                         ApiKey = WebUserCredential.ApiKey
                     },
-                    StringValue = Model.CusPhone
+                    ProductID = Model.ProductID,
+                    CusPhone = Model.CusPhone
                 };
 
             //Get data from DB
@@ -257,7 +345,6 @@
             if (response != null && response.ReturnCode == GrpcReturnCode.OK)
             {
                 Model.OwnerFullname = response.Record.OwnerFullname;
-                Model.LicensePlate = response.Record.LicensePlate;
                 Model.CusFullname = response.Record.CusFullname;
                 Model.CusEmail = response.Record.CusEmail;
                 Model.CusCitizenID = response.Record.CusCitizenID;
@@ -280,11 +367,21 @@
                 SelectedDistrict = DistrictList.Find(x => x.ItemID == Model.DistrictID);
                 SelectedWard = WardList.Find(x => x.ItemID == Model.WardID);
 
+                //Same product
+                if (response.IsMatchByProduct)
+                {
+                    Model.LicensePlate = response.Record.LicensePlate;
+                    Model.EffectiveSttDate = response.Record.EffectiveEndDate.ToDateTime().AddDays(1);
+                }
+
                 //
                 this.StateHasChanged();
 
                 //Focus to LicensePlate
                 RefLicensePlate.Focus();
+
+                //Validate to clear error
+                Validate_Main();
             }
         }
     }
@@ -298,100 +395,108 @@
         }
     }
 
+
     //Validate
     bool Validate_Main()
     {
+        bool validateResult = true;
+
+        //Clear error
+        RefOwnerFullname.ClearError();
+        RefLicensePlate.ClearError();
+        RefCusFullname.ClearError();
+        RefCusCitizenID.ClearError();
+        RefCusPhone.ClearError();
+        RefCusEmail.ClearError();
+        RefCity.ClearError();
+        RefDistrict.ClearError();
+        RefWard.ClearError();
+        RefAddress.ClearError();
+
         //RefOwnerFullname
         if (string.IsNullOrWhiteSpace(Model.OwnerFullname))
         {
-            Snackbar.Add("Chưa nhập: Họ và tên chủ xe", Severity.Error);
             RefOwnerFullname.Focus();
-            return false;
+            RefOwnerFullname.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //RefLicensePlate
         if (string.IsNullOrWhiteSpace(Model.LicensePlate))
         {
-            Snackbar.Add("Chưa nhập: Biển số xe", Severity.Error);
             RefLicensePlate.Focus();
-            return false;
+            RefLicensePlate.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //RefCusFullname
         if (string.IsNullOrWhiteSpace(Model.CusFullname))
         {
-            Snackbar.Add("Chưa nhập: Tên chủ hợp đồng", Severity.Error);
             RefCusFullname.Focus();
-            return false;
+            RefCusFullname.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //RefCusCitizenID
         if (string.IsNullOrWhiteSpace(Model.CusCitizenID))
         {
-            Snackbar.Add("Chưa nhập: CMND/CCCD", Severity.Error);
             RefCusCitizenID.Focus();
-            return false;
+            RefCusCitizenID.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //RefCusPhone
         if (string.IsNullOrWhiteSpace(Model.CusPhone))
         {
-            Snackbar.Add("Chưa nhập: Điện thoại", Severity.Error);
             RefCusPhone.Focus();
-            return false;
+            RefCusPhone.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         else if (!Model.CusPhone.IsPhoneNumber())
         {
-            Snackbar.Add("Số điện thoại không hợp lệ", Severity.Error);
             RefCusPhone.Focus();
-            return false;
+            RefCusPhone.SetError("Số điện thoại không hợp lệ");
+            validateResult = false;
         }
         //RefCusEmail
         if (string.IsNullOrWhiteSpace(Model.CusEmail))
         {
-            Snackbar.Add("Chưa nhập: Email", Severity.Error);
             RefCusEmail.Focus();
-            return false;
+            RefCusEmail.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         else if (!Model.CusEmail.IsEmail())
         {
-            Snackbar.Add("Email không hợp lệ", Severity.Error);
             RefCusEmail.Focus();
-            return false;
-        }
-        //RefCusEmail
-        if (string.IsNullOrWhiteSpace(Model.CusFullname))
-        {
-            Snackbar.Add("Chưa nhập: Email", Severity.Error);
-            RefCusEmail.Focus();
-            return false;
+            RefCusEmail.SetError("Email không hợp lệ");
+            validateResult = false;
         }
         //City
         if (SelectedCity == null)
         {
-            Snackbar.Add("Chưa nhập: Tỉnh thành phố", Severity.Error);
             RefCity.Focus();
-            return false;
+            RefCity.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //District
         if (SelectedDistrict == null)
         {
-            Snackbar.Add("Chưa nhập: Quận huyện", Severity.Error);
             RefDistrict.Focus();
-            return false;
+            RefDistrict.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //Ward
         if (SelectedWard == null)
         {
-            Snackbar.Add("Chưa nhập: Phường xã", Severity.Error);
             RefWard.Focus();
-            return false;
+            RefWard.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //Address
         if (string.IsNullOrWhiteSpace(Model.Address))
         {
-            Snackbar.Add("Chưa nhập: Địa chỉ", Severity.Error);
             RefAddress.Focus();
-            return false;
+            RefAddress.SetError("Bắt buộc nhập");
+            validateResult = false;
         }
         //
-        return true;
+        return validateResult;
     }
 
     async void SelectGo()
@@ -422,7 +527,36 @@
         if (Model.DurationUnit == "Ngày") Model.EffectiveEndDate = Model.EffectiveSttDate.AddDays(Model.Duration);
         if (Model.DurationUnit == "Tháng") Model.EffectiveEndDate = Model.EffectiveSttDate.AddMonths(Model.Duration);
         if (Model.DurationUnit == "Năm") Model.EffectiveEndDate = Model.EffectiveSttDate.AddYears(Model.Duration);
+
+        //Duplicated check
+        var request = new DuplicatedCheck_Request();
+        var Credential = new Insure.Services.UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+        request.Credential = Credential;
+        request.EffectiveSttDate = Model.EffectiveSttDate.ToTimestampFromLocalTime();
+        request.ProductID = Model.ProductID;
+        request.LicensePlate = Model.LicensePlate;
         //
+        var response = await insureServiceClient.DuplicatedCheckAsync(request);
+        // Duplicated
+        if (response != null && response.ReturnCode == GrpcReturnCode.Error_201)
+        {
+            Snackbar.Add(response.MsgCode, Severity.Error);
+            return;
+        }
+        //Server error
+        if (response == null && response.ReturnCode != GrpcReturnCode.OK)
+        {
+            Snackbar.Add("Máy chủ tạm thời ngưng phục vụ, xin hãy quay lại sau.", Severity.Error);
+            return;
+        }
+
+        //Next step
         var parameters = new DialogParameters();
         parameters.Add("Model", Model);
         //
@@ -437,6 +571,34 @@
                 //
                 MudDialog.Close(ret2);
             }
+        }
+    }
+
+    //Select discount code
+    bool SkipDiscountSelect = false;
+    async void SelectDiscountCode_Click()
+    {
+        //skip check
+        if (SkipDiscountSelect) return;
+
+        var parameters = new DialogParameters();
+        parameters.Add("ProductID", Model.ProductID);
+        //
+        var result = await DialogService.Show<DiscountCodeSelector>("", parameters, MyOptions.ShowPopupOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var ret = (DiscountCodeModel)result.Data;
+            Model.DiscountCode = ret.DiscountCode;
+            Model.DiscountName = ret.DiscountName;
+            Model.DiscountRate = ret.DiscountRate;
+            Model.DiscountAmount = ret.DiscountAmount;
+            //
+            if (Model.DiscountRate != 0)
+            {
+                Model.DiscountAmount = Math.Round(Model.DiscountRate * Model.Amount, 0);
+                Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
+            }
+            this.StateHasChanged();
         }
     }
 

@@ -1,11 +1,13 @@
 ﻿@using System.Globalization
+@using System.Linq.Expressions;
 @typeparam T
 
 <MudNumericField @ref="@Ref"
                  T="T"
                  Value="@Value"
+                 Text="@Text"
                  ValueChanged="@((T value) => OnValueChanged(value))"
-                 TextChanged="@((string text) => OnTextChanged(text))"
+                 TextChanged="@((string value) => OnTextChanged(value))"
                  OnBlur="OnBlur_Handle"
                  Immediate="false"
                  Label="@Literal"
@@ -28,6 +30,7 @@
                  Tag="@Tag"
                  Min=Min
                  Max=Max
+                 For="For"
                  @attributes="@Attributes"/>
 
 
@@ -53,6 +56,7 @@
     [Parameter] public string TextColor { get; set; } = "";
     [Parameter] public T Min { get; set; }
     [Parameter] public T Max { get; set; }
+    [Parameter] public Expression<Func<T>> For { get; set; }
 
 
     //ValueChanged
@@ -60,16 +64,19 @@
     [Parameter] public EventCallback<T> ValueChanged { get; set; }
     private async void OnValueChanged(T newValue)
     {
+        Value = newValue;
         await ValueChanged.InvokeAsync(newValue);
-        await TextChanged.InvokeAsync(newValue.ToString());
     }
-    [Parameter]
+
     //TextChanged
-    public EventCallback<string> TextChanged { get; set; }
+    [Parameter] public string Text { get; set; }
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
     private async void OnTextChanged(string newValue)
     {
+        Text = newValue;
         await TextChanged.InvokeAsync(newValue);
     }
+
     //OnBlur
     [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
     private async void OnBlur_Handle(FocusEventArgs e)

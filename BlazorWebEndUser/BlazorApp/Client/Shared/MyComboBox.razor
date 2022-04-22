@@ -87,6 +87,14 @@
         Value = newValue;
         await ValueChanged.InvokeAsync(newValue);
         await TextChanged.InvokeAsync(ClassHelper.GetPropertiesData<string>(newValue, TextFieldName));
+
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
 
     //TextChanged
@@ -176,5 +184,22 @@
         await Ref.ToggleMenu();
     }
 
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
+    }
 
 }

@@ -183,6 +183,40 @@ namespace BlazorApp.Server.Services
         }
 
         //-------------------------------------------------------------------------------------------------------/
+        // DuplicatedCheck
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.Empty_Response> DuplicatedCheck(DuplicatedCheck_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.Empty_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                //Duplicated check
+                var record = await DB.Find<mdSaleOrderLog>()
+                                     .Match(x => request.EffectiveSttDate.ToDateTime() < x.EffectiveEndDate)
+                                     .Match(x => request.ProductID == x.ProductID)
+                                     .Match(x => request.LicensePlate == x.LicensePlate)
+                                     .ExecuteFirstAsync();
+                if (record != null)
+                {
+                    response.ReturnCode = GrpcReturnCode.Error_201;
+                    response.MsgCode = "Bị trùng lập !!!";
+                    response.MsgCode += $"Bạn đã mua trước đây có kỳ hạn: {record.EffectiveSttDate.ToLocalTime().ToString("dd/MM/yyyy")} ~ {record.EffectiveEndDate.ToLocalTime().ToString("dd/MM/yyyy")}";
+                    response.MsgCode += $"Xin hãy chọn lại kỳ hạn mới";
+                    //
+                    return response;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "InitOrder", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
         // InitOrder
         //-------------------------------------------------------------------------------------------------------/
         public override async Task<Insure.Services.InitOrder_Response> InitOrder(InitOrder_Request request, ServerCallContext context)
@@ -191,17 +225,24 @@ namespace BlazorApp.Server.Services
             response.ReturnCode = GrpcReturnCode.OK;
             try
             {
+                //Create new order
                 mdSaleOrder saveRecord = new mdSaleOrder();
                 //
                 ClassHelper.CopyPropertiesData(request.Record, saveRecord);
                 //
                 saveRecord.ID = saveRecord.GenerateNewID();
                 saveRecord.TransactionID = MyCodeGenerator.GenTransactionID();
-                saveRecord.OrderID = await MyVoucher.CommitVoucherNo("001", saveRecord.OrderID);
                 //Time
                 saveRecord.RequestTime = DateTime.UtcNow;
                 saveRecord.ModifiedOn = DateTime.Now;
                 saveRecord.UpdMode = 1;
+
+                //RequestTime, ExpiredTime
+                int timeOutIn = await SettingMaster.GetInt1("017");
+                if (timeOutIn == 0) timeOutIn = 30;
+                //
+                saveRecord.RequestTime = DateTime.UtcNow;
+                saveRecord.ExpiredTime = DateTime.UtcNow.AddMinutes(timeOutIn);
                 //
                 await saveRecord.SaveAsync();
                 //
@@ -286,20 +327,107 @@ namespace BlazorApp.Server.Services
         //-------------------------------------------------------------------------------------------------------/
         // GetSaleOrderByPhone
         //-------------------------------------------------------------------------------------------------------/
-        public override async Task<Insure.Services.GetSaleOrderByPhone_Response> GetSaleOrderByPhone(String_Request request, ServerCallContext context)
+        public override async Task<Insure.Services.GetSaleOrderByPhone_Response> GetSaleOrderByPhone(GetSaleOrderByPhone_Request request, ServerCallContext context)
         {
             var response = new Insure.Services.GetSaleOrderByPhone_Response();
             response.ReturnCode = GrpcReturnCode.OK;
             try
             {
+                //By Phone, ProductID
                 var record = await DB.Find<mdSaleOrderLog>()
-                                         .Match(x => x.CusPhone == request.StringValue)
+                                         .Match(x => x.CusPhone == request.CusPhone)
+                                         .Match(x => x.ProductID == request.ProductID)
+                                         .Sort(x => x.TransactionID, Order.Descending)
+                                         .ExecuteFirstAsync();
+                //
+                if (record != null)
+                {
+                    response.IsMatchByProduct = true;
+                    response.Record = new grpcSaleOrderModel();
+                    ClassHelper.CopyPropertiesData(record, response.Record);
+                }
+
+                //By Phone
+                record = await DB.Find<mdSaleOrderLog>()
+                                         .Match(x => x.CusPhone == request.CusPhone)
                                          .Sort(x => x.TransactionID, Order.Descending)
                                          .ExecuteFirstAsync();
                 //
                 if (record != null)
                 {
                     response.Record = new grpcSaleOrderModel();
+                    ClassHelper.CopyPropertiesData(record, response.Record);
+                }
+                //Not found
+                if (record == null) response.ReturnCode = GrpcReturnCode.Error_201;
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetSaleOrderByPhone", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetUserDiscountCodeList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.GetUserDiscountCodeList_Response> GetUserDiscountCodeList(String_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.GetUserDiscountCodeList_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var records = await DB.Find<mdDiscountCode>()
+                                         .Match(x => x.FromDate <= DateTime.UtcNow)
+                                         .Match(x => x.ToDate >= DateTime.UtcNow)
+                                         .Match(x => x.ProductID == request.StringValue)
+                                         .Sort(x => x.DiscountRate, Order.Descending)
+                                         .ExecuteAsync();
+                //
+                if (records != null)
+                {
+                    foreach (var record in records)
+                    {
+                        if ((record.TotalMaxQty - record.UsedQty > 0) || (record.TotalMaxQty == 0))
+                        {
+                            var grpcItem = new grpcDiscountCodeModel();
+                            ClassHelper.CopyPropertiesData(record, grpcItem);
+                            //
+                            response.Records.Add(grpcItem);
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetUserDiscountCodeList", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // CheckDiscountCode
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.CheckDiscountCode_Response> CheckDiscountCode(String_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.CheckDiscountCode_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var record = await DB.Find<mdDiscountCode>()
+                                         .Match(x => x.FromDate <= DateTime.UtcNow)
+                                         .Match(x => x.ToDate >= DateTime.UtcNow)
+                                         .Match(x => x.DiscountCode == request.StringValue)
+                                         .Match(x => (x.TotalMaxQty - x.UsedQty > 0) || (x.TotalMaxQty == 0))
+                                         .ExecuteFirstAsync();
+                //
+                if (record != null)
+                {
+                    response.Record = new grpcDiscountCodeModel();
                     ClassHelper.CopyPropertiesData(record, response.Record);
                 }
                 else
@@ -311,7 +439,7 @@ namespace BlazorApp.Server.Services
             {
                 response.ReturnCode = GrpcReturnCode.Error_ByServer;
                 response.MsgCode = ex.Message;
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetSaleOrderByPhone", "Exception", response.ReturnCode, ex.Message);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "CheckDiscountCode", "Exception", response.ReturnCode, ex.Message);
             }
             return await Task.FromResult(response);
         }

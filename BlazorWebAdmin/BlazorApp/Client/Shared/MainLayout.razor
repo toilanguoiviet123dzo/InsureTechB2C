@@ -75,6 +75,7 @@
             </ActivatorContent>
             <ChildContent>
                 <MudNavMenu Color="Color.Info">
+                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Discount" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("DiscountCode","Danh sách code khuyến mãi")))">Danh sách code khuyến mãi</MudNavLink>
                     <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
                     <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.LocationOn" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("AddressMaster","Danh mục địa chỉ")))">Danh mục địa chỉ</MudNavLink>
                 </MudNavMenu>

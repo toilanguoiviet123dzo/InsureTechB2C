@@ -1,7 +1,9 @@
-﻿
+﻿@using System.Linq.Expressions;
+
 <MudTextField @ref="@Ref"
               T="string"
               Text="@Text"
+              Value=@Value
               TextChanged="@((string x) => OnTextChanged(x))"
               OnBlur="OnBlur_Handle"
               OnAdornmentClick="OnAdornmentClick_Handle"
@@ -24,6 +26,7 @@
               InputType="@InputType"
               Immediate="@Immediate"
               Mask=@Mask
+              For="For"
               @attributes="@Attributes" />
 
 @code {
@@ -51,6 +54,7 @@
     [Parameter] public string TextColor { get; set; } = "";
     [Parameter] public bool Immediate { get; set; } = false;
     [Parameter] public IMask Mask { get; set; }
+    [Parameter] public Expression<Func<string>> For { get; set; }
 
     //TextChanged
     [Parameter] public string Text { get; set; } = "";
@@ -59,6 +63,7 @@
     {
         if (IsUpperCase) newValue = newValue.ToUpper();
         Text = newValue;
+        Value = newValue;
         await TextChanged.InvokeAsync(newValue);
     }
 
@@ -74,6 +79,9 @@
     {
         await OnAdornmentClick.InvokeAsync(e);
     }
+
+    //Value
+    string Value = "";
 
     //Attributes
     private Dictionary<string, object> Attributes { get; set; }

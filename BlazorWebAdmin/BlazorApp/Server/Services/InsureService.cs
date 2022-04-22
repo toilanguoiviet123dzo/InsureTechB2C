@@ -283,6 +283,92 @@ namespace BlazorApp.Server.Services
             return await Task.FromResult(response);
         }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // SaveDiscountCode
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.String_Response> SaveDiscountCode(SaveDiscountCode_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.String_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                response.StringValue = request.Record.ID;
+                //Addnew or update
+                if (request.Record.UpdMode == 1 || request.Record.UpdMode == 2)
+                {
+                    mdDiscountCode saveRecord = new mdDiscountCode();
+                    //Update
+                    if (request.Record.UpdMode == 2)
+                    {
+                        saveRecord = await DB.Find<mdDiscountCode>()
+                                             .MatchID(request.Record.ID)
+                                             .ExecuteFirstAsync();
+                    }
+                    if (saveRecord != null)
+                    {
+                        ClassHelper.CopyPropertiesData(request.Record, saveRecord);
+                        //GenerateNewID
+                        if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
+                        saveRecord.ModifiedOn = DateTime.UtcNow;
+                        //
+                        await saveRecord.SaveAsync();
+                        //
+                        response.StringValue = saveRecord.ID;
+                    }
+                }
+                //Delete
+                if (request.Record.UpdMode == 3)
+                {
+                    await DB.DeleteAsync<mdDiscountCode>(request.Record.ID);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "SaveDiscountCode", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetDiscountCode
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.GetDiscountCode_Response> GetDiscountCode(GetDiscountCode_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.GetDiscountCode_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var query = DB.Find<mdDiscountCode>();
+                //IsInTime
+                if (request.IsInTime) query.Match(x => x.ToDate >= DateTime.UtcNow);
+                //StartDate
+                if (request.FromDate.ToDateTime().ToString("yyyyMMdd") != DateTime.Today.MinShortDateString()) query.Match(a => a.FromDate >= request.FromDate.ToDateTime());
+                //EndDate
+                if (request.ToDate.ToDateTime().ToString("yyyyMMdd") != DateTime.Today.MaxShortDateString()) query.Match(a => a.ToDate <= request.ToDate.ToDateTime());
+                var gotRecords = await query.ExecuteAsync();
+                //
+                if (gotRecords != null)
+                {
+                    foreach (var item in gotRecords)
+                    {
+                        var retRecord = new grpcDiscountCodeModel();
+                        ClassHelper.CopyPropertiesData(item, retRecord);
+                        //
+                        response.Records.Add(retRecord);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetDiscountCode", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
 
 
 

@@ -1,0 +1,299 @@
+﻿@page "/DiscountCode"
+@using Insure.Services
+@using System.Collections.ObjectModel
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient
+@inject IJSRuntime JsRuntime
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyPanels>
+    <MyPanel Title="Bộ lọc">
+        <div class="container-fluid">
+            <div class="row align-items-end">
+                <!--Time flag-->
+                <div class="col-12 col-lg-2">
+                    <MyComboBox @bind-Value="Filter_TimeFlag"
+                                Data="TimeFlagList"
+                                TextFieldName="@(nameof(CodeNameModel.Name))"
+                                SelectedItemChanged="@((CodeNameModel selectedItem) =>
+                                                       {
+                                                            var timeRange = MyDateTimeSelector.Select_DateTimeRange1(selectedItem);
+                                                            Filter_StartDate = timeRange.StartDate;
+                                                            Filter_EndDate = timeRange.EndDate;
+                                                            this.StateHasChanged();
+                                                       })"
+                                Clearable="true"
+                                Literal="Thời gian" />
+                </div>
+                <!--Start-->
+                <div class="col-6 col-lg-2">
+                    <MyDateEdit @bind-Date="Filter_StartDate"
+                                Format="dd/MM/yyyy"
+                                Width="100%"
+                                Literal="Từ ngày" />
+                </div>
+                <!--End-->
+                <div class="col-6 col-lg-2">
+                    <MyDateEdit @bind-Date="Filter_EndDate"
+                                Format="dd/MM/yyyy"
+                                Width="100%"
+                                Literal="Đến ngày" />
+                </div>
+                <!--InTime-->
+                <div class="col-12 col-lg-2">
+                    <MyCheckBox Checked="@InTimeStatus"
+                                CheckedChanged="@((bool newValue) => {
+                                                      InTimeStatus = newValue;
+                                                      CheckName = newValue? "Hữu hiệu" : "Tất cả";
+                                                  })">
+                        @CheckName
+                    </MyCheckBox>
+                </div>
+                <!--Search buttion-->
+                <div class="col-12 col-lg-2">
+                    <MyButtonSearch OnClick="@(() => DisplayMain())" />
+                </div>
+
+            </div>
+        </div>
+    </MyPanel>
+
+</MyPanels>
+
+<MyDataGrid @ref="@grid"
+            T="DiscountCodeModel"
+            Title="Bảng mã khuyến mãi"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((DiscountCodeModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((DiscountCodeModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 6rem;" />
+        <col style="width: 10rem;" />
+        <col style="width: 12rem;" />
+        <col style="width: 7rem;" />
+        <col style="width: 7rem;" />
+        <col style="width: 5rem;" />
+        <col style="width: 7rem;" />
+        <col style="width: 7rem;" />
+        <col style="width: 7rem;" />
+        <col style="width: 3rem;" />
+        <col />
+        <col style="width: 8rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<DiscountCodeModel, object>(x => x.DiscountCode)">Mã khuyến mãi</MudTableSortLabel></MudTh>
+        <MudTh>Tên khuyến mãi</MudTh>
+        <MudTh>Sản phẩm</MudTh>
+        <MudTh>Từ ngày</MudTh>
+        <MudTh>Đến ngày</MudTh>
+        <MudTh>% giảm giá</MudTh>
+        <MudTh>Số tiền giảm</MudTh>
+        <MudTh>SL tối đa 1 người</MudTh>
+        <MudTh>SL tối tổng</MudTh>
+        <MudTh>Hữu hiệu</MudTh>
+        <MudTh>Ghi chú</MudTh>
+        <MudTh>ModifiedOn</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center;">@context.DiscountCode</MudTd>
+        <MudTd>@context.DiscountName</MudTd>
+        <MudTd>@context.ProductName</MudTd>
+        <MudTd Style="text-align:center;color:green">@context.FromDate.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd Style="text-align:center;color:maroon">@context.ToDate.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd Style="text-align:right;color:red;font-weight:600">@context.DiscountRate.ToString("P0")</MudTd>
+        <MudTd Style="text-align:right;color:maroon;font-weight:600">@context.DiscountAmount.ToString("N0")</MudTd>
+        <MudTd Style="text-align:right;color:blue;font-weight:600">@context.UserMaxQty.ToString("N0")</MudTd>
+        <MudTd Style="text-align:right;color:navy;font-weight:600">@context.TotalMaxQty.ToString("N0")</MudTd>
+        <MudTd><MudCheckBox Checked="@context.Enabled" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
+        <MudTd>@context.Notes</MudTd>
+        <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<DiscountCodeModel> grid;
+    readonly List<DiscountCodeModel> DetailData = new List<DiscountCodeModel>();
+    //Filter
+    private List<CodeNameModel> TimeFlagList = MyDateTimeSelector.Get_TimeRangeList();
+    private CodeNameModel Filter_TimeFlag { get; set; }
+    private DateTime Filter_StartDate { get; set; } = DateTime.Today.MinDate().ToLocalTime();
+    private DateTime Filter_EndDate { get; set; } = DateTime.Today.MaxDate().ToLocalTime();
+    string CheckName = "Hữu hiệu";
+    bool InTimeStatus = true;
+    // Init
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Load filter data
+    }
+
+    #region Load data
+    // Load SettingMaster
+    async Task DisplayMain()
+    {
+        try
+        {
+            var requestSettingMaster = new GetDiscountCode_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    IsInTime = InTimeStatus,
+                    FromDate = Filter_StartDate.ToTimestampFromLocalTime(),
+                    ToDate = Filter_EndDate.ToTimestampFromLocalTime()
+                };
+            //Get data from DB
+            DetailData.Clear();
+            var response = await insureServiceClient.GetDiscountCodeAsync(requestSettingMaster);
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                foreach (var item in response.Records)
+                {
+                    DiscountCodeModel dataRow = new DiscountCodeModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    // Set Updmode
+                    dataRow.UpdMode = 0;
+                    //
+                    DetailData.Add(dataRow);
+                }
+            }
+            //No data
+            if (DetailData.Count == 0)
+            {
+                Snackbar.Add(MyMessage.Warning_NoData, Severity.Warning);
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+
+    }
+    #endregion
+
+    #region DataGrid
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Init new row
+        var newRow = new DiscountCodeModel();
+        newRow.UpdMode = 1;
+        newRow.FromDate = DateTime.Now;
+        newRow.ToDate = DateTime.Now.AddMonths(1);
+        newRow.Enabled = true;
+        newRow.ModifiedOn = DateTime.Now;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        //
+        var result = await DialogService.Show<DiscountCodeEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (DiscountCodeModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(DiscountCodeModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        //
+        var result = await DialogService.Show<DiscountCodeEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (DiscountCodeModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(DiscountCodeModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+    // Save edit main
+    async Task<bool> SaveRow(DiscountCodeModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveDiscountCode_Request();
+            var Credential = new Insure.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcDiscountCodeModel();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await insureServiceClient.SaveDiscountCodeAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    #endregion
+}

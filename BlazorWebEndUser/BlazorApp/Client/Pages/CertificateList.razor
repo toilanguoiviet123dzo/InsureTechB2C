@@ -154,7 +154,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<TNSD01_SO_Detail>("", parameters, MyOptions.GetEditFormOptions(MaxWidth.Large)).Result;
+        var result = await DialogService.Show<TNSD01_SO_Detail>("", parameters, MyOptions.ShowPopupEditOptions(MaxWidth.Large)).Result;
     }
     #endregion
     //
