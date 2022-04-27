@@ -89,6 +89,8 @@ message grpcProductModel {
     string VendorName = 6;
     double InsureAmount = 7;
     double UnitPrice = 8;
+    double ExtraPrice = 81;
+    double ExtraPriceName = 82;
     double TaxRate = 9;
     bool IsIncludeVAT = 10;
     int32 Duration = 11;
@@ -99,9 +101,10 @@ message grpcProductModel {
     string LogoID = 16;
     string VendorLogoID = 17;
     string BuyPolicy = 18;
-    string Notes = 19;
-    google.protobuf.Timestamp ModifiedOn  = 20;
-    int32 UpdMode = 21;
+    bool BuyExtraPrice = 19;
+    string Notes = 20;
+    google.protobuf.Timestamp ModifiedOn = 21;
+    int32 UpdMode = 22;
 }
 message grpcSpecificationModel {
     int32 DspOrder = 1;
@@ -246,10 +249,13 @@ message grpcDiscountCodeModel {
     double UserMaxQty = 10;
     double TotalMaxQty = 11;
     double UsedQty = 12;
-    bool Enabled = 13;
-    string Notes = 14;
-    google.protobuf.Timestamp ModifiedOn = 15;
-    int32 UpdMode = 16;
+    bool IsPublic = 13;
+    bool Enabled = 14;
+    string PurchaseLink = 15;
+    string QrCode = 16;
+    string Notes = 17;
+    google.protobuf.Timestamp ModifiedOn = 18;
+    int32 UpdMode = 19;
 }
 message GetDiscountCode_Request {
     UserCredential Credential = 1;

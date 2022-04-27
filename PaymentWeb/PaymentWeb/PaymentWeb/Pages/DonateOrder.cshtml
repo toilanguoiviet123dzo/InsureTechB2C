@@ -1,6 +1,6 @@
-﻿@page
+﻿@page "{InitOrderToken}/{TransactionID}"
 @using BlazorApp.Server.Common;
-@model PaymentWeb.Pages.VnPayReturnModel
+@model PaymentWeb.Pages.DonateOrderModel
 @{
 }
 
@@ -120,11 +120,11 @@
                     </div>
 
                     <div class="m-2">
-                        <h2 class="mx-auto text-center mt-2">Thanh toán thành công !</h2>
+                        <h2 class="mx-auto text-center mt-2">Cấp bảo hiểm thành công !</h2>
                         <h5 class="mx-auto text-center mt-3">Cảm ơn bạn đã ủng hộ chúng tôi.</h5>
                         <p class="m-2 text-justify">
                             Chứng nhận bảo hiểm sẽ được sẽ được gởi qua email <span style="color:blue">@Model.Record.CusEmail</span>
-                            hoặc sms qua số điện thoại <span style="color:blue">@Model.Record.CusPhone</span>.
+                            hoặc sms qua số điện thoại <span style="color:blue">@Model.Record.CusPhone</span>. 
                             Hoặc bạn có thể download ngay bằng nút bên dưới
                         </p>
                     </div>
@@ -143,7 +143,7 @@
                     </div>
 
                     <div class="m-2">
-                        <h2 class="mx-auto text-center mt-2" style="color:red">Thanh toán thất bại !!!</h2>
+                        <h2 class="mx-auto text-center mt-2" style="color:red">Cấp bảo hiểm thất bại !!!</h2>
                         <p class="m-2 text-justify">
                             @Model.ErrorMessage
                         </p>

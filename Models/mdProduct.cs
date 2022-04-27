@@ -17,6 +17,8 @@ namespace BlazorApp.Server.Models
         public string VendorName { get; set; } = "";
         public double InsureAmount { get; set; }
         public double UnitPrice { get; set; }
+        public double ExtraPrice { get; set; }
+        public string ExtraPriceName { get; set; } = "";
         public double TaxRate { get; set; }
         public bool IsIncludeVAT { get; set; }
         public int Duration { get; set; }
@@ -27,6 +29,7 @@ namespace BlazorApp.Server.Models
         public string VendorLogoID { get; set; } = "";
         public string Notes { get; set; } = "";
         public string BuyPolicy { get; set; } = "";
+        public bool BuyExtraPrice { get; set; }
         public List<SpecificationModel> Specifications { get; set; } = new List<SpecificationModel>();
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

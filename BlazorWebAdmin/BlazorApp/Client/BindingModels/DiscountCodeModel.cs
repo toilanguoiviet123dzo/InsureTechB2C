@@ -20,6 +20,9 @@ namespace BlazorApp.Client.BindingModels
         public double UserMaxQty { get; set; }
         public double TotalMaxQty { get; set; }
         public bool Enabled { get; set; }
+        public bool IsPublic { get; set; }
+        public string PurchaseLink { get; set; } = "";
+        public string QrCode { get; set; } = "";
         public string Notes { get; set; } = "";
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

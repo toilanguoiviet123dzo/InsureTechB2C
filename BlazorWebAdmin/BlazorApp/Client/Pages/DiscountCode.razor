@@ -80,6 +80,7 @@
         <col style="width: 7rem;" />
         <col style="width: 7rem;" />
         <col style="width: 3rem;" />
+        <col style="width: 3rem;" />
         <col />
         <col style="width: 8rem;" />
     </ColGroup>
@@ -93,6 +94,7 @@
         <MudTh>Số tiền giảm</MudTh>
         <MudTh>SL tối đa 1 người</MudTh>
         <MudTh>SL tối tổng</MudTh>
+        <MudTh>Public</MudTh>
         <MudTh>Hữu hiệu</MudTh>
         <MudTh>Ghi chú</MudTh>
         <MudTh>ModifiedOn</MudTh>
@@ -107,6 +109,7 @@
         <MudTd Style="text-align:right;color:maroon;font-weight:600">@context.DiscountAmount.ToString("N0")</MudTd>
         <MudTd Style="text-align:right;color:blue;font-weight:600">@context.UserMaxQty.ToString("N0")</MudTd>
         <MudTd Style="text-align:right;color:navy;font-weight:600">@context.TotalMaxQty.ToString("N0")</MudTd>
+        <MudTd><MudCheckBox Checked="@context.IsPublic" Color="Color.Secondary" ReadOnly="true"></MudCheckBox></MudTd>
         <MudTd><MudCheckBox Checked="@context.Enabled" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
         <MudTd>@context.Notes</MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>

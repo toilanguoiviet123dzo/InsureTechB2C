@@ -22,7 +22,10 @@ namespace BlazorApp.Server.Models
         public double UserMaxQty { get; set; }
         public double TotalMaxQty { get; set; }
         public double UsedQty { get; set; }
-        public bool Enabled { get; set; }
+        public bool Enabled { get; set; } = true;
+        public bool IsPublic { get; set; } = true;
+        public string PurchaseLink { get; set; } = "";
+        public string QrCode { get; set; } = "";
         public string Notes { get; set; } = "";
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

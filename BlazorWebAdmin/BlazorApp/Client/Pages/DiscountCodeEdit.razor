@@ -1,6 +1,7 @@
 ﻿@inject MasterService masterService;
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject SettingService settingService;
 
 <MyPopupEdit Title="Nhập mã khuyến mãi"
              T="DiscountCodeModel"
@@ -25,6 +26,7 @@
     <MyNumEdit Literal="SL tối đa/người" @bind-Value=DspModel.UserMaxQty Format="N0" Min=0.0 Max=999999999.0 TextColor=@MyTextColor.Blue />
     <MyNumEdit Literal="SL tổng" @bind-Value=DspModel.TotalMaxQty Format="N0" Min=0.0 Max=999999999.0 TextColor=@MyTextColor.Blue />
     <MudTextField Label="Ghi chú" @bind-Value="DspModel.Notes" />
+    <MudSwitch @bind-Checked="@DspModel.IsPublic" Color="Color.Secondary">Public</MudSwitch>
     <MudSwitch @bind-Checked="@DspModel.Enabled" Color="Color.Primary">Hữu hiệu</MudSwitch>
 </MyPopupEdit>
 
@@ -62,7 +64,7 @@
         MudDialog.Cancel();
     }
     //Submit
-    private void OnSubmit()
+    private async void OnSubmit()
     {
         //Validate
         if (SelectedProduct == null)
@@ -70,12 +72,23 @@
             Snackbar.Add("Chưa nhập sản phẩm", Severity.Warning);
             RefProduct.Focus();
         }
+
         DspModel.ProductID = SelectedProduct.ProductID;
         DspModel.ProductName = SelectedProduct.ProductName;
         //DiscountRate
         DspModel.DiscountRate = DspModel.DiscountRate / 100;
         //
         ClassHelper.CopyPropertiesData(DspModel, Model);
+
+        //PurchaseLink
+        string purchaseLink = await settingService.GetString1("020");
+        purchaseLink.Replace("{ProductID}", Model.ProductID);
+        purchaseLink.Replace("{DiscountCode}", Model.DiscountCode);
+        Model.PurchaseLink = purchaseLink;
+
+        //QR code
+        Model.QrCode = @$"https://chart.googleapis.com/chart?cht=qr&chs=250x250&chl={Model.PurchaseLink}";
+
         //Return changed
         MudDialog.Close(DialogResult.Ok(Model));
     }

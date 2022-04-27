@@ -28,12 +28,12 @@
                     <!--OrderID-->
                     @*<div class="row m-1 m-lg-2">
                         <div class="col text-left">
-                            Mã hợp đồng
+                        Mã hợp đồng
                         </div>
                         <div class="col font-weight-bold text-right">
-                            @Model.OrderID
+                        @Model.OrderID
                         </div>
-                    </div>*@
+                        </div>*@
                     <!--EffectiveSttDate-->
                     <div class="row m-1 m-lg-2">
                         <div class="col text-left">
@@ -241,8 +241,19 @@
             }
 
             //Request payment
-            var internalPaymentUrl = await settingService.GetString1("006");
-            string paymentLink = $@"{internalPaymentUrl}{response.InitOrderToken}/{response.TransactionID}/1";
+            string paymentLink = "";
+            var minPaymentAmount = await settingService.GetDouble1("018");
+            if (minPaymentAmount == 0) minPaymentAmount = 5000.0;
+            if (Model.PaymentAmount <= minPaymentAmount)
+            {
+                var internalPaymentUrl = await settingService.GetString1("019");
+                paymentLink = $@"{internalPaymentUrl}{response.InitOrderToken}/{response.TransactionID}";
+            }
+            else
+            {
+                var internalPaymentUrl = await settingService.GetString1("006");
+                paymentLink = $@"{internalPaymentUrl}{response.InitOrderToken}/{response.TransactionID}/VnPay";
+            }
             await JsRuntime.InvokeVoidAsync("open", paymentLink, "_blank");
 
             //go to product list

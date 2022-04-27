@@ -296,25 +296,20 @@ namespace BlazorApp.Server.Services
                 //Addnew or update
                 if (request.Record.UpdMode == 1 || request.Record.UpdMode == 2)
                 {
-                    mdDiscountCode saveRecord = new mdDiscountCode();
-                    //Update
-                    if (request.Record.UpdMode == 2)
-                    {
-                        saveRecord = await DB.Find<mdDiscountCode>()
-                                             .MatchID(request.Record.ID)
+                    var saveRecord = await DB.Find<mdDiscountCode>()
+                                             .Match(x => x.DiscountCode ==  request.Record.DiscountCode)
                                              .ExecuteFirstAsync();
-                    }
-                    if (saveRecord != null)
+                    //Add new
+                    if (saveRecord == null)
                     {
-                        ClassHelper.CopyPropertiesData(request.Record, saveRecord);
-                        //GenerateNewID
-                        if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
-                        saveRecord.ModifiedOn = DateTime.UtcNow;
-                        //
-                        await saveRecord.SaveAsync();
-                        //
-                        response.StringValue = saveRecord.ID;
+                        saveRecord = new mdDiscountCode();
                     }
+                    ClassHelper.CopyPropertiesData(request.Record, saveRecord);
+                    saveRecord.ModifiedOn = DateTime.UtcNow;
+                    //
+                    await saveRecord.SaveAsync();
+                    //
+                    response.StringValue = saveRecord.ID;
                 }
                 //Delete
                 if (request.Record.UpdMode == 3)

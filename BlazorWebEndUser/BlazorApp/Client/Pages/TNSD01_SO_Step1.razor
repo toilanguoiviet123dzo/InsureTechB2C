@@ -1,5 +1,4 @@
-﻿@page "/TNDS/{ProductID}/{DiscountCode}"
-@using Insure.Services
+﻿@using Insure.Services
 @using Resource.Services
 @using System.Collections.ObjectModel;
 @inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
@@ -8,7 +7,6 @@
 @inject IJSRuntime JsRuntime;
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
-
 
 <MyAppBarForm Title="Thông tin mua bảo hiểm" ShowCloseButton=true>
     <ChildContent>
@@ -61,7 +59,6 @@
                             TextFieldName="@(nameof(AddressModel.ItemName))"
                             Literal="Phường xã"
                             @ref="@RefWard" />
-
                 <MyTextEdit Literal="Địa chỉ"
                             @bind-Text=Model.Address
                             @ref=RefAddress />
@@ -93,10 +90,10 @@
 
             </MyPanel>
 
-            <MyPanel Title="Nhập mã giảm giá">
-                <MudTextField @bind-Value="@($"{Model.DiscountAmount.ToString("N0")} - {Model.DiscountName}")"
+            <MyPanel Title="Chọn hoặc nhập mã giảm giá">
+                <MudTextField @bind-Value="@DiscountText"
                               OnAdornmentClick=SelectDiscountCode_Click
-                              Label="Tiền giảm"
+                              Label="Mã giảm giá"
                               ReadOnly=true
                               Variant="Variant.Outlined"
                               Adornment="Adornment.End"
@@ -122,11 +119,12 @@
     </ActionButtons>
 </MyAppBarForm>
 
+
 @code {
     [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public ProductModel Product { get; set; }
     [Parameter] public string ProductID { get; set; } = "";
     [Parameter] public string DiscountCode { get; set; } = "";
-    [Parameter] public ProductModel Product { get; set; } = null;
     //SO
     SaleOrderModel Model = new SaleOrderModel();
     //Master
@@ -154,6 +152,7 @@
     bool UseFormat_LicLicensePlate = true;
     IMask licensePlateMask = new PatternMask("00-a0 00.000");
     public IMask DigitMask = new RegexMask(@"^\d+$");
+    string DiscountText = "";
 
     //OnInitializedAsync
     protected override async Task OnInitializedAsync()
@@ -174,6 +173,8 @@
             //Load product from parameters
             if (Product == null && !string.IsNullOrWhiteSpace(ProductID))
             {
+                Product = new ProductModel();
+                //
                 var requestString = new Insure.Services.String_Request()
                     {
                         Credential = new Insure.Services.UserCredential()
@@ -220,11 +221,10 @@
                     //
                     if (Model.DiscountRate != 0)
                     {
-                        Model.DiscountAmount = Math.Round(Model.DiscountRate * Model.Amount, 0);
+                        Model.DiscountAmount = Math.Round(Model.DiscountRate * Product.UnitPrice, 0);
                         Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
                     }
-                    //
-                    SkipDiscountSelect = true;
+                    DiscountText = $"{Model.DiscountAmount.ToString("N0")}đ - {Model.DiscountName}";
                 }
             }
 
@@ -241,7 +241,7 @@
             Model.Quantity = 1;
             Model.UnitPrice = Product.UnitPrice;
             Model.Amount = Product.UnitPrice;
-            Model.PaymentAmount = Model.Amount;
+            Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
             Model.IsIncludeVAT = Product.IsIncludeVAT;
             Model.TaxRate = Product.TaxRate;
             Model.TaxAmount = Math.Round(Model.Amount * Product.TaxRate, 0);
@@ -575,12 +575,8 @@
     }
 
     //Select discount code
-    bool SkipDiscountSelect = false;
     async void SelectDiscountCode_Click()
     {
-        //skip check
-        if (SkipDiscountSelect) return;
-
         var parameters = new DialogParameters();
         parameters.Add("ProductID", Model.ProductID);
         //
@@ -596,8 +592,14 @@
             if (Model.DiscountRate != 0)
             {
                 Model.DiscountAmount = Math.Round(Model.DiscountRate * Model.Amount, 0);
-                Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
             }
+            Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
+            if (Model.PaymentAmount < 0)
+            {
+                Model.PaymentAmount = 0;
+                Model.DiscountAmount = Model.UnitPrice;
+            } 
+            DiscountText = $"{Model.DiscountAmount.ToString("N0")}đ - {Model.DiscountName}";
             this.StateHasChanged();
         }
     }

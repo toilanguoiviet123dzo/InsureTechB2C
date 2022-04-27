@@ -13,6 +13,9 @@ var builder = WebApplication.CreateBuilder(args);
 // AddRazorPages
 builder.Services.AddRazorPages();
 
+//Api
+builder.Services.AddControllers();
+
 //HttpContextAccessor
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
@@ -72,5 +75,6 @@ app.UseStaticFiles();
 app.UseRouting();
 app.UseAuthorization();
 app.MapRazorPages();
+app.MapControllers();
 //
 app.Run();

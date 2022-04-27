@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/{ProductID}/{DiscountCode}"
 @using Insure.Services
 @using System.Collections.ObjectModel;
 @inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
@@ -32,6 +33,10 @@
 </MudTabs>
 
 @code {
+    [Parameter] public string ProductID { get; set; } = "";
+    [Parameter] public string DiscountCode { get; set; } = "";
+
+    //
     string Tab1Text = "&nbsp;&nbsp;Mua bảo hiểm&nbsp;&nbsp;";
     string Tab2Text = "Giấy chứng nhận&nbsp;";
     protected override async Task OnInitializedAsync()
@@ -47,6 +52,10 @@
             Tab2Text = "Chứng nhận";
         }
 
+        if (!string.IsNullOrWhiteSpace(ProductID))
+        {
+            SelectBuy();
+        }
     }
 
     async Task Get_BrowserInfo()
@@ -60,6 +69,19 @@
             {
                 BrowserInfo.IsMobile = true;
             }
+        }
+    }
+
+    async void SelectBuy()
+    {
+        var parameters = new DialogParameters();
+        parameters.Add("ProductID", ProductID);
+        parameters.Add("DiscountCode", DiscountCode);
+        //
+        var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (ProductModel)result.Data;
         }
     }
 }

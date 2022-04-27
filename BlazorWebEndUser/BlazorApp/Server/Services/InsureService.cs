@@ -383,6 +383,7 @@ namespace BlazorApp.Server.Services
                                          .Match(x => x.FromDate <= DateTime.UtcNow)
                                          .Match(x => x.ToDate >= DateTime.UtcNow)
                                          .Match(x => x.ProductID == request.StringValue)
+                                         .Match(x => x.IsPublic == true)
                                          .Sort(x => x.DiscountRate, Order.Descending)
                                          .ExecuteAsync();
                 //
@@ -422,10 +423,9 @@ namespace BlazorApp.Server.Services
                                          .Match(x => x.FromDate <= DateTime.UtcNow)
                                          .Match(x => x.ToDate >= DateTime.UtcNow)
                                          .Match(x => x.DiscountCode == request.StringValue)
-                                         .Match(x => (x.TotalMaxQty - x.UsedQty > 0) || (x.TotalMaxQty == 0))
                                          .ExecuteFirstAsync();
                 //
-                if (record != null)
+                if (record != null && ((record.TotalMaxQty - record.UsedQty > 0) || (record.TotalMaxQty == 0)))
                 {
                     response.Record = new grpcDiscountCodeModel();
                     ClassHelper.CopyPropertiesData(record, response.Record);

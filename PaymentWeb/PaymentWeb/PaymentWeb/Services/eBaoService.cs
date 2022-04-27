@@ -2,6 +2,7 @@
 using Cores.Helpers;
 using BlazorApp.Server.Common;
 using BlazorApp.Server.Models;
+using MongoDB.Entities;
 
 namespace PaymentWeb.Services
 {
@@ -106,7 +107,7 @@ namespace PaymentWeb.Services
             return "";
         }
 
-        public async Task<IssueResponse> CreateToIssue(mdSaleOrder saleOrder)
+        private async Task<IssueResponse> CreateToIssue(mdSaleOrder saleOrder)
         {
             var ret = new IssueResponse();
             //
@@ -183,7 +184,7 @@ namespace PaymentWeb.Services
             return ret;
         }
 
-        public async Task<string> GetCertificateLink(string policyID)
+        private async Task<string> GetCertificateLink(string policyID)
         {
             try
             {
@@ -235,6 +236,52 @@ namespace PaymentWeb.Services
             return "";
         }
         //
+        /// <summary>
+        /// Issue eBao order
+        /// </summary>
+        /// <param name="order"></param>
+        /// <returns></returns>
+        public async Task<TaskResult> eBao_CreateToIssue_TNDS(mdSaleOrder order)
+        {
+            var ret = new TaskResult();
+            ret.ReturnCode = ReturnCode.OK;
+            //
+            try
+            {
+                var res = await CreateToIssue(order);
+                if (res != null && res.data != null && res.data.processStatus == "PASS")
+                {
+                    //Success
+                    order.IsProcessDone = true;
+                    order.IsProcessError = false;
+                    order.PolicyID = res.data.policyId;
+                    order.PolicyNo = res.data.policyNo;
+                    order.QuoteNo = res.data.quoteNo;
+
+                    //Download certificate
+                    order.CertificateLink = await GetCertificateLink(order.PolicyID);
+                }
+                else
+                {
+                    //Failed
+                    order.IsProcessDone = false;
+                    order.IsProcessError = true;
+                    if (res != null && res.data != null) order.ProcessErrorMessage = res.data.processMsg;
+                    //Log
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Failed", ReturnCode.Error_ByServer, $"Call eBao api failed for {order.TransactionID}_{order.LicensePlate}_{order.CusPhone}_{order.CusFullname}");
+                    //
+                    ret.ReturnCode = ReturnCode.Error_203;
+                    ret.ErrorMessage = "Có lỗi bất thường xảy ra, chúng tôi sẽ liên hệ bạn để hoàn trả tiền tương ứng.";
+                }
+                await order.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+            //
+            return ret;
+        }
     }
 
     class FileDownloadModel

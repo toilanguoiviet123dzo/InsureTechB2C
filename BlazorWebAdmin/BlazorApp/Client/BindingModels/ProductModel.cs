@@ -16,6 +16,8 @@ namespace BlazorApp.Client.BindingModels
         public string VendorName { get; set; } = "";
         public double InsureAmount { get; set; }
         public double UnitPrice { get; set; }
+        public double ExtraPrice { get; set; }
+        public string ExtraPriceName { get; set; } = "";
         public double TaxRate { get; set; }
         public bool IsIncludeVAT { get; set; }
         public int Duration { get; set; }
@@ -28,6 +30,7 @@ namespace BlazorApp.Client.BindingModels
         public string VendorLogoID { get; set; } = "";
         public byte[] VendorLogoContent { get; set; } = new byte[] { };
         public string BuyPolicy { get; set; } = "";
+        public bool BuyExtraPrice { get; set; }
         public string Notes { get; set; } = "";
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

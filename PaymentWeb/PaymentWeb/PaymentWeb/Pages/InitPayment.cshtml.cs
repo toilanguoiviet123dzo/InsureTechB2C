@@ -30,8 +30,7 @@ namespace PaymentWeb.Pages
 
         public async Task<IActionResult> OnGet()
         {
-            // InitPayment
-            var ret = await _paymentService.InitPayment(InitOrderToken, TransactionID);
+            var ret = await _paymentService.InitPayment(PaymentChannel, InitOrderToken, TransactionID);
             if (ret.ReturnCode != ReturnCode.OK)
             {
                 //Error_201
@@ -44,6 +43,7 @@ namespace PaymentWeb.Pages
                 //Show error on this page
                 return Page();
             }
+            
 
             //Create redirect payment
             string ip = "";

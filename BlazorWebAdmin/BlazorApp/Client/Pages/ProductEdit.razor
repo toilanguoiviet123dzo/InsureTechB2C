@@ -50,6 +50,10 @@
     <div class="d-flex">
         <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" Min=1.0 Max=999999999.0 For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" Class="mr-2" Style="color:maroon; font-weight:bold" />
         <MudNumericField Label="Giá bán" @bind-Value="DspModel.UnitPrice" Min=1.0 Max=9999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" Style="color:blue; font-weight:bold" />
+    </div
+    <div class="d-flex">
+        <MudTextField Label="Phí bán thêm" @bind-Value="DspModel.ExtraPriceName" />
+        <MudNumericField Label="Giá bán" @bind-Value="DspModel.ExtraPrice" Min=1.0 Max=9999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" Style="color:blue; font-weight:bold" />
     </div>
     <div class="d-flex">
         <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" Min=0.0 Max=99.0 For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="N0" T="double" />

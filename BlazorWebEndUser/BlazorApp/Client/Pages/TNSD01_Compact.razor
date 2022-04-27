@@ -126,11 +126,6 @@
         parameters.Add("Product", Model);
         //
         var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
-        if (!result.Cancelled && result.Data != null)
-        {
-            var retModel = (ProductModel)result.Data;
-            
-        }
     }
 
     async void ShowDetail()

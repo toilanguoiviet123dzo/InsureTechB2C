@@ -26,6 +26,9 @@ namespace BlazorApp.Server.Common
         //Http
         public const string HttpClient_Common = "HttpClient_Common";
 
+        //Payment channel list
+        public const string PyamentChannel_VnPay = "VnPay";
+
 
     }// end class
 }// end name space

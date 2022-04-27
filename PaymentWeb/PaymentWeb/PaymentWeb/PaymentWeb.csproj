@@ -14,6 +14,7 @@
     <Compile Include="..\..\..\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />
     <Compile Include="..\..\..\Common\SettingMasterModel.cs" Link="Common\SettingMasterModel.cs" />
     <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
+    <Compile Include="..\..\..\Models\mdDiscountCode.cs" Link="Models\mdDiscountCode.cs" />
     <Compile Include="..\..\..\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
     <Compile Include="..\..\..\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />
     <Compile Include="..\..\..\Models\mdSaleOrderLog.cs" Link="Models\mdSaleOrderLog.cs" />

@@ -26,6 +26,7 @@
         <col style="width: 5rem;" />
         <col style="width: 5rem;" />
         <col style="width: 5rem;" />
+        <col style="width: 5rem;" />
         <col style="width: 9rem;" />
     </ColGroup>
     <HeaderContent>
@@ -34,6 +35,7 @@
         <MudTh>Nhà cung cấp</MudTh>
         <MudTh>Số tiền bảo hiểm</MudTh>
         <MudTh>Giá bán</MudTh>
+        <MudTh>Giá NNTX</MudTh>
         <MudTh>% VAT</MudTh>
         <MudTh>Gồm VAT</MudTh>
         <MudTh>Thời hạn</MudTh>
@@ -46,6 +48,7 @@
         <MudTd>@context.VendorName</MudTd>
         <MudTd Style="color:blue; font-weight: bold; text-align:end">@context.InsureAmount.ToString("N0")</MudTd>
         <MudTd Style="color:green; font-weight: bold; text-align:end">@context.UnitPrice.ToString("N0")</MudTd>
+        <MudTd Style="color:green; font-weight: bold; text-align:end">@context.ExtraPrice.ToString("N0")</MudTd>
         <MudTd Style="text-align:end">@context.TaxRate.ToString("P0")</MudTd>
         <MudTd ><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true" Class="m-auto"></MudCheckBox></MudTd>
         <MudTd Style="color:purple; font-weight: bold; text-align:end">@context.Duration.ToString("N0")</MudTd>

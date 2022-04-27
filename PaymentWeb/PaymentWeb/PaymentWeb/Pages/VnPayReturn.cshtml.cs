@@ -17,7 +17,7 @@ namespace PaymentWeb.Pages
         [BindProperty(SupportsGet = true)]
         public string vnp_TmnCode { get; set; } = "";
         [BindProperty(SupportsGet = true)]
-        public string vnp_Amount { get; set; } = "";
+        public double vnp_Amount { get; set; }
         [BindProperty(SupportsGet = true)]
         public string vnp_BankCode { get; set; } = "";
         [BindProperty(SupportsGet = true)]
@@ -62,16 +62,27 @@ namespace PaymentWeb.Pages
                 result.vnp_ResponseCode = vnp_ResponseCode;
                 result.vnp_TransactionStatus = vnp_TransactionStatus;
                 result.vnp_TxnRef = vnp_TxnRef;
-                result.vnp_SecureHashType = vnp_SecureHashType;
                 result.vnp_SecureHash = vnp_SecureHash;
+
+                //get all querystring data
+                var querryData = new Dictionary<string, string>();
+                foreach (var param in HttpContext.Request.Query)
+                {
+                    //get all querystring data
+                    if (!string.IsNullOrEmpty(param.Key) && param.Key.StartsWith("vnp_"))
+                    {
+                        querryData.Add(param.Key, param.Value);
+                    }
+                }
+
                 //Finish payment
-                var ret = await _paymentService.FinishVnPay(result, HttpContext.Request.Query);
+                var ret = await _paymentService.FinishPayment(MyConstant.PyamentChannel_VnPay, result, querryData);
                 //
                 ReturnCode = ret.ReturnCode;
                 ErrorMessage = ret.ErrorMessage;
                 Record = ret.Record;
             }
-            catch 
+            catch
             {
                 ReturnCode = 500;
                 ErrorMessage = "Server đang tạm ngưng phục vụ, xin hãy quay lại sau.";
