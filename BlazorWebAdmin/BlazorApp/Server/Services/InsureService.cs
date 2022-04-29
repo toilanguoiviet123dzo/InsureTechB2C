@@ -364,6 +364,86 @@ namespace BlazorApp.Server.Services
             return await Task.FromResult(response);
         }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // SaveCarPriceList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.String_Response> SaveCarPriceList(SaveCarPriceList_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.String_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                response.StringValue = request.Record.ID;
+                //Addnew or update
+                if (request.Record.UpdMode == 1 || request.Record.UpdMode == 2)
+                {
+                    mdCarPriceList saveRecord = new mdCarPriceList();
+                    //Update
+                    if (request.Record.UpdMode == 2)
+                    {
+                        saveRecord = await DB.Find<mdCarPriceList>()
+                                             .MatchID(request.Record.ID)
+                                             .ExecuteFirstAsync();
+                    }
+                    if (saveRecord != null)
+                    {
+                        ClassHelper.CopyPropertiesData(request.Record, saveRecord);
+
+                        //GenerateNewID
+                        if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
+                        saveRecord.ModifiedOn = DateTime.UtcNow;
+                        //
+                        await saveRecord.SaveAsync();
+                        //
+                        response.StringValue = saveRecord.ID;
+                    }
+                }
+                //Delete
+                if (request.Record.UpdMode == 3)
+                {
+                    await DB.DeleteAsync<mdCarPriceList>(request.Record.ID);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "SaveCarPriceList", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetCarPriceList
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.GetCarPriceList_Response> GetCarPriceList(String_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.GetCarPriceList_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var records = await DB.Find<mdCarPriceList>()
+                                    .Match(x => x.ProductID == request.StringValue)
+                                    .ExecuteAsync();
+
+                if (records != null)
+                {
+                    foreach (var record in records)
+                    {
+                        var grpcItem = new grpcCarPriceListModel();
+                        ClassHelper.CopyPropertiesData(record, grpcItem);
+                        response.Records.Add(grpcItem);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetCarPriceList", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
 
 
 

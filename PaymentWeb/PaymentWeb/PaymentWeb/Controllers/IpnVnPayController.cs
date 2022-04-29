@@ -4,6 +4,7 @@ using MongoDB.Entities;
 using BlazorApp.Server.Models;
 using BlazorApp.Server.Common;
 using PaymentWeb.Services;
+using Cores.Utilities;
 
 namespace PaymentWeb.Controllers
 {
@@ -52,6 +53,7 @@ namespace PaymentWeb.Controllers
                 {
                     response.RspCode = "00";
                     response.Message = "Confirm Success";
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
                     return response;
                 }
 
@@ -61,6 +63,7 @@ namespace PaymentWeb.Controllers
                 {
                     response.RspCode = "97";
                     response.Message = "Invalid Checksum";
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
                     return response;
                 }
 
@@ -78,24 +81,26 @@ namespace PaymentWeb.Controllers
                 {
                     response.RspCode = "01";
                     response.Message = "Order Not Found";
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
                     return response;
                 }
                 else
                 {
+                    //Amount not match
+                    if (record.PaymentAmount * 100 != vnp_Amount)
+                    {
+                        response.RspCode = "04";
+                        response.Message = "Invalid amount";
+                        MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
+                        return response;
+                    }
 
                     //already confirmed
                     if (record.IsPayDone)
                     {
                         response.RspCode = "02";
                         response.Message = "Order already confirmed";
-                        return response;
-                    }
-
-                    //Amount not match
-                    if (record.PaymentAmount * 100 != vnp_Amount)
-                    {
-                        response.RspCode = "04";
-                        response.Message = "Invalid amount";
+                        MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
                         return response;
                     }
                 }
@@ -118,6 +123,8 @@ namespace PaymentWeb.Controllers
             }
             catch (Exception ex)
             {
+                response.RspCode = "99";
+                response.Message = "Unknow error";
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
             //

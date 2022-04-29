@@ -42,7 +42,7 @@ namespace PaymentWeb.Pages
         [BindProperty]
         public string ErrorMessage { get; set; } = "";
         [BindProperty]
-        public int ReturnCode { get; set; }
+        public int ReturnCode { get; set; } = 200;
         [BindProperty]
         public mdSaleOrder Record { get; set; } = new mdSaleOrder();
 

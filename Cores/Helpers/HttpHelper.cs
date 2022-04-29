@@ -38,6 +38,7 @@ namespace Cores.Helpers
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
+                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -69,6 +70,7 @@ namespace Cores.Helpers
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
+                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -111,6 +113,7 @@ namespace Cores.Helpers
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
+                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -139,6 +142,97 @@ namespace Cores.Helpers
             }
         }
 
+        public async Task<TResult> GetAsync<TResult>(string requestUri, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
+        {
+            //Validate
+            if (requestUri == null || requestUri.Trim() == "") return default(TResult);
+            var client = _httpClientFactory.CreateClient(_clientName);
+            //Make request
+            try
+            {
+                //Authorization
+                if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
+                }
+                //Header
+                client.DefaultRequestHeaders.Clear();
+                if (headers != null && headers.Count > 0)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
+                //
+                HttpResponseMessage response = await client.GetAsync(requestUri);
+                // return
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    response.EnsureSuccessStatusCode();
+                    var sr = new StreamReader(await response.Content.ReadAsStreamAsync());
+                    return MyJson.Deserialize<TResult>(sr);
+                }
+                else
+                {
+                    return default(TResult);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return default(TResult);
+            }
+        }
+
+        public async Task<TResult> PostAsync<T, TResult>(string requestUri, T objData, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
+        {
+            //Validate
+            if (requestUri == null || requestUri.Trim() == "") return default(TResult);
+            var client = _httpClientFactory.CreateClient(_clientName);
+            //Make request
+            try
+            {
+                //Authorization
+                if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
+                {
+                    client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
+                }
+                //Header
+                client.DefaultRequestHeaders.Clear();
+                if (headers != null && headers.Count > 0)
+                {
+                    foreach (var header in headers)
+                    {
+                        client.DefaultRequestHeaders.Add(header.Key, header.Value);
+                    }
+                }
+
+                //Content
+                string json = JsonConvert.SerializeObject(objData, Formatting.Indented);
+                var content = new StringContent(json, Encoding.UTF8, "application/json");
+                //
+                HttpResponseMessage response = await client.PostAsync(requestUri, content);
+                // return
+                if (response.StatusCode == HttpStatusCode.OK)
+                {
+                    response.EnsureSuccessStatusCode();
+                    var sr = new StreamReader(await response.Content.ReadAsStreamAsync());
+                    return MyJson.Deserialize<TResult>(sr);
+                }
+                else
+                {
+                    return default(TResult);
+                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine(ex.Message);
+                return default(TResult);
+            }
+        }
+
         public async Task<TResult> PostAsNewtonsoftJsonAsync<T, TResult>(string requestUri, T objData, string authorizationToken = "", string authorizationScheme = "", Dictionary<string, string> headers = null)
         {
             //Validate
@@ -153,6 +247,7 @@ namespace Cores.Helpers
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
+                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)

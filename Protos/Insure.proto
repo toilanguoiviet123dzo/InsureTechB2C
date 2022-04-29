@@ -9,6 +9,10 @@ service grpcInsureService {
     rpc SaveProduct (SaveProduct_Request) returns (String_Response);
     rpc GetProduct (String_Request) returns (GetProduct_Response);
     rpc GetProductList (String_Request) returns (GetProductList_Response);
+
+    //CarPriceList
+    rpc SaveCarPriceList (SaveCarPriceList_Request) returns (String_Response);
+    rpc GetCarPriceList (String_Request) returns (GetCarPriceList_Response);
    
     //Order
     rpc InitOrder (InitOrder_Request) returns (InitOrder_Response);
@@ -67,13 +71,31 @@ message Int_Response
 //======================================================
 // Messages
 //======================================================
-message GetProductDetail_Response {
+message SaveCarPriceList_Request {
+    UserCredential Credential = 1;
+    //
+    grpcCarPriceListModel Record = 2;
+}
+message grpcCarPriceListModel {
+    string ID = 1;
+    string ProductID = 2;
+    string ProductName = 3;
+    string BusinessType = 4;
+    string BusinessTypeName = 5;
+    string PriceType = 6;
+    double SeatCount = 7;
+    double Tonage = 8;
+    double UnitPrice = 9;
+    google.protobuf.Timestamp ModifiedOn = 99;
+    int32 UpdMode = 100;
+}
+message GetCarPriceList_Response {
     int32 ReturnCode = 1;
     string MsgCode = 2;
     //
-    string aaa = 3;
-    string bbb = 4;
+    repeated grpcCarPriceListModel Records = 3;
 }
+
 message SaveProduct_Request {
     UserCredential Credential = 1;
     //

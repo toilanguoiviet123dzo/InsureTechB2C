@@ -124,14 +124,44 @@ namespace PaymentWeb.Services
                 //Get Access
                 await GetAccess();
 
-                //Request data
-                var newForm = new TPLForm();
+                //Header
+                var headers = new Dictionary<string, string>();
+                headers.Add("grantCode", GrantCode);
+
+                //Motocycle
+                if (saleOrder.ProductType == MyConstant.ProductType_Motocycle)
+                {
+                    var tplForm = Create_TPLForm(saleOrder);
+                    ret = await _httpHelper.PostAsNewtonsoftJsonAsync<TPLForm, IssueResponse>(createToIssueUrl, tplForm, AccessToken, "Bearer", headers);
+                }
+
+                //AutoMotor
+                if (saleOrder.ProductType == MyConstant.ProductType_AutoMotor)
+                {
+                    var tplForm = Create_CarTPLForm(saleOrder);
+                    ret = await _httpHelper.PostAsNewtonsoftJsonAsync<CarTPLForm, IssueResponse>(createToIssueUrl, tplForm, AccessToken, "Bearer", headers);
+                }
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+            //
+            return ret;
+        }
+
+        private TPLForm Create_TPLForm(mdSaleOrder saleOrder)
+        {
+            var newForm = new TPLForm();
+            //
+            try
+            {
                 newForm.insurerTenantCode = "BM_VN";
                 newForm.proposalDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
                 newForm.effDate = saleOrder.EffectiveSttDate.ToString("dd/MM/yyyy HH:mm:ss");
                 newForm.expDate = saleOrder.EffectiveEndDate.ToString("dd/MM/yyyy HH:mm:ss");
                 newForm.prdtCode = "TPL";
-                newForm.referenceNo = saleOrder.OrderID;
+                newForm.referenceNo = saleOrder.TransactionID;
                 newForm.insurerTenantCode = "BM_VN";
                 //insureds
                 var veh = new InsuredModel();
@@ -159,7 +189,8 @@ namespace PaymentWeb.Services
 
                 //payer
                 var payer = new PayerModel();
-                payer.customer = policyholder.customer;
+                payer.customer = new PayerCustomerModel();
+                ClassHelper.CopyPropertiesData(policyholder.customer, payer.customer);
                 newForm.payer = payer;
 
                 //deliveryInfo
@@ -168,20 +199,77 @@ namespace PaymentWeb.Services
                 deliveryInfo.lastName = policyholder.customer.lastName;
                 deliveryInfo.extInfo = new ContactModel();
                 deliveryInfo.extInfo.contactNo = saleOrder.CusPhone;
+                deliveryInfo.address = new AddressModel();
+                ClassHelper.CopyPropertiesData(policyholder.customer.address, deliveryInfo.address);
                 newForm.deliveryInfo = deliveryInfo;
-                //
-                //Call issue
-                var headers = new Dictionary<string, string>();
-                headers.Add("grantCode", GrantCode);
-                //
-                return await _httpHelper.PostAsNewtonsoftJsonAsync<TPLForm, IssueResponse>(createToIssueUrl, newForm, AccessToken, "Bearer", headers);
             }
             catch (Exception ex)
             {
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "Create_TPLForm", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
             //
-            return ret;
+            return newForm;
+        }
+
+        private CarTPLForm Create_CarTPLForm(mdSaleOrder saleOrder)
+        {
+            var newForm = new CarTPLForm();
+            //
+            try
+            {
+                newForm.insurerTenantCode = "BM_VN";
+                newForm.proposalDate = DateTime.Now.ToString("dd/MM/yyyy HH:mm:ss");
+                newForm.effDate = saleOrder.EffectiveSttDate.ToString("dd/MM/yyyy HH:mm:ss");
+                newForm.expDate = saleOrder.EffectiveEndDate.ToString("dd/MM/yyyy HH:mm:ss");
+                newForm.prdtCode = "TPL";
+                newForm.referenceNo = saleOrder.TransactionID;
+                newForm.insurerTenantCode = "BM_VN";
+                //insureds
+                var veh = new CarInsuredModel();
+                veh.detail.vehicleChassisNo = "";
+                veh.detail.vehicleEngineNo = "";
+                veh.detail.vehicleRegNo = saleOrder.LicensePlate;
+                newForm.insureds.Add(veh);
+
+                //policyholder
+                var policyholder = new CarPolicyHolderModel();
+                policyholder.customer = new CarCustomerModel();
+                policyholder.customer.idNo = saleOrder.CusCitizenID;
+                policyholder.customer.firstName = saleOrder.CusFullname.GetFirstName();
+                policyholder.customer.lastName = saleOrder.CusFullname.GetLastName();
+                policyholder.customer.nationality = "VNM";
+                policyholder.customer.mobile = saleOrder.CusPhone;
+                policyholder.customer.email = saleOrder.CusEmail;
+                policyholder.customer.address = new AddressModel();
+                policyholder.customer.address.province = saleOrder.CityID;
+                policyholder.customer.address.district = saleOrder.DistrictID;
+                policyholder.customer.address.subDistrict = saleOrder.WardID;
+                policyholder.customer.address.postalCode = saleOrder.PostalCode;
+                policyholder.customer.address.addressLine1 = saleOrder.Address;
+                newForm.policyholder = policyholder;
+
+                //payer
+                var payer = new PayerModel();
+                payer.customer = new PayerCustomerModel();
+                ClassHelper.CopyPropertiesData(policyholder.customer, payer.customer);
+                newForm.payer = payer;
+
+                //deliveryInfo
+                var deliveryInfo = new DeliveryInfoModel();
+                deliveryInfo.firstName = policyholder.customer.firstName;
+                deliveryInfo.lastName = policyholder.customer.lastName;
+                deliveryInfo.extInfo = new ContactModel();
+                deliveryInfo.extInfo.contactNo = saleOrder.CusPhone;
+                deliveryInfo.address = new AddressModel();
+                ClassHelper.CopyPropertiesData(policyholder.customer.address, deliveryInfo.address);
+                newForm.deliveryInfo = deliveryInfo;
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "Create_TPLForm", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+            //
+            return newForm;
         }
 
         private async Task<string> GetCertificateLink(string policyID)
@@ -332,6 +420,13 @@ namespace PaymentWeb.Services
         public int vehicleType = 6;
         public bool coverPA = false;
     }
+
+    class CarExtInfoModel
+    {
+        public string infoType = "AutoMotor";
+        public int vehicleCategory = 1;
+        public int vehicleType = 1;
+    }
     class DetailModel
     {
         public int insuredType = 2;
@@ -346,14 +441,37 @@ namespace PaymentWeb.Services
         public bool isNewVehicle = false;
         public int capacity = 51;
     }
+
+    class CarDetailModel
+    {
+        public int insuredType = 2;
+        public CarExtInfoModel extInfo = new CarExtInfoModel();
+        public int vehicleId = 2;
+        public string vehicleCode = "1.10";
+        public string vehicleCountry = "VNM";
+        public string vehicleProvince = "10";
+        public string vehicleChassisNo = "296948";
+        public string vehicleRegNo = "REGNO32333";
+        public string vehicleEngineNo = "ENGINENO3351";
+        public int vehicleRegYear = 2020;
+        public bool isNewVehicle = false;
+        public int capacity = 0;
+        public int numOfSeat = 0;
+        public int tonnage = 0;
+    }
     class InsuredModel
     {
         public DetailModel detail = new DetailModel();
     }
+
+    class CarInsuredModel
+    {
+        public CarDetailModel detail = new CarDetailModel();
+    }
     class PayModeModel
     {
         public string payMode = "credit";
-        public ExtInfoModel extInfo = new ExtInfoModel();
+        public object extInfo = new object();
     }
     class ContactModel
     {
@@ -366,12 +484,12 @@ namespace PaymentWeb.Services
         public string firstName = "Mike";
         public string lastName = "T";
         public ContactModel extInfo = new ContactModel();
+        public AddressModel address = new AddressModel();
     }
     class CustomerModel
     {
         public int customerType = 1;
-        public PreferredLangModel extInfo = new PreferredLangModel();
-
+        public CusExtraInfo extInfo = new CusExtraInfo();
         public int idType = 5;
         public string idNo = "98567464";
         public int prefix = 6;
@@ -384,12 +502,56 @@ namespace PaymentWeb.Services
         public string taxNo = "";
         public string branch = "";
         public AddressModel address = new AddressModel();
-
     }
-    public class PreferredLangModel
+
+    class CarCustomerModel
+    {
+        public int customerType = 1;
+        public CusExtraInfo extInfo = new CusExtraInfo();
+        public int idType = 5;
+        public string idNo = "98567464";
+        public int prefix = 6;
+        public string firstName = "Mike";
+        public string lastName = "T";
+        public string nationality = "THA";
+        public string mobile = "0783500797";
+        public string email = "mike@ebao.com";
+        public string occupation = "1001";
+        public string taxNo = "";
+        public string branch = "";
+        public string dob = "";
+        public int age = 0;
+        public AddressModel address = new AddressModel();
+    }
+
+    class PayerCustomerModel
+    {
+        public int customerType = 1;
+        public PayerExtraInfo extInfo = new PayerExtraInfo();
+        public int idType = 5;
+        public string idNo = "98567464";
+        public int prefix = 6;
+        public string firstName = "Mike";
+        public string lastName = "T";
+        public string nationality = "THA";
+        public string mobile = "0783500797";
+        public string email = "mike@ebao.com";
+        public string occupation = "1001";
+        public string taxNo = "";
+        public string branch = "";
+        public AddressModel address = new AddressModel();
+    }
+    public class CusExtraInfo
+    {
+        public string phoneNo = "";
+        public int preferredLang = 2;
+    }
+
+    public class PayerExtraInfo
     {
         public int preferredLang = 2;
     }
+
     public class AddressModel
     {
         public int addressType = 1;
@@ -402,12 +564,18 @@ namespace PaymentWeb.Services
     class PayerModel
     {
         public int payerType = 2;
-        public CustomerModel customer = new CustomerModel();
+        public PayerCustomerModel customer = new PayerCustomerModel();
     }
     class PolicyHolderModel
     {
         public bool isSameAsInsured = false;
         public CustomerModel customer = new CustomerModel();
+    }
+
+    class CarPolicyHolderModel
+    {
+        public bool isSameAsInsured = false;
+        public CarCustomerModel customer = new CarCustomerModel();
     }
     class TPLForm
     {
@@ -425,6 +593,25 @@ namespace PaymentWeb.Services
         public List<string> documents = new List<string>();
         public PayModeModel payMode = new PayModeModel();
         public ExtInfoModel extInfo = new ExtInfoModel();
+
+    }
+
+    class CarTPLForm
+    {
+        public string insurerTenantCode = "BM_VN";
+        public string proposalDate = "15/04/2022 16:30:00";
+        public string effDate = "15/04/2022 16:30:00";
+        public string expDate = "15/04/2023 16:30:00";
+        public string prdtCode = "TPL";
+        public string referenceNo = "Test0254";
+        public List<CarInsuredModel> insureds = new List<CarInsuredModel>();
+
+        public CarPolicyHolderModel policyholder = new CarPolicyHolderModel();
+        public PayerModel payer = new PayerModel();
+        public DeliveryInfoModel deliveryInfo = new DeliveryInfoModel();
+        public List<string> documents = new List<string>();
+        public PayModeModel payMode = new PayModeModel();
+        public object extInfo = new object();
 
     }
 

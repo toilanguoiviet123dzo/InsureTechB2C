@@ -29,6 +29,11 @@ namespace BlazorApp.Server.Common
         //Payment channel list
         public const string PyamentChannel_VnPay = "VnPay";
 
+        //ProductType
+        public const string ProductType_Motocycle = "Motorcycle";
+        public const string ProductType_AutoMotor = "AutoMotor";
+        public const string ProductType_Health = "Health";
+
 
     }// end class
 }// end name space
