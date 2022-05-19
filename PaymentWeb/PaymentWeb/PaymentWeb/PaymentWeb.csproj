@@ -10,6 +10,7 @@
     <Compile Include="..\..\..\Common\DatabaseConfig.cs" Link="Common\DatabaseConfig.cs" />
     <Compile Include="..\..\..\Common\MyAppLog.cs" Link="Common\MyAppLog.cs" />
     <Compile Include="..\..\..\Common\MyConstant.cs" Link="Common\MyConstant.cs" />
+    <Compile Include="..\..\..\Common\MyData.cs" Link="Common\MyData.cs" />
     <Compile Include="..\..\..\Common\MyMessage.cs" Link="Common\MyMessage.cs" />
     <Compile Include="..\..\..\Common\MyTokenService.cs" Link="Common\MyTokenService.cs" />
     <Compile Include="..\..\..\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />

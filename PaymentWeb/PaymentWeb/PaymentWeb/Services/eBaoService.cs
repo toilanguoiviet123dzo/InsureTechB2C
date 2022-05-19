@@ -333,6 +333,7 @@ namespace PaymentWeb.Services
         {
             var ret = new CallApiReturn();
             ret.ReturnCode = ReturnCode.OK;
+            bool paymentSuccess = false;
             //
             try
             {
@@ -340,8 +341,8 @@ namespace PaymentWeb.Services
                 if (res != null && res.data != null && res.data.processStatus == "PASS")
                 {
                     //Success
+                    paymentSuccess = true;
                     order.IsProcessDone = true;
-                    order.IsProcessError = false;
                     order.PolicyID = res.data.policyId;
                     order.PolicyNo = res.data.policyNo;
                     order.QuoteNo = res.data.quoteNo;
@@ -352,21 +353,39 @@ namespace PaymentWeb.Services
                 else
                 {
                     //Failed
-                    order.IsProcessDone = false;
                     order.IsProcessError = true;
-                    if (res != null && res.data != null) order.ProcessErrorMessage = res.data.processMsg;
-                    //Log
-                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Failed", ReturnCode.Error_ByServer, $"Call eBao api failed for {order.TransactionID}_{order.LicensePlate}_{order.CusPhone}_{order.CusFullname}");
+                    string errorMessage = "call api with null reponse";
+                    if (res != null && res.data != null) errorMessage = res.data.processMsg;
+                    order.ProcessErrorMessage = errorMessage;
                     //
-                    ret.ReturnCode = ReturnCode.Error_203;
-                    ret.ErrorMessage = "Có lỗi bất thường xảy ra, chúng tôi sẽ liên hệ bạn để hoàn trả tiền tương ứng.";
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Failed", ReturnCode.Error_ByServer, errorMessage);
                 }
-                await order.SaveAsync();
+
             }
             catch (Exception ex)
             {
+                order.ProcessErrorMessage = ex.Message;
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
+            //Payment error
+            if (!paymentSuccess)
+            {
+                order.IsProcessError = true;
+                ret.ReturnCode = ReturnCode.Error_203;
+                ret.ErrorMessage = MyMessage.Error_PaymenmtError;
+                //Payment error log
+                string logMessage = "Đã nhận tiền khách hàng nhưng không cấp được đơn" + Environment.NewLine;
+                logMessage += $"Tên khách hàng: {order.CusFullname}" + Environment.NewLine;
+                logMessage += $"Điện thoại: {order.CusPhone}" + Environment.NewLine;
+                logMessage += $"Mua sản phẩm: {order.ProductName}" + Environment.NewLine;
+                logMessage += $"Giá tiền: {order.UnitPrice}" + Environment.NewLine;
+                logMessage += $"Giảm giá: {order.DiscountAmount}" + Environment.NewLine;
+                logMessage += $"Tổng thanh toán: {order.PaymentAmount}" + Environment.NewLine;
+                //
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "Payment", "Exception", ReturnCode.Error_ByServer, logMessage);
+            }
+            //Save
+            await order.SaveAsync();
             //
             return ret;
         }

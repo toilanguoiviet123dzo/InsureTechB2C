@@ -422,7 +422,8 @@
     async void LicensePlate_TextChanged(string text)
     {
         Model.LicensePlate = text;
-
+        Model.EffectiveSttDate = DateTime.Now;
+        this.StateHasChanged();
         //Duplicated check
         var res = await DuplicatedCheck();
     }

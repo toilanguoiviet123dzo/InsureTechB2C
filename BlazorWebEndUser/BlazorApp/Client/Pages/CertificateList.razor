@@ -51,7 +51,7 @@
         <MudTd Style="text-align:center;">@context.EffectiveSttDate.ToString("dd/MM/yyyy")</MudTd>
         <MudTd Style="text-align:center;">@context.EffectiveEndDate.ToString("dd/MM/yyyy")</MudTd>
         <MudTd>@context.LicensePlate</MudTd>
-        <MudTd Style="color:blue; text-decoration:underline; cursor:pointer"> <a @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", @context.CertificateLink, "_blank"))">@context.PolicyNo</a></MudTd>
+        <MudTd Style="color:blue; text-decoration:underline; cursor:pointer"> <a @onclick="@(() => OpenCertificate(context.CertificateLink))">@context.PolicyNo</a></MudTd>
     </RowTemplate>
 </MyDataGrid>
 
@@ -81,6 +81,11 @@
         }
     }
     #region Load data
+
+    async void OpenCertificate(string link)
+    {
+        await JsRuntime.InvokeVoidAsync("open", link, "_blank");
+    }
 
     async Task DisplayMain()
     {

@@ -75,6 +75,9 @@ namespace PaymentWeb.Pages
                     }
                 }
 
+                //Get base Url
+                MyData.BaseUrl = @$"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
+
                 //Finish payment
                 var ret = await _paymentService.FinishPayment(MyConstant.PyamentChannel_VnPay, result, querryData);
                 //

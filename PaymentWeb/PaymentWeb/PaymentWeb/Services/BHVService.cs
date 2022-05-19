@@ -3,6 +3,7 @@ using Cores.Helpers;
 using BlazorApp.Server.Common;
 using BlazorApp.Server.Models;
 using MongoDB.Entities;
+using Newtonsoft.Json;
 
 namespace PaymentWeb.Services
 {
@@ -114,9 +115,9 @@ namespace PaymentWeb.Services
         {
             try
             {
-                string filename = @$"{_hostingEnvironment.WebRootPath}\{_certificateFolder}\{certificate_code}.pdf";
+                string filename = @$"{_hostingEnvironment.WebRootPath}/{_certificateFolder}/{certificate_code}.pdf";
                 //Create folder
-                string folder = @$"{_hostingEnvironment.WebRootPath}\{_certificateFolder}";
+                string folder = @$"{_hostingEnvironment.WebRootPath}/{_certificateFolder}";
                 if (!Directory.Exists(folder))
                 {
                     Directory.CreateDirectory(folder);
@@ -137,6 +138,7 @@ namespace PaymentWeb.Services
         public async Task<CallApiReturn> Create_MotorTNDS(mdSaleOrder saleOrder)
         {
             var ret = new CallApiReturn();
+            bool paymentSuccess = false;
             //
             try
             {
@@ -147,9 +149,6 @@ namespace PaymentWeb.Services
                     ret.ErrorMessage = "Init failed";
                     return ret;
                 }
-
-                //@@@ test
-                //await GetCommonData_MotorTNDS(saleOrder.TransactionID, "");
 
                 //Request
                 var request = new BhvRequest();
@@ -165,52 +164,80 @@ namespace PaymentWeb.Services
                     if (response.status_code == "200")
                     {
                         //Update order
-                        var data = MyJson.Deserialize<MotorTNDS_CreateReturn>(response.data);
+                        var data = JsonConvert.DeserializeObject<MotorTNDS_CreateReturn>(response.data);
                         if (data != null && data.collation_code == saleOrder.TransactionID)
                         {
                             if (data.data_value != null)
                             {
-                                saleOrder.OrderID = data.data_value.certificate_code;
-                                saleOrder.IsProcessDone = false;
-
                                 //Call payment
                                 ret = await Payment_MotorTNDS(data.collation_code, data.data_value.certificate_code);
                                 if (ret.ReturnCode == ReturnCode.OK)
                                 {
-                                    saleOrder.IsProcessDone = true;
-                                }
+                                    //Download certificate
+                                    saleOrder.IsIssueCertificate = false;
+                                    ret = await Download_MotorTNDS(data.collation_code, data.data_value.certificate_code);
+                                    if (ret.ReturnCode == ReturnCode.OK)
+                                    {
+                                        saleOrder.IsIssueCertificate = true;
+                                        saleOrder.CertificateLink = @$"{MyData.BaseUrl}/{_certificateFolder}/{data.data_value.certificate_code}.pdf";
 
-                                //Download certificate
-                                saleOrder.IsIssueCertificate = false;
-                                ret = await Download_MotorTNDS(data.collation_code, data.data_value.certificate_code);
-                                if (ret.ReturnCode == ReturnCode.OK)
+                                        //Success
+                                        paymentSuccess = true;
+                                        saleOrder.IsProcessDone = true;
+                                        saleOrder.OrderID = data.data_value.certificate_code;
+                                        saleOrder.PolicyNo = data.data_value.certificate_code;
+                                    }
+                                    else
+                                    {
+                                        saleOrder.ProcessErrorMessage = ret.ErrorMessage;
+                                        MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_MotorTNDS", "Exception", ret.ReturnCode, ret.ErrorMessage);
+                                    }
+                                }
+                                else
                                 {
-                                    saleOrder.IsIssueCertificate = true;
-                                    saleOrder.PolicyNo = data.data_value.certificate_code;
-                                    saleOrder.CertificateLink = @$"./{_certificateFolder}/{data.data_value.certificate_code}.pdf";
+                                    saleOrder.ProcessErrorMessage = ret.ErrorMessage;
+                                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_MotorTNDS", "Exception", ret.ReturnCode, ret.ErrorMessage);
                                 }
-
-                                //Save
-                                await saleOrder.SaveAsync();
                             }
                         }
                     }
                     else
                     {
-                        ret.ReturnCode = ReturnCode.Error_202;
-                        ret.ErrorMessage = ErrorDic[response.status_code];
+                        string errorMessage = response.status_code;
+                        saleOrder.ProcessErrorMessage = errorMessage;
+                        MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_MotorTNDS", "Exception", ReturnCode.Error_ByServer, errorMessage);
                     }
                 }
                 else
                 {
-                    ret.ReturnCode = ReturnCode.Error_ByServer;
-                    ret.ErrorMessage = MyMessage.Error_ServerError;
+                    saleOrder.ProcessErrorMessage = "Call api with null return";
+                    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_MotorTNDS", "Exception", ReturnCode.Error_ByServer, saleOrder.ProcessErrorMessage);
                 }
             }
             catch (Exception ex)
             {
+                saleOrder.ProcessErrorMessage = ex.Message;
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
+            //Payment error
+            if (!paymentSuccess)
+            {
+                saleOrder.IsProcessError = true;
+                ret.ReturnCode = ReturnCode.Error_203;
+                ret.ErrorMessage = MyMessage.Error_PaymenmtError;
+                //Payment error log
+                string logMessage = "Đã nhận tiền khách hàng nhưng không cấp được đơn" + Environment.NewLine;
+                logMessage += $"Tên khách hàng: {saleOrder.CusFullname}" + Environment.NewLine;
+                logMessage += $"Điện thoại: {saleOrder.CusPhone}" + Environment.NewLine;
+                logMessage += $"Mua sản phẩm: {saleOrder.ProductName}" + Environment.NewLine;
+                logMessage += $"Giá tiền: {saleOrder.UnitPrice}" + Environment.NewLine;
+                logMessage += $"Giảm giá: {saleOrder.DiscountAmount}" + Environment.NewLine;
+                logMessage += $"Tổng thanh toán: {saleOrder.PaymentAmount}" + Environment.NewLine;
+                //
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Payment", "Exception", ReturnCode.Error_ByServer, logMessage);
+            }
+            //Save
+            await saleOrder.SaveAsync();
             //
             return ret;
         }
@@ -242,7 +269,7 @@ namespace PaymentWeb.Services
                 {
                     if (response.status_code == "200")
                     {
-                        var data = MyJson.Deserialize<MotorTNDS_PaymentReturn>(response.data);
+                        var data = JsonConvert.DeserializeObject<MotorTNDS_PaymentReturn>(response.data);
                         if (data != null && data.collation_code == collation_code)
                         {
                             if (data.data_value == null || data.data_value.certificate_code != certificate_code)
@@ -300,7 +327,7 @@ namespace PaymentWeb.Services
                 {
                     if (response.status_code == "200")
                     {
-                        var data = MyJson.Deserialize<MotorTNDS_DownloadReturn>(response.data);
+                        var data = JsonConvert.DeserializeObject<MotorTNDS_DownloadReturn>(response.data);
                         if (data != null && data.collation_code == collation_code)
                         {
                             if (data.data_value != null)
@@ -412,10 +439,10 @@ namespace PaymentWeb.Services
                 //BhvDataModel
                 var data = new BhvRequestData();
                 data.collation_code = saleOrder.TransactionID;
-                data.data_value = MyJson.ToString(requestData);
+                data.data_value = JsonConvert.SerializeObject(requestData);
 
                 //Return
-                return MyJson.ToString(data);
+                return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
@@ -438,10 +465,10 @@ namespace PaymentWeb.Services
                 //BhvDataModel
                 var data = new BhvRequestData();
                 data.collation_code = collation_code;
-                data.data_value = MyJson.ToString(payData);
+                data.data_value = JsonConvert.SerializeObject(payData);
 
                 //Return
-                return MyJson.ToString(data);
+                return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
@@ -464,10 +491,10 @@ namespace PaymentWeb.Services
                 //BhvDataModel
                 var data = new BhvRequestData();
                 data.collation_code = collation_code;
-                data.data_value = MyJson.ToString(reqData); 
+                data.data_value = JsonConvert.SerializeObject(reqData);
 
                 //Return
-                return MyJson.ToString(data);
+                return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
@@ -483,6 +510,7 @@ namespace PaymentWeb.Services
         public async Task<CallApiReturn> Create_AutoTNDS(mdSaleOrder saleOrder)
         {
             var ret = new CallApiReturn();
+            bool paymentSuccess = false;
             //
             try
             {
@@ -498,6 +526,7 @@ namespace PaymentWeb.Services
                 //await GetCommonData_AutoTNDS(saleOrder.TransactionID, "");
 
                 //Request
+
                 var request = new BhvRequest();
                 request.action_name = "external/vehicle/motor/register";
                 request.token_access = _accessToken;
@@ -511,51 +540,58 @@ namespace PaymentWeb.Services
                     if (response.status_code == "200")
                     {
                         //Update order
-                        var data = MyJson.Deserialize<AutoTNDS_CreateReturn>(response.data);
+                        var data = JsonConvert.DeserializeObject<AutoTNDS_CreateReturn>(response.data);
                         if (data != null && data.collation_code == saleOrder.TransactionID)
                         {
                             if (data.data_value != null)
                             {
-                                saleOrder.OrderID = data.data_value.certificate_code;
-                                saleOrder.IsProcessDone = false;
-
                                 //Call payment
                                 ret = await Payment_AutoTNDS(data.collation_code, data.data_value.certificate_code);
                                 if (ret.ReturnCode == ReturnCode.OK)
                                 {
+                                    //Download certificate
+                                    saleOrder.IsIssueCertificate = false;
+                                    ret = await Download_AutoTNDS(data.collation_code, data.data_value.certificate_code);
+                                    if (ret.ReturnCode == ReturnCode.OK)
+                                    {
+                                        saleOrder.IsIssueCertificate = true;
+                                        saleOrder.CertificateLink = @$"{MyData.BaseUrl}/{_certificateFolder}/{data.data_value.certificate_code}.pdf";
+                                    }
+
+                                    //Success
+                                    paymentSuccess = true;
                                     saleOrder.IsProcessDone = true;
+                                    saleOrder.OrderID = data.data_value.certificate_code;
+                                    saleOrder.PolicyNo = data.data_value.certificate_code;
                                 }
-
-                                //Download certificate
-                                saleOrder.IsIssueCertificate = false;
-                                ret = await Download_AutoTNDS(data.collation_code, data.data_value.certificate_code);
-                                if (ret.ReturnCode == ReturnCode.OK)
-                                {
-                                    saleOrder.IsIssueCertificate = true;
-                                    saleOrder.CertificateLink = @$"./{_certificateFolder}/{data.data_value.certificate_code}.pdf";
-                                }
-
-                                //Save
-                                await saleOrder.SaveAsync();
                             }
                         }
                     }
-                    else
-                    {
-                        ret.ReturnCode = ReturnCode.Error_202;
-                        ret.ErrorMessage = ErrorDic[response.status_code];
-                    }
-                }
-                else
-                {
-                    ret.ReturnCode = ReturnCode.Error_ByServer;
-                    ret.ErrorMessage = MyMessage.Error_ServerError;
                 }
             }
             catch (Exception ex)
             {
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
+            //Payment error
+            if (!paymentSuccess)
+            {
+                saleOrder.IsProcessError = true;
+                ret.ReturnCode = ReturnCode.Error_203;
+                ret.ErrorMessage = MyMessage.Error_PaymenmtError;
+                //Payment error log
+                string logMessage = "Đã nhận tiền khách hàng nhưng không cấp được đơn" + Environment.NewLine;
+                logMessage += $"Tên khách hàng: {saleOrder.CusFullname}";
+                logMessage += $"Điện thoại: {saleOrder.CusPhone}";
+                logMessage += $"Mua sản phẩm: {saleOrder.ProductName}";
+                logMessage += $"Giá tiền: {saleOrder.UnitPrice}";
+                logMessage += $"Giảm giá: {saleOrder.DiscountAmount}";
+                logMessage += $"Tổng thanh toán: {saleOrder.PaymentAmount}";
+                //
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Payment", "Exception", ReturnCode.Error_ByServer, logMessage);
+            }
+            //Save
+            await saleOrder.SaveAsync();
             //
             return ret;
         }
@@ -587,7 +623,7 @@ namespace PaymentWeb.Services
                 {
                     if (response.status_code == "200")
                     {
-                        var data = MyJson.Deserialize<AutoTNDS_PaymentReturn>(response.data);
+                        var data = JsonConvert.DeserializeObject<AutoTNDS_PaymentReturn>(response.data);
                         if (data != null && data.collation_code == collation_code)
                         {
                             if (data.data_value == null || data.data_value.certificate_code != certificate_code)
@@ -644,7 +680,7 @@ namespace PaymentWeb.Services
                 {
                     if (response.status_code == "200")
                     {
-                        var data = MyJson.Deserialize<AutoTNDS_DownloadReturn>(response.data);
+                        var data = JsonConvert.DeserializeObject<AutoTNDS_DownloadReturn>(response.data);
                         if (data != null && data.collation_code == collation_code)
                         {
                             if (data.data_value != null)
@@ -756,10 +792,10 @@ namespace PaymentWeb.Services
                 //BhvDataModel
                 var data = new BhvRequestData();
                 data.collation_code = saleOrder.TransactionID;
-                data.data_value = MyJson.ToString(requestData);
+                data.data_value = JsonConvert.SerializeObject(requestData);
 
                 //Return
-                return MyJson.ToString(data);
+                return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
@@ -782,10 +818,10 @@ namespace PaymentWeb.Services
                 //BhvDataModel
                 var data = new BhvRequestData();
                 data.collation_code = collation_code;
-                data.data_value = MyJson.ToString(payData);
+                data.data_value = JsonConvert.SerializeObject(payData);
 
                 //Return
-                return MyJson.ToString(data);
+                return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
@@ -808,10 +844,10 @@ namespace PaymentWeb.Services
                 //BhvDataModel
                 var data = new BhvRequestData();
                 data.collation_code = collation_code;
-                data.data_value = MyJson.ToString(reqData);
+                data.data_value = JsonConvert.SerializeObject(reqData);
 
                 //Return
-                return MyJson.ToString(data);
+                return JsonConvert.SerializeObject(data);
             }
             catch (Exception ex)
             {
