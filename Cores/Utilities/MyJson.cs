@@ -10,28 +10,44 @@ namespace Cores.Utilities
 {
     public class MyJson
     {
+        ///// <summary>
+        ///// Return String From Object
+        ///// </summary>
+        ///// <param name="entity">Object in model class format</param>
+        ///// <returns></returns>
+        //public static string ToString<T>(T mdEntity)
+        //{
+        //    //validation
+        //    if (mdEntity == null)
+        //    {
+        //        return null;
+        //    }
+        //    //
+        //    var options = new JsonSerializerOptions
+        //    {
+        //        PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
+        //        WriteIndented = true
+        //    };
+        //    return System.Text.Json.JsonSerializer.Serialize(mdEntity, options);
+        //}
         /// <summary>
-        /// Return String From Object
+        /// Serialize to json string using newtonsoft
         /// </summary>
-        /// <param name="entity">Object in model class format</param>
+        /// <param name="objValue"></param>
         /// <returns></returns>
-        public static string ToString<T>(T mdEntity)
+        public static string ToString(object objValue)
         {
-            //validation
-            if (mdEntity == null)
+            try
             {
-                return null;
+                return JsonConvert.SerializeObject(objValue);
             }
+            catch { }
             //
-            var options = new JsonSerializerOptions
-            {
-                PropertyNamingPolicy = JsonNamingPolicy.CamelCase,
-                WriteIndented = true
-            };
-            return System.Text.Json.JsonSerializer.Serialize(mdEntity, options);
+            return "";
         }
+
         /// <summary>
-        /// Return Utf8 byte From Object
+        /// Return Utf8 byte From Object 
         /// </summary>
         /// <param name="entity">Object in model class format</param>
         /// <returns></returns>
@@ -93,6 +109,22 @@ namespace Cores.Utilities
             var serializer = Newtonsoft.Json.JsonSerializer.CreateDefault();
             JsonReader reader = new JsonTextReader(sr);
             return serializer.Deserialize<T>(reader);
+        }
+        /// <summary>
+        /// Deserialize from json string
+        /// </summary>
+        /// <typeparam name="T"></typeparam>
+        /// <param name="json"></param>
+        /// <returns></returns>
+        public static T Deserialize<T>(string json)
+        {
+            //validation
+            if (string.IsNullOrWhiteSpace(json))
+            {
+                return default(T);
+            }
+            //
+            return JsonConvert.DeserializeObject<T>(json);
         }
 
         /// <summary>

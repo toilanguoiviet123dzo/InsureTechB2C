@@ -70,14 +70,14 @@
                     </div>
                 </div>
                 <!--CusCitizenID-->
-                <div class="row m-1 m-lg-2">
+                @*<div class="row m-1 m-lg-2">
                     <div class="col text-left">
                         CMND/CCCD
                     </div>
                     <div class="col font-weight-bold text-right">
                         @Model.CusCitizenID
                     </div>
-                </div>
+                </div>*@
                 <!--CusPhone-->
                 <div class="row m-1 m-lg-2">
                     <div class="col text-left">
@@ -97,19 +97,29 @@
                     </div>
                 </div>
                 <!--Address-->
-                <div class="row m-1 m-lg-2">
+                @*<div class="row m-1 m-lg-2">
                     <div class="col text-left">
                         Địa chỉ thường trú
                     </div>
                     <div class="col font-weight-bold text-right">
                         @($"{Model.Address}, {Model.WardName}, {Model.DistrictName}, {Model.CityName}")
                     </div>
+                </div>*@
+
+                <!--LicensePlate-->
+                <div class="row m-1 m-lg-2">
+                    <div class="col text-left">
+                        Biển số xe
+                    </div>
+                    <div class="col font-weight-bold text-right text-blue" style="font-weight:700; font-size:x-large">
+                        @Model.LicensePlate
+                    </div>
                 </div>
             </div>
         </MyPanel>
 
         <!--Thông tin xe-->
-        <MyPanel Title="Thông tin xe">
+        @*<MyPanel Title="Thông tin xe">
             <div class="container-fluid p-0">
                 <!--OwnerFullname-->
                 <div class="row m-1 m-lg-2">
@@ -130,7 +140,7 @@
                     </div>
                 </div>
             </div>
-        </MyPanel>
+        </MyPanel>*@
     </MyPanels>
     <!--Download link-->
     <div class="mx-auto text-center">

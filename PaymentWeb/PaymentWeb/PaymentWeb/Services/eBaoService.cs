@@ -26,7 +26,7 @@ namespace PaymentWeb.Services
                 //Check timeout
                 TimeSpan t = DateTime.UtcNow - new DateTime(1970, 1, 1);
                 int secondsSinceEpoch = (int)t.TotalSeconds;
-                if (ExpireTime > secondsSinceEpoch)
+                if (!string.IsNullOrWhiteSpace(GrantCode) && !string.IsNullOrWhiteSpace(AccessToken) && ExpireTime > secondsSinceEpoch)
                 {
                     return;
                 }
@@ -329,9 +329,9 @@ namespace PaymentWeb.Services
         /// </summary>
         /// <param name="order"></param>
         /// <returns></returns>
-        public async Task<TaskResult> eBao_CreateToIssue_TNDS(mdSaleOrder order)
+        public async Task<CallApiReturn> eBao_CreateToIssue_TNDS(mdSaleOrder order)
         {
-            var ret = new TaskResult();
+            var ret = new CallApiReturn();
             ret.ReturnCode = ReturnCode.OK;
             //
             try

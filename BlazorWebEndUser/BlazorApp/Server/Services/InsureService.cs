@@ -185,9 +185,9 @@ namespace BlazorApp.Server.Services
         //-------------------------------------------------------------------------------------------------------/
         // DuplicatedCheck
         //-------------------------------------------------------------------------------------------------------/
-        public override async Task<Insure.Services.Empty_Response> DuplicatedCheck(DuplicatedCheck_Request request, ServerCallContext context)
+        public override async Task<Insure.Services.DuplicatedCheck_Response> DuplicatedCheck(DuplicatedCheck_Request request, ServerCallContext context)
         {
-            var response = new Insure.Services.Empty_Response();
+            var response = new Insure.Services.DuplicatedCheck_Response();
             response.ReturnCode = GrpcReturnCode.OK;
             try
             {
@@ -203,6 +203,8 @@ namespace BlazorApp.Server.Services
                     response.MsgCode = "Bị trùng lập !!!";
                     response.MsgCode += $"Bạn đã mua trước đây có kỳ hạn: {record.EffectiveSttDate.ToLocalTime().ToString("dd/MM/yyyy")} ~ {record.EffectiveEndDate.ToLocalTime().ToString("dd/MM/yyyy")}";
                     response.MsgCode += $"Xin hãy chọn lại kỳ hạn mới";
+                    //
+                    response.EffectiveEndDate = record.EffectiveEndDate.ToTimestamp();
                     //
                     return response;
                 }
@@ -301,7 +303,6 @@ namespace BlazorApp.Server.Services
             {
                 var gotRecords = await DB.Find<mdSaleOrderLog>()
                                          .Match(x => x.CusPhone == request.CusPhone)
-                                         .Match(x => x.CusCitizenID == request.CusCitizenID)
                                          .ExecuteAsync();
                 //
                 if (gotRecords != null)

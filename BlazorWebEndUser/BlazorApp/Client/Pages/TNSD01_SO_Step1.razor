@@ -18,59 +18,26 @@
                             Text=@Model.CusPhone
                             TextChanged="@((string text) => CusPhone_TextChanged(text))"
                             @ref=RefCusPhone />
-                <MyTextEdit Literal="Họ và tên"
+                <MyTextEdit Literal="Họ và tên chủ xe"
                             IsFontBold=true
                             Text=@Model.CusFullname
                             TextChanged="@((string text) => OwnerFullname_TextChanged(text))"
                             @ref=RefCusFullname />
-                <MyTextEdit Literal="CMND/CCCD"
-                            IsFontBold=true
-                            Mask=@DigitMask
-                            @bind-Text=@Model.CusCitizenID
-                            @ref=RefCusCitizenID />
+                @*<MyTextEdit Literal="CMND/CCCD"
+                    IsFontBold=true
+                    Mask=@DigitMask
+                    @bind-Text=@Model.CusCitizenID
+                    @ref=RefCusCitizenID />*@
                 <MyTextEdit Literal="Email"
                             TextColor=@MyTextColor.Blue
                             @bind-Text=@Model.CusEmail
-                            OnBlur="OnBlur_CusEmail"
                             @ref=RefCusEmail />
                 <MyDateEdit Literal="Ngày hiệu lực"
                             TabStop=false
                             MinDate=@DateTime.Now.AddDays(-1)
                             @bind-Date=@Model.EffectiveSttDate
                             @ref=RefEffectiveSttDate />
-                <MyComboBox Value="SelectedCity"
-                            Data="CityList"
-                            TValue=AddressModel
-                            ValueChanged="@((AddressModel value) => CityChanged_Handle(value))"
-                            Clearable="true"
-                            TextFieldName="@(nameof(AddressModel.ItemName))"
-                            Literal="Tỉnh thành phố"
-                            @ref="@RefCity" />
-                <MyComboBox Value="SelectedDistrict"
-                            Data="DistrictList"
-                            ValueChanged="@((AddressModel value) => DistrictChanged_Handle(value))"
-                            Clearable="true"
-                            TextFieldName="@(nameof(AddressModel.ItemName))"
-                            Literal="Quận huyện"
-                            @ref="@RefDistrict" />
-                <MyComboBox Value="SelectedWard"
-                            Data="WardList"
-                            ValueChanged="@((AddressModel value) => WardChanged_Handle(value))"
-                            Clearable="true"
-                            TextFieldName="@(nameof(AddressModel.ItemName))"
-                            Literal="Phường xã"
-                            @ref="@RefWard" />
-                <MyTextEdit Literal="Địa chỉ"
-                            @bind-Text=Model.Address
-                            @ref=RefAddress />
-            </MyPanel>
 
-            <MyPanel Title="Thông tin xe">
-                <MyTextEdit Literal="Họ và tên chủ xe"
-                            IsFontBold=true
-                            TabStop=false
-                            @bind-Text=@Model.OwnerFullname
-                            @ref=RefOwnerFullname />
                 <div class="row align-items-end">
                     <div class="col-6">
                         <MyTextEdit Literal="Biển số xe"
@@ -78,18 +45,75 @@
                                     IsUpperCase=true
                                     TextColor=@MyTextColor.Blue
                                     Mask=@licensePlateMask
-                                    @bind-Text=Model.LicensePlate
+                                    Text=@Model.LicensePlate
+                                    TextChanged="@((string text) => LicensePlate_TextChanged(text))"
                                     @ref=RefLicensePlate />
                     </div>
-                    <div class="col-6">
-                        <MyCheckBox Literal="@FormatText"
+                    @if (!BrowserInfo.IsMobile)
+                    {
+                        <div class="col-6">
+                            <MyCheckBox Literal="@FormatText"
                                     TabStop=false
                                     CheckedChanged="@((bool value) => UseFormat_Changed(value))"
                                     Checked=@UseFormat_LicLicensePlate />
-                    </div>
+                        </div>
+                    }
+                </div>
+                @*<MyComboBox Value="SelectedCity"
+                    Data="CityList"
+                    TValue=AddressModel
+                    ValueChanged="@((AddressModel value) => CityChanged_Handle(value))"
+                    Clearable="true"
+                    TextFieldName="@(nameof(AddressModel.ItemName))"
+                    Literal="Tỉnh thành phố"
+                    @ref="@RefCity" />
+                    <MyComboBox Value="SelectedDistrict"
+                    Data="DistrictList"
+                    ValueChanged="@((AddressModel value) => DistrictChanged_Handle(value))"
+                    Clearable="true"
+                    TextFieldName="@(nameof(AddressModel.ItemName))"
+                    Literal="Quận huyện"
+                    @ref="@RefDistrict" />
+                    <MyComboBox Value="SelectedWard"
+                    Data="WardList"
+                    ValueChanged="@((AddressModel value) => WardChanged_Handle(value))"
+                    Clearable="true"
+                    TextFieldName="@(nameof(AddressModel.ItemName))"
+                    Literal="Phường xã"
+                    @ref="@RefWard" />
+                    <MyTextEdit Literal="Địa chỉ"
+                    @bind-Text=Model.Address
+                    @ref=RefAddress />*@
+            </MyPanel>
+
+            @*<MyPanel Title="Thông tin xe">
+                <MyTextEdit Literal="Họ và tên chủ xe"
+                IsFontBold=true
+                TabStop=false
+                @bind-Text=@Model.OwnerFullname
+                @ref=RefOwnerFullname />
+                <div class="row align-items-end">
+                <div class="col-6">
+                <MyTextEdit Literal="Biển số xe"
+                IsFontBold=true
+                IsUpperCase=true
+                TextColor=@MyTextColor.Blue
+                Mask=@licensePlateMask
+                @bind-Text=Model.LicensePlate
+                @ref=RefLicensePlate />
+                </div>
+                @if (!BrowserInfo.IsMobile)
+                {
+                <div class="col-6">
+                <MyCheckBox Literal="@FormatText"
+                TabStop=false
+                CheckedChanged="@((bool value) => UseFormat_Changed(value))"
+                Checked=@UseFormat_LicLicensePlate />
+                </div>
+                }
                 </div>
 
-            </MyPanel>
+                </MyPanel>*@
 
             <MyPanel Title="Chọn hoặc nhập mã giảm giá">
                 <MudTextField @bind-Value="@DiscountText"
@@ -151,8 +175,8 @@
     //format
     string FormatText = "Nhập theo định dạng";
     bool UseFormat_LicLicensePlate = true;
-    IMask licensePlateMask = new PatternMask("00-a0 00.000");
-    public IMask DigitMask = new RegexMask(@"^\d+$");
+    IMask licensePlateMask;
+    public IMask DigitMask;
     string DiscountText = "";
 
     //OnInitializedAsync
@@ -160,8 +184,15 @@
     {
         await base.OnInitializedAsync();
 
+        //Input mask
+        if (!BrowserInfo.IsMobile)
+        {
+            licensePlateMask = new PatternMask("00-a0 00.000");
+            DigitMask = new RegexMask(@"^\d+$");
+        }
+
         //Load city list
-        CityList = await masterService.Load_CityList();
+        //CityList = await masterService.Load_CityList();
 
         //Display main
         await DisplayMain();
@@ -277,40 +308,40 @@
         }
     }
 
-    //City
-    async void CityChanged_Handle(AddressModel value)
-    {
-        SelectedCity = value;
-        //Clear district
-        SelectedDistrict = null;
-        //Load district list
-        if (SelectedCity != null) DistrictList = await masterService.Load_DistrictList(SelectedCity.ItemID);
+    ////City
+    //async void CityChanged_Handle(AddressModel value)
+    //{
+    //    SelectedCity = value;
+    //    //Clear district
+    //    SelectedDistrict = null;
+    //    //Load district list
+    //    if (SelectedCity != null) DistrictList = await masterService.Load_DistrictList(SelectedCity.ItemID);
 
-        //Show District
-        await RefDistrict.ToggleMenu();
-    }
-    //Distric
-    async void DistrictChanged_Handle(AddressModel value)
-    {
-        SelectedDistrict = value;
-        //Clear Ward
-        SelectedWard = null;
-        //Load Ward list
-        if (SelectedCity != null && SelectedDistrict != null)
-        {
-            WardList = await masterService.Load_WardList(SelectedCity.ItemID, SelectedDistrict.ItemID);
-        }
+    //    //Show District
+    //    await RefDistrict.ToggleMenu();
+    //}
+    ////Distric
+    //async void DistrictChanged_Handle(AddressModel value)
+    //{
+    //    SelectedDistrict = value;
+    //    //Clear Ward
+    //    SelectedWard = null;
+    //    //Load Ward list
+    //    if (SelectedCity != null && SelectedDistrict != null)
+    //    {
+    //        WardList = await masterService.Load_WardList(SelectedCity.ItemID, SelectedDistrict.ItemID);
+    //    }
 
-        //Show Ward
-        await RefWard.ToggleMenu();
-    }
-    //Ward
-    void WardChanged_Handle(AddressModel value)
-    {
-        SelectedWard = value;
-        //Focus to address
-        RefAddress.Focus();
-    }
+    //    //Show Ward
+    //    await RefWard.ToggleMenu();
+    //}
+    ////Ward
+    //void WardChanged_Handle(AddressModel value)
+    //{
+    //    SelectedWard = value;
+    //    //Focus to address
+    //    RefAddress.Focus();
+    //}
 
     void OwnerFullname_TextChanged(string text)
     {
@@ -321,6 +352,7 @@
             Model.OwnerFullname = Model.CusFullname;
         }
     }
+
     async void CusPhone_TextChanged(string text)
     {
         Model.CusPhone = text;
@@ -349,24 +381,24 @@
                 Model.CusFullname = response.Record.CusFullname;
                 Model.CusEmail = response.Record.CusEmail;
                 Model.CusCitizenID = response.Record.CusCitizenID;
-                Model.CityID = response.Record.CityID;
-                Model.CityName = response.Record.CityName;
-                Model.DistrictID = response.Record.DistrictID;
-                Model.DistrictName = response.Record.DistrictName;
-                Model.WardID = response.Record.WardID;
-                Model.WardName = response.Record.WardName;
-                Model.Address = response.Record.Address;
-                Model.PostalCode = response.Record.PostalCode;
+                //Model.CityID = response.Record.CityID;
+                //Model.CityName = response.Record.CityName;
+                //Model.DistrictID = response.Record.DistrictID;
+                //Model.DistrictName = response.Record.DistrictName;
+                //Model.WardID = response.Record.WardID;
+                //Model.WardName = response.Record.WardName;
+                //Model.Address = response.Record.Address;
+                //Model.PostalCode = response.Record.PostalCode;
 
-                //Load district list
-                DistrictList = await masterService.Load_DistrictList(Model.CityID);
-                //Load Ward list
-                WardList = await masterService.Load_WardList(Model.CityID, Model.DistrictID);
+                ////Load district list
+                //DistrictList = await masterService.Load_DistrictList(Model.CityID);
+                ////Load Ward list
+                //WardList = await masterService.Load_WardList(Model.CityID, Model.DistrictID);
 
-                //Seleted combobox
-                SelectedCity = CityList.Find(x => x.ItemID == Model.CityID);
-                SelectedDistrict = DistrictList.Find(x => x.ItemID == Model.DistrictID);
-                SelectedWard = WardList.Find(x => x.ItemID == Model.WardID);
+                ////Seleted combobox
+                //SelectedCity = CityList.Find(x => x.ItemID == Model.CityID);
+                //SelectedDistrict = DistrictList.Find(x => x.ItemID == Model.DistrictID);
+                //SelectedWard = WardList.Find(x => x.ItemID == Model.WardID);
 
                 //Same product
                 if (response.IsMatchByProduct)
@@ -386,15 +418,24 @@
             }
         }
     }
-    //OnBlur_CusEmail
-    async void OnBlur_CusEmail(FocusEventArgs e)
+
+    async void LicensePlate_TextChanged(string text)
     {
-        //Show City
-        if (SelectedCity == null)
-        {
-            await RefCity.ToggleMenu();
-        }
+        Model.LicensePlate = text;
+
+        //Duplicated check
+        var res = await DuplicatedCheck();
     }
+
+    //OnBlur_CusEmail
+    //async void OnBlur_CusEmail(FocusEventArgs e)
+    //{
+    //    //Show City
+    //    if (SelectedCity == null)
+    //    {
+    //        await RefCity.ToggleMenu();
+    //    }
+    //}
 
 
     //Validate
@@ -403,45 +444,27 @@
         bool validateResult = true;
 
         //Clear error
-        RefOwnerFullname.ClearError();
+        //RefOwnerFullname.ClearError();
         RefLicensePlate.ClearError();
         RefCusFullname.ClearError();
-        RefCusCitizenID.ClearError();
+        //RefCusCitizenID.ClearError();
         RefCusPhone.ClearError();
         RefCusEmail.ClearError();
-        RefCity.ClearError();
-        RefDistrict.ClearError();
-        RefWard.ClearError();
-        RefAddress.ClearError();
+        //RefCity.ClearError();
+        //RefDistrict.ClearError();
+        //RefWard.ClearError();
+        //RefAddress.ClearError();
+
+
 
         //RefOwnerFullname
-        if (string.IsNullOrWhiteSpace(Model.OwnerFullname))
-        {
-            RefOwnerFullname.Focus();
-            RefOwnerFullname.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
-        //RefLicensePlate
-        if (string.IsNullOrWhiteSpace(Model.LicensePlate))
-        {
-            RefLicensePlate.Focus();
-            RefLicensePlate.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
-        //RefCusFullname
-        if (string.IsNullOrWhiteSpace(Model.CusFullname))
-        {
-            RefCusFullname.Focus();
-            RefCusFullname.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
-        //RefCusCitizenID
-        if (string.IsNullOrWhiteSpace(Model.CusCitizenID))
-        {
-            RefCusCitizenID.Focus();
-            RefCusCitizenID.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
+        //if (string.IsNullOrWhiteSpace(Model.OwnerFullname))
+        //{
+        //    RefOwnerFullname.Focus();
+        //    RefOwnerFullname.SetError("Bắt buộc nhập");
+        //    validateResult = false;
+        //}
+
         //RefCusPhone
         if (string.IsNullOrWhiteSpace(Model.CusPhone))
         {
@@ -455,47 +478,75 @@
             RefCusPhone.SetError("Số điện thoại không hợp lệ");
             validateResult = false;
         }
-        //RefCusEmail
-        if (string.IsNullOrWhiteSpace(Model.CusEmail))
+        //RefCusFullname
+        if (string.IsNullOrWhiteSpace(Model.CusFullname))
         {
-            RefCusEmail.Focus();
-            RefCusEmail.SetError("Bắt buộc nhập");
+            RefCusFullname.Focus();
+            RefCusFullname.SetError("Bắt buộc nhập");
             validateResult = false;
         }
-        else if (!Model.CusEmail.IsEmail())
+        //RefCusEmail required if CusPhone blank
+        if (string.IsNullOrWhiteSpace(Model.CusPhone))
         {
-            RefCusEmail.Focus();
-            RefCusEmail.SetError("Email không hợp lệ");
+            if (string.IsNullOrWhiteSpace(Model.CusEmail))
+            {
+                RefCusEmail.Focus();
+                RefCusEmail.SetError("Bắt buộc nhập");
+                validateResult = false;
+            }
+            else if (!Model.CusEmail.IsEmail())
+            {
+                RefCusEmail.Focus();
+                RefCusEmail.SetError("Email không hợp lệ");
+                validateResult = false;
+            }
+        }
+
+        //RefLicensePlate
+        if (string.IsNullOrWhiteSpace(Model.LicensePlate))
+        {
+            RefLicensePlate.Focus();
+            RefLicensePlate.SetError("Bắt buộc nhập");
             validateResult = false;
         }
-        //City
-        if (SelectedCity == null)
-        {
-            RefCity.Focus();
-            RefCity.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
-        //District
-        if (SelectedDistrict == null)
-        {
-            RefDistrict.Focus();
-            RefDistrict.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
-        //Ward
-        if (SelectedWard == null)
-        {
-            RefWard.Focus();
-            RefWard.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
-        //Address
-        if (string.IsNullOrWhiteSpace(Model.Address))
-        {
-            RefAddress.Focus();
-            RefAddress.SetError("Bắt buộc nhập");
-            validateResult = false;
-        }
+
+        ////RefCusCitizenID
+        //if (string.IsNullOrWhiteSpace(Model.CusCitizenID))
+        //{
+        //    RefCusCitizenID.Focus();
+        //    RefCusCitizenID.SetError("Bắt buộc nhập");
+        //    validateResult = false;
+        //}
+
+
+        ////City
+        //if (SelectedCity == null)
+        //{
+        //    RefCity.Focus();
+        //    RefCity.SetError("Bắt buộc nhập");
+        //    validateResult = false;
+        //}
+        ////District
+        //if (SelectedDistrict == null)
+        //{
+        //    RefDistrict.Focus();
+        //    RefDistrict.SetError("Bắt buộc nhập");
+        //    validateResult = false;
+        //}
+        ////Ward
+        //if (SelectedWard == null)
+        //{
+        //    RefWard.Focus();
+        //    RefWard.SetError("Bắt buộc nhập");
+        //    validateResult = false;
+        //}
+        ////Address
+        //if (string.IsNullOrWhiteSpace(Model.Address))
+        //{
+        //    RefAddress.Focus();
+        //    RefAddress.SetError("Bắt buộc nhập");
+        //    validateResult = false;
+        //}
         //
         return validateResult;
     }
@@ -530,32 +581,8 @@
         if (Model.DurationUnit == "Năm") Model.EffectiveEndDate = Model.EffectiveSttDate.AddYears(Model.Duration);
 
         //Duplicated check
-        var request = new DuplicatedCheck_Request();
-        var Credential = new Insure.Services.UserCredential()
-            {
-                Username = WebUserCredential.Username,
-                RoleID = WebUserCredential.RoleID,
-                AccessToken = WebUserCredential.AccessToken,
-                ApiKey = WebUserCredential.ApiKey
-            };
-        request.Credential = Credential;
-        request.EffectiveSttDate = Model.EffectiveSttDate.ToTimestampFromLocalTime();
-        request.ProductID = Model.ProductID;
-        request.LicensePlate = Model.LicensePlate;
-        //
-        var response = await insureServiceClient.DuplicatedCheckAsync(request);
-        // Duplicated
-        if (response != null && response.ReturnCode == GrpcReturnCode.Error_201)
-        {
-            Snackbar.Add(response.MsgCode, Severity.Error);
-            return;
-        }
-        //Server error
-        if (response == null && response.ReturnCode != GrpcReturnCode.OK)
-        {
-            Snackbar.Add("Máy chủ tạm thời ngưng phục vụ, xin hãy quay lại sau.", Severity.Error);
-            return;
-        }
+        var isDuplicated = await DuplicatedCheck();
+        if (isDuplicated) return;
 
         //Next step
         var parameters = new DialogParameters();
@@ -573,6 +600,44 @@
                 MudDialog.Close(ret2);
             }
         }
+    }
+
+    private async Task<bool> DuplicatedCheck()
+    {
+        try
+        {
+            var request = new DuplicatedCheck_Request();
+            var Credential = new Insure.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            request.EffectiveSttDate = Model.EffectiveSttDate.ToTimestampFromLocalTime();
+            request.ProductID = Model.ProductID;
+            request.LicensePlate = Model.LicensePlate;
+            //
+            var response = await insureServiceClient.DuplicatedCheckAsync(request);
+            // Duplicated
+            if (response != null && response.ReturnCode == GrpcReturnCode.Error_201)
+            {
+                Snackbar.Add(response.MsgCode, Severity.Error);
+                Model.EffectiveSttDate = response.EffectiveEndDate.ToLocalDateFromTimestamp().AddDays(1);
+                this.StateHasChanged();
+                return true;
+            }
+            //Server error
+            if (response == null && response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_ServerError, Severity.Error);
+                return true;
+            }
+        }
+        catch { }
+        //
+        return false;
     }
 
     //Select discount code
@@ -599,7 +664,7 @@
             {
                 Model.PaymentAmount = 0;
                 Model.DiscountAmount = Model.UnitPrice;
-            } 
+            }
             DiscountText = $"{Model.DiscountAmount.ToString("N0")}đ - {Model.DiscountName}";
             this.StateHasChanged();
         }

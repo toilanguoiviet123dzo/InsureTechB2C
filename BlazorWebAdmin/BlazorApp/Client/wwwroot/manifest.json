@@ -1,6 +1,6 @@
 ﻿{
-  "name": "BM: quản lý bồi thường",
-  "short_name": "BM Claim",
+  "name": "InsurTech: admin web",
+  "short_name": "Admin web",
   "start_url": "./",
   "display": "standalone",
   "background_color": "#ffffff",

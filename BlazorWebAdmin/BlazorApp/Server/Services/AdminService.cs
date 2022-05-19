@@ -41,6 +41,7 @@ namespace BlazorApp.Server.Services
             //
             try
             {
+                //Hard code
                 var findRecord = await DB.Find<mdUserAccount>()
                                          .Match(x => x.UserName == request.UserName && x.Password == request.Password)
                                          .ExecuteFirstAsync();

@@ -10,6 +10,14 @@ using System.Net.Http.Headers;
 //WebApplication
 var builder = WebApplication.CreateBuilder(args);
 
+//builder.UseUrls("http://0.0.0.0:6868");
+builder.WebHost.ConfigureKestrel(options =>
+{
+    options.ListenAnyIP(6868); // to listen for incoming http connection on port 5001
+    //options.ListenAnyIP(5081, configure => configure.UseHttps()); // to listen for incoming https connection on port 7001
+});
+
+
 // AddRazorPages
 builder.Services.AddRazorPages();
 
@@ -39,6 +47,8 @@ builder.Services.AddHostedService<PaymentWorker>();
 
 //Servies
 builder.Services.AddSingleton<eBaoService>();
+builder.Services.AddSingleton<BHVService>();
+builder.Services.AddSingleton<VnPayService>();
 builder.Services.AddSingleton<PaymentService>();
 
 //Mongle DB

@@ -5,8 +5,16 @@ using MongoDB.Entities;
 
 namespace PaymentWeb.Services
 {
-    public static class VnPayService
+    public class VnPayService
     {
+        private eBaoService _ebaoService;
+        private BHVService _bhvService;
+        public VnPayService(eBaoService ebaoService,
+                            BHVService bhvService)
+        {
+            _ebaoService = ebaoService;
+            _bhvService = bhvService;
+        }
         public static Dictionary<string, string> VnPay_ErrorDic { get; set; } = new Dictionary<string, string>()
         {
             {"00","Giao dịch thành công" },
@@ -30,7 +38,7 @@ namespace PaymentWeb.Services
         /// <param name="initOrderToken"></param>
         /// <param name="transactionID"></param>
         /// <returns></returns>
-        public static async Task<InitPaymentResult> InitPayment(string initOrderToken, string transactionID)
+        public async Task<InitPaymentResult> InitPayment(string initOrderToken, string transactionID)
         {
             var ret = new InitPaymentResult();
             ret.ReturnCode = ReturnCode.OK;
@@ -84,7 +92,7 @@ namespace PaymentWeb.Services
         /// <param name="ipAddress"></param>
         /// <param name="record"></param>
         /// <returns></returns>
-        public static async Task<string> Gen_PaymentRedirectLink(string ipAddress, mdSaleOrder record)
+        public async Task<string> Gen_PaymentRedirectLink(string ipAddress, mdSaleOrder record)
         {
             string paymentUrl = "";
             //
@@ -150,7 +158,7 @@ namespace PaymentWeb.Services
         /// </summary>
         /// <param name="responseData"></param>
         /// <returns></returns>
-        public static async Task<bool> Check_Signature(Dictionary<string, string> responseData)
+        public async Task<bool> Check_Signature(Dictionary<string, string> responseData)
         {
             try
             {
@@ -189,7 +197,7 @@ namespace PaymentWeb.Services
         /// <param name="result"></param>
         /// <param name="queryData"></param>
         /// <returns></returns>
-        public static async Task<FinishPaymentResult> FinishPayment(VnPayResult result, Dictionary<string, string> queryData, eBaoService ebaoService)
+        public async Task<FinishPaymentResult> FinishPayment(VnPayResult result, Dictionary<string, string> queryData)
         {
             var ret = new FinishPaymentResult();
             ret.ReturnCode = ReturnCode.OK;
@@ -269,16 +277,16 @@ namespace PaymentWeb.Services
                 resData.Add("vnp_ResponseCode", result.vnp_ResponseCode);
                 resData.Add("vnp_TxnRef", result.vnp_TxnRef);
                 record.PaymentResponseData = MyJson.ToKeyPairJsonString(resData);
-
                 //
                 await record.SaveAsync();
 
                 //Payment failed
                 if (record.IsPayError) return ret;
 
-
-                //Issue Order to eBao
-                var issueRes = await ebaoService.eBao_CreateToIssue_TNDS(record);
+                //
+                //Call insurance provider to issuer Certificate
+                //
+                var issueRes = await IssueCertificate(record);
                 ret.ReturnCode = issueRes.ReturnCode;
                 ret.ErrorMessage = issueRes.ErrorMessage;
 
@@ -297,6 +305,34 @@ namespace PaymentWeb.Services
                 ret.ReturnCode = ReturnCode.Error_ByServer;
             }
             //
+            return ret;
+        }
+
+        public async Task<CallApiReturn> IssueCertificate(mdSaleOrder order)
+        {
+            var ret = new CallApiReturn();
+            ret.ReturnCode = ReturnCode.OK;
+            try
+            {
+                //BMI
+                if (order.VendorID == MyConstant.Vendor_BMI)
+                {
+                    ret = await _ebaoService.eBao_CreateToIssue_TNDS(order);
+                }
+
+                //BHV
+                if (order.VendorID == MyConstant.Vendor_BHV)
+                {
+                    ret = await _bhvService.Create_MotorTNDS(order);
+                }
+
+
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "IssueCertificate", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                ret.ReturnCode = ReturnCode.Error_ByServer;
+            }
             return ret;
         }
 

@@ -19,7 +19,7 @@ service grpcInsureService {
     rpc CheckPayStatus (String_Request) returns (CheckPayStatus_Response);
     rpc GetCertificateList (GetCertificateList_Request) returns (GetCertificateList_Response);
     rpc GetSaleOrderByPhone (GetSaleOrderByPhone_Request) returns (GetSaleOrderByPhone_Response);
-    rpc DuplicatedCheck (DuplicatedCheck_Request) returns (Empty_Response);
+    rpc DuplicatedCheck (DuplicatedCheck_Request) returns (DuplicatedCheck_Response);
 
     //DiscountCode
     rpc SaveDiscountCode (SaveDiscountCode_Request) returns (String_Response);
@@ -310,6 +310,12 @@ message DuplicatedCheck_Request {
     google.protobuf.Timestamp EffectiveSttDate = 2;
     string ProductID = 3;
     string LicensePlate = 4;
+}
+message DuplicatedCheck_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    google.protobuf.Timestamp EffectiveEndDate = 3;
 }
 message GetSaleOrderByPhone_Request {
     UserCredential Credential = 1;

@@ -10,16 +10,17 @@
     .mud-main-content {
         padding-top: 10px !important;
     }
+
     body {
         max-height: 100vh;
         overflow-y: scroll;
     }
 
     /*body {
-        background-image: url("./images/background-main.jpg");
-        background-color: transparent;
-        object-fit:cover;
-    }*/
+                background-image: url("./images/background-main.jpg");
+                background-color: transparent;
+                object-fit:cover;
+            }*/
 </style>
 
 <MudThemeProvider />
@@ -31,7 +32,7 @@
     <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
         <MudAvatar Color="Color.Default" Variant="Variant.Filled" Class="mr-3">
             <MudAvatar Color="Color.Secondary" Image="./images/Logo1.png" Size="Size.Large"
-                     @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
+                       @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
         </MudAvatar>
         @if (string.IsNullOrWhiteSpace(WebUserCredential.Program.ProgramName))
         {
@@ -52,37 +53,41 @@
         </CascadingValue>
     </MudMainContent>
 
-    <!--Bottom App bar-->
-    <MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
-        <!--Admin-->
-        <MudMenu @ref="@adminMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
-            <ActivatorContent>
-                <MudChip Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Error" Style="width: 120px;">Admin</MudChip>
-            </ActivatorContent>
-            <ChildContent>
-                <MudNavMenu Color="Color.Info">
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Settings" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("SettingMaster","Cài đặt hệ thống")))">Cài đặt hệ thống</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.List" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListHeader","Danh mục tùy chọn")))">Danh mục tùy chọn</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.FormatListBulleted" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListDetail","Chi tiết danh mục tùy chọn")))">Chi tiết danh mục tùy chọn</MudNavLink>
-                </MudNavMenu>
-            </ChildContent>
-        </MudMenu>
+    <AuthorizeView>
+        <Authorized>
+            <!--Bottom App bar-->
+            <MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
+                <!--Admin-->
+                <MudMenu @ref="@adminMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+                    <ActivatorContent>
+                        <MudChip Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Error" Style="width: 120px;">Admin</MudChip>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudNavMenu Color="Color.Info">
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Settings" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("SettingMaster","Cài đặt hệ thống")))">Cài đặt hệ thống</MudNavLink>
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.List" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListHeader","Danh mục tùy chọn")))">Danh mục tùy chọn</MudNavLink>
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.FormatListBulleted" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListDetail","Chi tiết danh mục tùy chọn")))">Chi tiết danh mục tùy chọn</MudNavLink>
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.SupervisedUserCircle" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("UserAccount","Tài khoản người dùng")))">Tài khoản người dùng</MudNavLink>
+                        </MudNavMenu>
+                    </ChildContent>
+                </MudMenu>
 
-        <!--Master-->
-        <MudMenu @ref="@masterMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
-            <ActivatorContent>
-                <MudChip Icon="@Icons.Filled.DensityMedium" Color="Color.Warning" Style="width: 120px;">Master</MudChip>
-            </ActivatorContent>
-            <ChildContent>
-                <MudNavMenu Color="Color.Info">
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Discount" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("DiscountCode","Danh sách code khuyến mãi")))">Danh sách code khuyến mãi</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
-                    <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.LocationOn" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("AddressMaster","Danh mục địa chỉ")))">Danh mục địa chỉ</MudNavLink>
-                </MudNavMenu>
-            </ChildContent>
-        </MudMenu>
-    </MudAppBar>
-
+                <!--Master-->
+                <MudMenu @ref="@masterMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+                    <ActivatorContent>
+                        <MudChip Icon="@Icons.Filled.DensityMedium" Color="Color.Warning" Style="width: 120px;">Master</MudChip>
+                    </ActivatorContent>
+                    <ChildContent>
+                        <MudNavMenu Color="Color.Info">
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Discount" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("DiscountCode","Danh sách code khuyến mãi")))">Danh sách code khuyến mãi</MudNavLink>
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.LocationOn" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("AddressMaster","Danh mục địa chỉ")))">Danh mục địa chỉ</MudNavLink>
+                        </MudNavMenu>
+                    </ChildContent>
+                </MudMenu>
+            </MudAppBar>
+        </Authorized>
+    </AuthorizeView>
 
 </MudLayout>
 @code {

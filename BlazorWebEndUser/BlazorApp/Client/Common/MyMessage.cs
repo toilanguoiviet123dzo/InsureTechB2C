@@ -8,6 +8,7 @@ namespace BlazorApp.Client.Common
     public static class MyMessage
     {
         //Error message
+        public const string Error_ServerError = "Máy chủ tạm thời ngưng phục vụ, xin hãy quay lại sau.";
         public const string Error_LoadDataFailed = "Load dữ liệu thất bại";
         public const string Error_SaveFailed = "Lưu dữ liệu thất bại";
         public const string Error_DeleteFailed = "Xóa dữ liệu thất bại";

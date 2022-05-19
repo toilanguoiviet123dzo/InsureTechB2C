@@ -13,9 +13,12 @@ namespace PaymentWeb.Services
 {
     public class PaymentService
     {
+        private VnPayService _vnPay;
         private eBaoService _ebaoService;
-        public PaymentService(eBaoService ebaoService)
+        public PaymentService(VnPayService vnPay,
+                              eBaoService ebaoService)
         {
+            _vnPay = vnPay;
             _ebaoService = ebaoService;
         }
         /// <summary>
@@ -35,7 +38,7 @@ namespace PaymentWeb.Services
                 //VnPay
                 if (paymentChannelID == MyConstant.PyamentChannel_VnPay)
                 {
-                    return await VnPayService.InitPayment(initOrderToken, transactionID);
+                    return await _vnPay.InitPayment(initOrderToken, transactionID);
                 }
             }
             catch (Exception ex)
@@ -138,7 +141,7 @@ namespace PaymentWeb.Services
                 //VnPay
                 if (PaymentChannelID == MyConstant.PyamentChannel_VnPay)
                 {
-                    return await VnPayService.Gen_PaymentRedirectLink(ipAddress, record);
+                    return await _vnPay.Gen_PaymentRedirectLink(ipAddress, record);
                 }
             }
             catch (Exception ex)
@@ -168,7 +171,7 @@ namespace PaymentWeb.Services
                 //VnPay
                 if (PaymentChannelID == MyConstant.PyamentChannel_VnPay)
                 {
-                    return await VnPayService.FinishPayment(result, queryData, _ebaoService);
+                    return await _vnPay.FinishPayment(result, queryData);
                 }
             }
             catch (Exception ex)

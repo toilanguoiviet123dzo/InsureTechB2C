@@ -25,7 +25,7 @@ namespace BlazorApp.Server.Services
     public class ResourceService : grpcResourceService.grpcResourceServiceBase
     {
         private readonly ILogger<ResourceService> _logger;
-        private static int ArchiveMode = 2;    //1: DB 2:Disk
+        private static int ArchiveMode = 1;    //1: DB 2:Disk
 
         public ResourceService(ILogger<ResourceService> logger)
         {

@@ -13,9 +13,12 @@ namespace PaymentWeb.Controllers
     public class IpnVnPayController : ControllerBase
     {
         private readonly PaymentService _paymentService;
-        public IpnVnPayController(PaymentService paymentService)
+        private readonly VnPayService _vnPayService;
+        public IpnVnPayController(PaymentService paymentService,
+                                  VnPayService vnPayService)
         {
             _paymentService = paymentService;
+            _vnPayService = vnPayService;
         }
 
         [HttpGet]
@@ -58,7 +61,7 @@ namespace PaymentWeb.Controllers
                 }
 
                 //Check signature
-                var checkResult = await VnPayService.Check_Signature(querryData);
+                var checkResult = await _vnPayService.Check_Signature(querryData);
                 if (!checkResult)
                 {
                     response.RspCode = "97";
@@ -95,14 +98,14 @@ namespace PaymentWeb.Controllers
                         return response;
                     }
 
-                    //already confirmed
-                    if (record.IsPayDone)
-                    {
-                        response.RspCode = "02";
-                        response.Message = "Order already confirmed";
-                        MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
-                        return response;
-                    }
+                    //already confirmed > not check
+                    //if (record.IsPayDone)
+                    //{
+                    //    response.RspCode = "02";
+                    //    response.Message = "Order already confirmed";
+                    //    MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", "response", ReturnCode.Error_ByServer, MyJson.Serialize(response));
+                    //    return response;
+                    //}
                 }
 
                 //VnPayResult

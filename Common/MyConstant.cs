@@ -34,6 +34,10 @@ namespace BlazorApp.Server.Common
         public const string ProductType_AutoMotor = "AutoMotor";
         public const string ProductType_Health = "Health";
 
+        //Vendor
+        public const string Vendor_BMI = "BMI";
+        public const string Vendor_BHV = "BHV";
+
 
     }// end class
 }// end name space

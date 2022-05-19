@@ -6,8 +6,8 @@
     <title>InsurTech TPA</title>
     <base href="/" />
     <!--PWA-->
-    <link href="manifest.json" rel="manifest" />
-    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />
+    <!--<link href="manifest.json" rel="manifest" />
+    <link rel="apple-touch-icon" sizes="512x512" href="icon-512.png" />-->
     <!--jquery-->
     <script src="js/jquery/jquery.min.js"></script>
     <!--bootstrap-->
@@ -22,7 +22,7 @@
 
     <!--frame work-->
     <link href="css/styles.css?v=221402" rel="stylesheet" />
-    <link href="BlazorApp.Client.styles.css" rel="stylesheet" />
+    <link href="AdminApp.Client.styles.css" rel="stylesheet" />
 
 </head>
 <body>
@@ -45,10 +45,10 @@
     <script src="_content/MudBlazor/MudBlazor.min.js"></script>
     <script src="_framework/blazor.webassembly.js" autostart="false"></script>
     <script src="_content/TinyMCE.Blazor/tinymce-blazor.js"></script>
-    <script>navigator.serviceWorker.register('service-worker.js');</script>
+    <!--<script>navigator.serviceWorker.register('service-worker.js');</script>-->
     <script>
         Blazor.start({
-            environment: "Development"
+            environment: "Production"
         });
     </script>
     <!--Development, Production-->

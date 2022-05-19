@@ -4,6 +4,7 @@ using System.Globalization;
 using System.IO;
 using System.Security.Cryptography;
 using System.Text;
+using System.Xml;
 
 namespace Cores.Utilities
 {
@@ -247,6 +248,158 @@ namespace Cores.Utilities
 
     }
 
+    public static class RSACrypto
+    {
+        public static string SignData_SHA512(string message, string xmlPrivateKey)
+        {
+            //// The array to store the signed message in bytes
+            byte[] signedBytes;
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                //// Write the message to a byte array using UTF8 as the encoding.
+                var encoder = new UTF8Encoding();
+                byte[] originalData = encoder.GetBytes(message);
+
+                try
+                {
+                    //// Import the private key used for signing the message
+                    rsa.FromXmlString(xmlPrivateKey);
+                    //rsa.ImportParameters(privateKey);
+
+                    //// Sign the data, using SHA512 as the hashing algorithm 
+                    signedBytes = rsa.SignData(originalData, CryptoConfig.MapNameToOID("SHA512"));
+                }
+                catch (CryptographicException e)
+                {
+                    Console.WriteLine(e.Message);
+                    return null;
+                }
+                finally
+                {
+                    //// Set the keycontainer to be cleared when rsa is garbage collected.
+                    rsa.PersistKeyInCsp = false;
+                }
+            }
+            //// Convert the a base64 string before returning
+            return Convert.ToBase64String(signedBytes);
+        }
+
+        public static bool VerifyData_SHA512(string originalMessage, string signedMessage, string xmlPublicKey)
+        {
+            bool success = false;
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                var encoder = new UTF8Encoding();
+                byte[] bytesToVerify = encoder.GetBytes(originalMessage);
+                byte[] signedBytes = Convert.FromBase64String(signedMessage);
+                //
+                try
+                {
+                    rsa.FromXmlString(xmlPublicKey);
+                    //rsa.ImportParameters(publicKey);
+
+                    var Hash = new SHA512Managed();
+
+                    byte[] hashedData = Hash.ComputeHash(signedBytes);
+
+                    success = rsa.VerifyData(bytesToVerify, CryptoConfig.MapNameToOID("SHA512"), signedBytes);
+                }
+                catch (CryptographicException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                finally
+                {
+                    rsa.PersistKeyInCsp = false;
+                }
+            }
+            return success;
+        }
+
+        public static string SignData_SHA256(string message, string xmlPrivateKey)
+        {
+            //// The array to store the signed message in bytes
+            byte[] signedBytes;
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                //// Write the message to a byte array using UTF8 as the encoding.
+                var encoder = new UTF8Encoding();
+                byte[] originalData = encoder.GetBytes(message);
+
+                try
+                {
+                    //// Import the private key used for signing the message
+                    rsa.FromXmlString(xmlPrivateKey);
+                    //rsa.ImportParameters(privateKey);
+
+                    //// Sign the data, using SHA256 as the hashing algorithm 
+                    signedBytes = rsa.SignData(originalData, CryptoConfig.MapNameToOID("SHA256"));
+                }
+                catch (CryptographicException e)
+                {
+                    Console.WriteLine(e.Message);
+                    return null;
+                }
+                finally
+                {
+                    //// Set the keycontainer to be cleared when rsa is garbage collected.
+                    rsa.PersistKeyInCsp = false;
+                }
+            }
+            //// Convert the a base64 string before returning
+            return Convert.ToBase64String(signedBytes);
+        }
+
+        public static bool VerifyData_SHA256(string originalMessage, string signedMessage, string xmlPublicKey)
+        {
+            bool success = false;
+            using (var rsa = new RSACryptoServiceProvider())
+            {
+                var encoder = new UTF8Encoding();
+                byte[] bytesToVerify = encoder.GetBytes(originalMessage);
+                byte[] signedBytes = Convert.FromBase64String(signedMessage);
+                //
+                try
+                {
+                    rsa.FromXmlString(xmlPublicKey);
+                    //rsa.ImportParameters(publicKey);
+
+                    var Hash = new SHA256Managed();
+
+                    byte[] hashedData = Hash.ComputeHash(signedBytes);
+
+                    success = rsa.VerifyData(bytesToVerify, CryptoConfig.MapNameToOID("SHA256"), signedBytes);
+                }
+                catch (CryptographicException e)
+                {
+                    Console.WriteLine(e.Message);
+                }
+                finally
+                {
+                    rsa.PersistKeyInCsp = false;
+                }
+            }
+            return success;
+        }
+
+        /// <summary>
+        /// SHA256 hash
+        /// </summary>
+        /// <param name="randomString"></param>
+        /// <returns></returns>
+        public static string SHA256(string stringToHash)
+        {
+            var crypt = new SHA256Managed();
+            string hash = String.Empty;
+            byte[] crypto = crypt.ComputeHash(Encoding.ASCII.GetBytes(stringToHash));
+            foreach (byte theByte in crypto)
+            {
+                hash += theByte.ToString("x2");
+            }
+            return hash;
+        }
+
+    }
 
 
 

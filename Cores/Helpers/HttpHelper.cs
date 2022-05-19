@@ -32,13 +32,13 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                client.DefaultRequestHeaders.Clear();
                 //Authorization
                 if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
-                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -64,13 +64,13 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                client.DefaultRequestHeaders.Clear();
                 //Authorization
                 if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
-                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -107,13 +107,13 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                client.DefaultRequestHeaders.Clear();
                 //Authorization
                 if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
-                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -150,13 +150,13 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                client.DefaultRequestHeaders.Clear();
                 //Authorization
                 if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
-                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -194,13 +194,13 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                client.DefaultRequestHeaders.Clear();
                 //Authorization
                 if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
-                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)
@@ -241,13 +241,13 @@ namespace Cores.Helpers
             //Make request
             try
             {
+                client.DefaultRequestHeaders.Clear();
                 //Authorization
                 if (!string.IsNullOrWhiteSpace(authorizationToken) && !string.IsNullOrWhiteSpace(authorizationScheme))
                 {
                     client.DefaultRequestHeaders.Authorization = new AuthenticationHeaderValue(authorizationScheme, authorizationToken);
                 }
                 //Header
-                client.DefaultRequestHeaders.Clear();
                 if (headers != null && headers.Count > 0)
                 {
                     foreach (var header in headers)

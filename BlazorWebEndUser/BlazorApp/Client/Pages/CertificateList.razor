@@ -15,12 +15,12 @@
                             @bind-Text="@FilterCusPhone"
                             IsFontBold=true />
             </div>
-            <div class="col-12 col-sm-3">
+            @*<div class="col-12 col-sm-3">
                 <MyTextEdit Literal="CMND/CCCD"
                             @ref=@RefCusCitizenID
                             @bind-Text="@FilterCusCitizenID"
                             IsFontBold=true />
-            </div>
+            </div>*@
             <!--Search buttion-->
             <div class="col-12 col-sm-3">
                 <MyButtonSearch OnClick="@(() => DisplayMain())" />
@@ -42,7 +42,7 @@
         <col />
     </ColGroup>
     <HeaderContent>
-        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SaleOrderModel, object>(x => x.EffectiveSttDate)">Từ ngày</MudTableSortLabel></MudTh>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<SaleOrderModel, object>(x => x.EffectiveSttDate)">Từ ngày</MudTableSortLabel></MudTh>
         <MudTh>Đến ngày</MudTh>
         <MudTh>Biển số</MudTh>
         <MudTh>Link download</MudTh>
@@ -94,15 +94,14 @@
                 return;
             }
             //RefCusPhone
-            if (string.IsNullOrWhiteSpace(FilterCusCitizenID))
-            {
-                Snackbar.Add("Chưa nhập: CMND/CCCD", Severity.Error);
-                RefCusCitizenID.Focus();
-                return;
-            }
+            //if (string.IsNullOrWhiteSpace(FilterCusCitizenID))
+            //{
+            //    Snackbar.Add("Chưa nhập: CMND/CCCD", Severity.Error);
+            //    RefCusCitizenID.Focus();
+            //    return;
+            //}
             //Cached to UserData
             UserData.Phone = FilterCusPhone;
-            UserData.CitizenID = FilterCusCitizenID;
 
             //Filter
             var requestString = new GetCertificateList_Request()
