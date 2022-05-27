@@ -192,7 +192,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.GetEditFormOptions(MaxWidth.Large)).Result;
+        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.ShowEditFormOptions(MaxWidth.Large)).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (ProductModel)result.Data;
@@ -216,7 +216,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.GetEditFormOptions(MaxWidth.Large)).Result;
+        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.ShowEditFormOptions(MaxWidth.Large)).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (ProductModel)result.Data;

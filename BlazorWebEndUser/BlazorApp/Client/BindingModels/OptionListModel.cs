@@ -13,6 +13,9 @@ namespace BlazorApp.Client.BindingModels
         [Required(ErrorMessage = "Bắt buộc nhập.")]
         public string ItemName { get; set; } = "";
         public string DspOrder { get; set; } = "";
+        public string ExtraInfo1 { get; set; } = "";
+        public string ExtraInfo2 { get; set; } = "";
+        public string ExtraInfo3 { get; set; } = "";
         public string Description { get; set; } = "";
         public DateTime CreatedOn { get; set; }
         public DateTime ModifiedOn { get; set; }

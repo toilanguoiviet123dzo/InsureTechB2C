@@ -1,9 +1,12 @@
 ﻿@using System.Globalization
 @typeparam T
 
+<!--TextChanged="@((string text) => OnTextChanged(text))"-->
+
 <MudNumericField @ref="@Ref"
                  T="T"
                  Value="@Value"
+                 Text=@Text
                  ValueChanged="@((T value) => OnValueChanged(value))"
                  TextChanged="@((string text) => OnTextChanged(text))"
                  OnBlur="OnBlur_Handle"
@@ -30,7 +33,7 @@
                  Max=Max
                  Error=@Error
                  ErrorText=@ErrorText
-                 @attributes="@Attributes"/>
+                 @attributes="@Attributes" />
 
 
 @code {
@@ -64,16 +67,17 @@
     [Parameter] public EventCallback<T> ValueChanged { get; set; }
     private async void OnValueChanged(T newValue)
     {
+        Value = newValue;
         await ValueChanged.InvokeAsync(newValue);
-        await TextChanged.InvokeAsync(newValue.ToString());
     }
-    [Parameter]
     //TextChanged
-    public EventCallback<string> TextChanged { get; set; }
+    [Parameter] public string Text { get; set; }
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
     private async void OnTextChanged(string newValue)
     {
+        Text = newValue;
         await TextChanged.InvokeAsync(newValue);
-
+        await Ref.Validate();
         //reset Error
         if (Error)
         {

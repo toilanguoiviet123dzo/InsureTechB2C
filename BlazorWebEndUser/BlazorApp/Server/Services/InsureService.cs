@@ -346,6 +346,7 @@ namespace BlazorApp.Server.Services
                     response.IsMatchByProduct = true;
                     response.Record = new grpcSaleOrderModel();
                     ClassHelper.CopyPropertiesData(record, response.Record);
+                    return response;
                 }
 
                 //By Phone
@@ -356,6 +357,7 @@ namespace BlazorApp.Server.Services
                 //
                 if (record != null)
                 {
+                    response.IsMatchByProduct = false;
                     response.Record = new grpcSaleOrderModel();
                     ClassHelper.CopyPropertiesData(record, response.Record);
                 }
@@ -441,6 +443,50 @@ namespace BlazorApp.Server.Services
                 response.ReturnCode = GrpcReturnCode.Error_ByServer;
                 response.MsgCode = ex.Message;
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "CheckDiscountCode", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetCarPrice
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.Double_Response> GetCarPrice(GetCarPrice_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.Double_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var query = DB.Find<mdCarPriceList>();
+                query.Match(x => x.ProductID == request.ProductID);
+                query.Match(x => x.BusinessType == request.BusinessType);
+                query.Match(x => x.CarType == request.CarType);
+                //By seat
+                if (request.SeatCount > 0)
+                {
+                    query.Match(x => x.FromSeatCount <= request.SeatCount && request.SeatCount <= x.ToSeatCount);
+                }
+                //By tonage
+                if (request.Tonage > 0)
+                {
+                    query.Match(x => x.FromTonage <= request.Tonage && request.Tonage <= x.ToTonage);
+                }
+
+                var record = await query.ExecuteFirstAsync();
+                //
+                if (record != null)
+                {
+                    response.DoubleValue = record.UnitPrice;
+                }
+                else
+                {
+                    response.ReturnCode = GrpcReturnCode.Error_201;
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetCarPrice", "Exception", response.ReturnCode, ex.Message);
             }
             return await Task.FromResult(response);
         }

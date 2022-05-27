@@ -124,8 +124,18 @@
     {
         var parameters = new DialogParameters();
         parameters.Add("Product", Model);
-        //
-        var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+
+        //Motor
+        if (Model.ProductType == MyConstant.ProductType_Motor)
+        {
+            var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        }
+
+        //Auto
+        if (Model.ProductType == MyConstant.ProductType_Auto)
+        {
+            var result = await DialogService.Show<TNSD_Auto_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        }
     }
 
     async void ShowDetail()

@@ -1,67 +1,61 @@
-﻿@page "/UserAccount"
-@using Admin.Services
+﻿@page "/CarPriceList"
+@using Insure.Services
 @using System.Collections.ObjectModel;
-@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
 @inject MasterService masterService;
 @inject IJSRuntime JsRuntime;
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
+<div style="width:30rem">
+    <MyComboBox @ref="RefProduct"
+                Value="SelectedProduct"
+                ValueChanged="@((ProductModel value) => Product_Changed(value))"
+                Data="@ProductList"
+                Literal="Sản phẩm"
+                TextFieldName="@nameof(ProductModel.ProductName)">
+    </MyComboBox>
+</div>
+<br />
+
 <MyDataGrid @ref="@grid"
-            T="UserAccountModel"
-            Title="Danh sách yêu cầu bồi thường"
+            T="CarPriceModel"
+            Title="Danh sách sản phẩm"
             Items="@DetailData"
             IsAddNew="true"
             IsDelete="true"
+            Dense=true
             OnAddRow="@(() => OnAddRow_Handle())"
-            OnViewRow="@((UserAccountModel row) => OnViewRow_Handle(row))"
-            OnDeleteRow="@((UserAccountModel row) => OnDeleteRow_Handle(row))">
+            OnViewRow="@((CarPriceModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((CarPriceModel row) => OnDeleteRow_Handle(row))">
     <ColGroup>
         <col style="width: 8rem;" />
-        <col style="width: 10rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 10rem;" />
         <col />
         <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
         <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 4rem;" />
-        <col style="width: 8rem;" />
+        <col style="width: 9rem;" />
     </ColGroup>
     <HeaderContent>
-        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<UserAccountModel, object>(x => x.UserName)">User name</MudTableSortLabel></MudTh>
-        <MudTh>Fullname</MudTh>
-        <MudTh>Phone</MudTh>
-        <MudTh>Email</MudTh>
-        <MudTh>Address</MudTh>
-        <MudTh>Vai trò</MudTh>
-        <MudTh>Chi nhánh</MudTh>
-        <MudTh>Cty vận chuyển</MudTh>
-        <MudTh>Nơi sửa chữa</MudTh>
-        <MudTh>Người duyệt</MudTh>
-        <MudTh>Cấp duyệt</MudTh>
-        <MudTh>Bảo mật tài liệu</MudTh>
-        <MudTh>Hữu hiệu</MudTh>
-        <MudTh>Ngày giờ cập nhật</MudTh>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<CarPriceModel, object>(x => x.BusinessTypeName)">Hình thức</MudTableSortLabel></MudTh>
+        <MudTh>Loại xe</MudTh>
+        <MudTh>Số chỗ ngồi</MudTh>
+        <MudTh>Đến</MudTh>
+        <MudTh>Số tấn</MudTh>
+        <MudTh>Đến</MudTh>
+        <MudTh>Giá bán</MudTh>
+        <MudTh>Cập nhật cuối</MudTh>
     </HeaderContent>
     <RowTemplate>
-        <MudTd>@context.UserName</MudTd>
-        <MudTd>@context.Fullname</MudTd>
-        <MudTd>@context.Phone</MudTd>
-        <MudTd>@context.Email</MudTd>
-        <MudTd>@context.Address</MudTd>
-        <MudTd>@context.RoleName</MudTd>
-        <MudTd>@context.BrancheName</MudTd>
-        <MudTd>@context.LogisticCompanyName</MudTd>
-        <MudTd>@context.RepairCompanyName</MudTd>
-        <MudTd>@context.ApproveAcountID</MudTd>
-        <MudTd>@context.ApproveLevelName</MudTd>
-        <MudTd>@context.DocumentLevelName</MudTd>
-        <MudTd><MudCheckBox Checked="@context.Status" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
+        <MudTd>@context.BusinessTypeName</MudTd>
+        <MudTd>@context.CarTypeName</MudTd>
+        <MudTd Style="color:green; font-weight: bold; text-align:end">@context.FromSeatCount.ToString("N0")</MudTd>
+        <MudTd Style="color:maroon; font-weight: bold; text-align:end">@context.ToSeatCount.ToString("N0")</MudTd>
+        <MudTd Style="color:green; font-weight: bold; text-align:end">@context.FromTonage.ToString("N0")</MudTd>
+        <MudTd Style="color:maroon; font-weight: bold; text-align:end">@context.ToTonage.ToString("N0")</MudTd>
+        <MudTd Style="color:blue; font-weight: bold; text-align:end">@context.UnitPrice.ToString("N0")</MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
     </RowTemplate>
 </MyDataGrid>
@@ -69,30 +63,24 @@
 @code {
     [CascadingParameter] protected ProgramInfo Program { get; set; }
     // Detail data
-    MyDataGrid<UserAccountModel> grid;
-    readonly List<UserAccountModel> DetailData = new List<UserAccountModel>();
-    // Master
-    private List<OptionListModel> RoleList = new List<OptionListModel>();
-    private List<OptionListModel> ApproveLevelList = new List<OptionListModel>();
-    private List<OptionListModel> DocumentLevelList = new List<OptionListModel>();
+    MyDataGrid<CarPriceModel> grid;
+    readonly List<CarPriceModel> DetailData = new List<CarPriceModel>();
+    // Combo box
+    ProductModel SelectedProduct;
+    MyComboBox<ProductModel> RefProduct;
+    private List<ProductModel> ProductList = new List<ProductModel>();
     //
     protected override async Task OnInitializedAsync()
     {
         base.OnInitialized();
 
-        //Load master
-        await LoadMaster();
-
         //Display data ..
         await DisplayMain();
+
+        //Car product list
+        ProductList = await masterService.Load_CarProductList();
     }
     #region Load data
-    async Task LoadMaster()
-    {
-        ApproveLevelList = await masterService.Load_OptionList("002");
-        DocumentLevelList = await masterService.Load_OptionList("003");
-        RoleList = await masterService.Load_OptionList("003");
-    }
 
     async Task DisplayMain()
     {
@@ -108,25 +96,22 @@
                         AccessToken = WebUserCredential.AccessToken,
                         ApiKey = WebUserCredential.ApiKey
                     },
-                    StringValue = ""
+                    StringValue = ProductID
                 };
 
             //Get data from DB
             DetailData.Clear();
-            var response = await adminServiceClient.GetUserAccountAsync(requestString);
+            var response = await insureServiceClient.GetCarPriceListAsync(requestString);
             if (response != null && response.ReturnCode == 200)
             {
-                foreach (var item in response.UserAccounts)
+                foreach (var record in response.Records)
                 {
-                    UserAccountModel dataRow = new UserAccountModel();
-                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
-                    //Upd mode
-                    dataRow.UpdMode = 0;
-                    //Set blank for password -> not save
-                    dataRow.Password = "";
+                    CarPriceModel dataRow = new CarPriceModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(record, dataRow);
                     //
                     DetailData.Add(dataRow);
                 }
+                this.StateHasChanged();
             }
         }
         catch
@@ -140,12 +125,12 @@
 
     #region Grid main
     //Save Row
-    async Task<bool> SaveRow(UserAccountModel saveRow)
+    async Task<bool> SaveRow(CarPriceModel saveRow)
     {
         try
         {
             //Request
-            var request = new SaveUserAccount_Request();
+            var request = new SaveCarPriceList_Request();
             var Credential = new UserCredential()
                 {
                     Username = WebUserCredential.Username,
@@ -155,10 +140,11 @@
                 };
             request.Credential = Credential;
             // Convert to DB row
-            request.Record = new grpcUserAccountModel();
+            request.Record = new grpcCarPriceListModel();
             ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+
             // Call api
-            var response = await adminServiceClient.SaveUserAccountAsync(request);
+            var response = await insureServiceClient.SaveCarPriceListAsync(request);
             // Success
             if (response == null || response.ReturnCode != GrpcReturnCode.OK)
             {
@@ -183,19 +169,28 @@
     //Add row
     async void OnAddRow_Handle()
     {
+        //Check has selected car
+        if (SelectedProduct == null)
+        {
+            RefProduct.Focus();
+            Snackbar.Add("Chưa chọn sản phẩm", Severity.Error);
+            return;
+        }
+
         //Init new row
-        var newRow = new UserAccountModel();
+        var newRow = new CarPriceModel();
+        newRow.ProductID = SelectedProduct.ProductID;
+        newRow.VendorID = SelectedProduct.VendorID;
         newRow.UpdMode = 1;
-        newRow.Status = true;
         newRow.ModifiedOn = DateTime.Now;
         //
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<UserAccountEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
+        var result = await DialogService.Show<CarPriceEdit>("", parameters, MyOptions.ShowEditFormOptions(MaxWidth.Large)).Result;
         if (!result.Cancelled && result.Data != null)
         {
-            var retModel = (UserAccountModel)result.Data;
+            var retModel = (CarPriceModel)result.Data;
 
             //Save to DB
             var saveRet = await SaveRow(retModel);
@@ -208,7 +203,7 @@
         }
     }
     //Update row
-    async void OnViewRow_Handle(UserAccountModel row)
+    async void OnViewRow_Handle(CarPriceModel row)
     {
         //UpdMode
         row.UpdMode = 2;
@@ -216,10 +211,10 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<UserAccountEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
+        var result = await DialogService.Show<CarPriceEdit>("", parameters, MyOptions.ShowEditFormOptions(MaxWidth.Large)).Result;
         if (!result.Cancelled && result.Data != null)
         {
-            var retModel = (UserAccountModel)result.Data;
+            var retModel = (CarPriceModel)result.Data;
             var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
             if (updateReccord != null)
             {
@@ -237,7 +232,7 @@
     }
 
     //Delete row
-    async void OnDeleteRow_Handle(UserAccountModel row)
+    async void OnDeleteRow_Handle(CarPriceModel row)
     {
         //UpdMode
         row.UpdMode = 3;
@@ -249,6 +244,17 @@
             DetailData.Remove(row);
             grid.Refresh();
         }
+    }
+
+    private string ProductID = "";
+    async void Product_Changed(ProductModel product)
+    {
+        ProductID = "";
+        SelectedProduct = product;
+        if (product == null) return;
+        ProductID = product.ProductID;
+        //
+        await DisplayMain();
     }
 
     #endregion

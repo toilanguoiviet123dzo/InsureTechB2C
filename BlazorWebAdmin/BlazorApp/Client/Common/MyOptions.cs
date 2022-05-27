@@ -22,7 +22,7 @@ namespace BlazorApp.Client.Common
             return options;
         }
 
-        public static DialogOptions GetMyFormOptions(MaxWidth size = MaxWidth.Large)
+        public static DialogOptions ShowMessageBoxOptions(MaxWidth size = MaxWidth.ExtraSmall)
         {
             var options = new DialogOptions()
             {
@@ -36,7 +36,7 @@ namespace BlazorApp.Client.Common
             return options;
         }
 
-        public static DialogOptions GetShowImageOptions(MaxWidth size = MaxWidth.Large)
+        public static DialogOptions ShowImageOptions(MaxWidth size = MaxWidth.Large)
         {
             var options = new DialogOptions()
             {
@@ -50,7 +50,20 @@ namespace BlazorApp.Client.Common
             return options;
         }
 
-        public static DialogOptions GetEditFormOptions(MaxWidth size = MaxWidth.Small)
+        public static DialogOptions ShowFormOptions(MaxWidth size = MaxWidth.Large)
+        {
+            var options = new DialogOptions()
+            {
+                MaxWidth = size,
+                Position = DialogPosition.Center,
+                CloseOnEscapeKey = true,
+                DisableBackdropClick = true,
+                CloseButton = false,
+                FullWidth = false
+            };
+            return options;
+        }
+        public static DialogOptions ShowEditFormOptions(MaxWidth size = MaxWidth.Small)
         {
             var options = new DialogOptions()
             {
@@ -64,9 +77,7 @@ namespace BlazorApp.Client.Common
             return options;
         }
 
-        
-
-        public static DialogOptions GetEditorOptions(MaxWidth size = MaxWidth.Large)
+        public static DialogOptions ShowEditorOptions(MaxWidth size = MaxWidth.Large)
         {
             var options = new DialogOptions()
             {
@@ -80,18 +91,6 @@ namespace BlazorApp.Client.Common
             return options;
         }
 
-        public static DialogOptions GetMessageBoxOptions(MaxWidth size = MaxWidth.ExtraSmall)
-        {
-            var options = new DialogOptions()
-            {
-                MaxWidth = size,
-                Position = DialogPosition.Center,
-                CloseOnEscapeKey = true,
-                DisableBackdropClick = true,
-                CloseButton = false,
-                FullWidth = false
-            };
-            return options;
-        }
+        
     }
 }

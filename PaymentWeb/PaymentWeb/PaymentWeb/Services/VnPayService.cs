@@ -317,16 +317,25 @@ namespace PaymentWeb.Services
                 //BMI
                 if (order.VendorID == MyConstant.Vendor_BMI)
                 {
+                    //Motor & Autor
                     ret = await _ebaoService.eBao_CreateToIssue_TNDS(order);
                 }
 
                 //BHV
                 if (order.VendorID == MyConstant.Vendor_BHV)
                 {
-                    ret = await _bhvService.Create_MotorTNDS(order);
+                    //TNDS motor
+                    if (order.ProductID == MyConstant.Product_MotorBHV)
+                    {
+                        ret = await _bhvService.Create_MotorTNDS(order);
+                    }
+
+                    //TNDS auto
+                    if (order.ProductID == MyConstant.Product_AutoBHV)
+                    {
+                        ret = await _bhvService.Create_AutoTNDS(order);
+                    }
                 }
-
-
             }
             catch (Exception ex)
             {

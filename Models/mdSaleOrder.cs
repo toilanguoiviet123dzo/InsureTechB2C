@@ -48,6 +48,12 @@ namespace BlazorApp.Server.Models
         public double TaxAmount { get; set; }
         public string Currency { get; set; } = "VND";
         public double ExchangeRate { get; set; } = 1;
+        //For car
+        public string BusinessType { get; set; } = "";
+        public string CarType { get; set; } = "";
+        public double SeatCount { get; set; }
+        public double Tonage { get; set; }
+
         //Discount
         public string DiscountCode { get; set; } = "";
         public double DiscountRate { get; set; }

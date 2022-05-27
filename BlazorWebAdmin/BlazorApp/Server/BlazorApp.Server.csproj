@@ -11,12 +11,12 @@
     <Compile Include="..\..\..\Configs\GrpcConfig.cs" Link="Configs\GrpcConfig.cs" />
     <Compile Include="..\..\..\Models\mdAddressMaster.cs" Link="Models\mdAddressMaster.cs" />
     <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
+    <Compile Include="..\..\..\Models\mdCarPriceList.cs" Link="Models\mdCarPriceList.cs" />
     <Compile Include="..\..\..\Models\mdDiscountCode.cs" Link="Models\mdDiscountCode.cs" />
     <Compile Include="..\..\..\Models\mdFirebasePushMessageQueue.cs" Link="Models\mdFirebasePushMessageQueue.cs" />
     <Compile Include="..\..\..\Models\mdNotificationSubcribe.cs" Link="Models\mdNotificationSubcribe.cs" />
     <Compile Include="..\..\..\Models\mdOptionList.cs" Link="Models\mdOptionList.cs" />
     <Compile Include="..\..\..\Models\mdOptionListHeader.cs" Link="Models\mdOptionListHeader.cs" />
-    <Compile Include="..\..\..\Models\mdPriceList.cs" Link="Models\mdPriceList.cs" />
     <Compile Include="..\..\..\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
     <Compile Include="..\..\..\Models\mdResourceFile.cs" Link="Models\mdResourceFile.cs" />
     <Compile Include="..\..\..\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />

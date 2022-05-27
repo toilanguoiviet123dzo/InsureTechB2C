@@ -12,7 +12,7 @@ namespace BlazorApp.Server.Common
 
         //Error
         public const string Error_ServerError = "Server tạm thời bị gián đoạn, xin hảy thử lại sau.";
-        public const string Error_PaymenmtError = "Có lỗi bất thường xảy ra, chúng tôi sẽ liên hệ bạn để hoàn trả tiền tương ứng.";
+        public const string Error_PaymenmtError = "Có lỗi trong quá trình cấp giấy chứng nhận. Chúng tôi sẽ gởi giấy chứng nhận đến bạn sau.";
 
 
 

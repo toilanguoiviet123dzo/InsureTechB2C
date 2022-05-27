@@ -384,6 +384,54 @@ namespace BlazorApp.Client.Services
             return ProductLists;
         }
 
+        private List<ProductModel> CarProductLists = new List<ProductModel>();
+        public async Task<List<ProductModel>> Load_CarProductList()
+        {
+            try
+            {
+                //skip check
+                if (CarProductLists.Count > 0) return CarProductLists;
+
+                //Get full product list
+                if (ProductLists.Count == 0)
+                {
+                    var request = new Insure.Services.String_Request();
+                    request.Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    };
+                    //
+                    var response = await _InsureServicesClient.GetProductListAsync(request);
+                    if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                    {
+                        foreach (var item in response.Records)
+                        {
+                            //Parrent grid
+                            var dataRow = new ProductModel();
+                            ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                            //
+                            ProductLists.Add(dataRow);
+                        }
+                    }
+                }
+                //Order
+                if (ProductLists.Count > 0)
+                {
+                    CarProductLists = ProductLists.FindAll(x => x.ProductType == "AutoMotor").OrderBy(x => x.ProductID).ToList<ProductModel>();
+                    foreach (var item in CarProductLists)
+                    {
+                        item.ProductName = item.VendorName + "_" + item.ProductName;
+                    }
+                }
+            }
+            catch { }
+            //
+            return CarProductLists;
+        }
+
 
 
 

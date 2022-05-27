@@ -199,7 +199,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<DiscountCodeEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<DiscountCodeEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (DiscountCodeModel)result.Data;
@@ -223,7 +223,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<DiscountCodeEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<DiscountCodeEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (DiscountCodeModel)result.Data;

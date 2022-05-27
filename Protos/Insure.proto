@@ -13,6 +13,7 @@ service grpcInsureService {
     //CarPriceList
     rpc SaveCarPriceList (SaveCarPriceList_Request) returns (String_Response);
     rpc GetCarPriceList (String_Request) returns (GetCarPriceList_Response);
+    rpc GetCarPrice (GetCarPrice_Request) returns (Double_Response);
    
     //Order
     rpc InitOrder (InitOrder_Request) returns (InitOrder_Response);
@@ -67,6 +68,14 @@ message Int_Response
     int32 IntValue = 3;
 }
 
+message Double_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    double DoubleValue = 3;
+}
+
 //
 //======================================================
 // Messages
@@ -78,14 +87,18 @@ message SaveCarPriceList_Request {
 }
 message grpcCarPriceListModel {
     string ID = 1;
-    string ProductID = 2;
-    string ProductName = 3;
-    string BusinessType = 4;
-    string BusinessTypeName = 5;
-    string PriceType = 6;
-    double SeatCount = 7;
-    double Tonage = 8;
-    double UnitPrice = 9;
+    string VendorID = 2;
+    string ProductID = 21;
+    string BusinessType = 3;
+    string BusinessTypeName = 4;
+    string CarType = 5;
+    string CarTypeName = 6;
+    bool BySeat = 7;
+    double FromSeatCount = 8;
+    double ToSeatCount = 9;
+    double FromTonage = 10;
+    double ToTonage = 11;
+    double UnitPrice = 12;
     google.protobuf.Timestamp ModifiedOn = 99;
     int32 UpdMode = 100;
 }
@@ -183,6 +196,10 @@ message grpcSaleOrderModel {
     double TaxAmount = 26;
     string Currency = 27;
     double ExchangeRate = 28;
+    string BusinessType = 281;
+    string CarType = 282;
+    double SeatCount = 283;
+    double Tonage = 284;
     //Status
     google.protobuf.Timestamp RequestTime  = 29;
     google.protobuf.Timestamp PaymentTime  = 30;
@@ -323,5 +340,13 @@ message GetSaleOrderByPhone_Request {
     string ProductID = 2;
     string CusPhone = 3;
 }
-
+message GetCarPrice_Request {
+    UserCredential Credential = 1;
+    //
+    string ProductID = 2;
+    string BusinessType = 3;
+    string CarType = 4;
+    double SeatCount = 5;
+    double Tonage = 6;
+}
 

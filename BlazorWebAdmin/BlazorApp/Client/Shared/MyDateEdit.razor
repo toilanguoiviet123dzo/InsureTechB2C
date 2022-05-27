@@ -1,5 +1,4 @@
-﻿@using System.Linq.Expressions
-<MudDatePicker @ref="@Ref"
+﻿<MudDatePicker @ref="@Ref"
                Date="Date"
                DateChanged="@((DateTime? value) => OnDateChanged(value))"
                TextChanged="@((string value) => OnTextChanged(value))"
@@ -20,7 +19,8 @@
                Required="@Required"
                StartMonth="@StartMonth"
                DisplayMonths="@DisplayMonths"
-               For="For"
+               Error=@Error
+               ErrorText=@ErrorText
                @attributes="@Attributes"/>
 
 @code {
@@ -43,7 +43,8 @@
     [Parameter] public int DisplayMonths { get; set; } = 2;
     [Parameter] public bool IsFontBold { get; set; } = false;
     [Parameter] public string TextColor { get; set; } = "";
-    [Parameter] public Expression<Func<DateTime?>> For { get; set; }
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public string ErrorText { get; set; } = "";
 
     //DateChanged
     [Parameter] public DateTime Date { get; set; } = DateTime.Today;
@@ -56,6 +57,14 @@
             await DateChanged.InvokeAsync((DateTime)newValue);
         }
         await TextChanged.InvokeAsync(newValue.ToString());
+
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
     //
     [Parameter] public EventCallback<string> TextChanged { get; set; }
@@ -110,5 +119,23 @@
     public async void Focus()
     {
         await Ref.FocusAsync();
+    }
+
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
 }

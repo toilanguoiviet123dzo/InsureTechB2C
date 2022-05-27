@@ -1,0 +1,205 @@
+﻿@using Resource.Services
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject MasterService masterService;
+@inject IDialogService DialogService
+@inject ISnackbar Snackbar
+
+<MyPopupEdit Title="Nhập giá bán"
+             T="CarPriceModel"
+             Model="DspModel"
+             ReadOnly="@ReadOnly"
+             Width=@MyFormSize.Small
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MyComboBox @ref="@RefBusinessType"
+                Literal="Hình thức"
+                Value="SelectedBusinessType"
+                ValueChanged="@((OptionListModel value) => BusinessType_Changed(value))"
+                Data="@BusinessTypeList"
+                TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    <MyComboBox @ref="@RefCarType"
+                Literal="Loại xe"
+                Value="SelectedCarType"
+                ValueChanged="@((OptionListModel value) => CarType_Changed(value))"
+                Data="@CarTypeList"
+                TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    <MyCheckBox Checked=DspModel.BySeat
+                Literal=@PriceCalMethodName
+                CheckedChanged="@((bool value) => BySeat_Changed(value))" />
+    <div class="d-flex justify-space-around">
+        <MudNumericField Style="width: 80%; color:green; font-weight:600" Label="Số chỗ ngồi" @bind-Value="DspModel.FromSeatCount" Min=0.0 Max=999.0 HideSpinButtons="true" Format="N0" T="double" Disabled="@(!DspModel.BySeat)" />
+        <MudNumericField Style="width: 80%; color:maroon; font-weight:600" Label="Đến" @bind-Value="DspModel.ToSeatCount" Min=0.0 Max=999.0 HideSpinButtons="true" Format="N0" T="double" Disabled="@(!DspModel.BySeat)" />
+    </div>
+    <div class="d-flex justify-space-around">
+        <MudNumericField Style="width: 80%; color:green; font-weight:600" Label="Số tấn" @bind-Value="DspModel.FromTonage" Min=0.0 Max=999.0 HideSpinButtons="true" Format="N0" T="double" Disabled="@(DspModel.BySeat)" />
+        <MudNumericField Style="width: 80%; color:maroon; font-weight:600" Label="Đến" @bind-Value="DspModel.FromTonage" Min=0.0 Max=999.0 HideSpinButtons="true" Format="N0" T="double" Disabled="@(DspModel.BySeat)" />
+    </div>
+    <MudNumericField Style="width: 50%; color:blue; font-weight:600" Label="Giá bán" @bind-Value="DspModel.UnitPrice" Min=0.0 Max=99999999.0 HideSpinButtons="true" Format="N0" T="double" />
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public CarPriceModel Model { get; set; }
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    //
+    CarPriceModel DspModel = new CarPriceModel();
+    // Detail data
+    MyDataGrid<SpecificationModel> grid;
+    // Master
+    List<OptionListModel> BusinessTypeList = new List<OptionListModel>();
+    List<OptionListModel> CarTypeList = new List<OptionListModel>();
+    //Selected
+    OptionListModel SelectedBusinessType;
+    OptionListModel SelectedCarType;
+    MyComboBox<OptionListModel> RefBusinessType;
+    MyComboBox<OptionListModel> RefCarType;
+    string PriceCalMethodName = "Tính theo chỗ ngồi";
+    //OnParametersSet
+    protected override async Task OnParametersSetAsync()
+    {
+        await base.OnParametersSetAsync();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+
+        //SelectedBusinessType
+        if (!string.IsNullOrWhiteSpace(DspModel.BusinessType)) SelectedBusinessType = BusinessTypeList.Find(x => x.ItemCode == DspModel.BusinessType);
+        if (SelectedBusinessType != null)
+        {
+            //Load carType list
+            await Load_CarTypeList();
+        }
+
+        //SelectedCarType
+        if (!string.IsNullOrWhiteSpace(DspModel.CarType)) SelectedCarType = CarTypeList.Find(x => x.ItemCode == DspModel.CarType);
+
+    }
+
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+
+    //Submit
+    private void OnSubmit()
+    {
+        //Validate
+        if (!Validate()) return;
+
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+
+        //SelectedBusinessType
+        if (SelectedBusinessType != null)
+        {
+            Model.BusinessType = SelectedBusinessType.ItemCode;
+            Model.BusinessTypeName = SelectedBusinessType.ItemName;
+        }
+        //SelectedCarType
+        if (SelectedCarType != null)
+        {
+            Model.CarType = SelectedCarType.ItemCode;
+            Model.CarTypeName = SelectedCarType.ItemName;
+        }
+
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    bool Validate()
+    {
+        //BusinessType
+        if (SelectedBusinessType == null)
+        {
+            Snackbar.Add("Chưa nhập: Hình thức", Severity.Error);
+            RefBusinessType.Focus();
+            return false;
+        }
+
+        //CarType
+        if (SelectedCarType == null)
+        {
+            Snackbar.Add("Chưa nhập: Loại xe", Severity.Error);
+            RefCarType.Focus();
+            return false;
+        }
+        //
+        return true;
+    }
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Load master
+        LoadMaster();
+    }
+
+    //LoadMaster
+    void LoadMaster()
+    {
+        //BusinessTypeList
+        if (Model.VendorID == MyConstant.Vendor_BMI)
+        {
+            BusinessTypeList.Add(new OptionListModel() { ItemCode = "1", ItemName = "Không kinh doanh", ExtraInfo1 = "1" });
+            BusinessTypeList.Add(new OptionListModel() { ItemCode = "2", ItemName = "Kinh doanh", ExtraInfo1 = "2" });
+        }
+        if (Model.VendorID == MyConstant.Vendor_BHV)
+        {
+            BusinessTypeList.Add(new OptionListModel() { ItemCode = "6ee07aa2-43bd-4141-b6d2-49f8f6cfe1a1", ItemName = "Không kinh doanh", ExtraInfo1 = "1" });
+            BusinessTypeList.Add(new OptionListModel() { ItemCode = "6ee07aa2-43bd-4141-b6d2-49f8f6cfe1a2", ItemName = "Kinh doanh", ExtraInfo1 = "2" });
+        }
+    }
+
+    async Task Load_CarTypeList()
+    {
+        //skip check
+        if (SelectedBusinessType == null) return;
+
+        //CarTypeList
+        if (Model.VendorID == MyConstant.Vendor_BMI) CarTypeList = await masterService.Load_OptionList("003");
+        if (Model.VendorID == MyConstant.Vendor_BHV) CarTypeList = await masterService.Load_OptionList("004");
+
+        //remove Không kinh doanh
+        if (SelectedBusinessType.ExtraInfo1 == "1")
+        {
+            CarTypeList.RemoveAll(x => x.IntCode == 1);
+        }
+        this.StateHasChanged();
+    }
+
+    async void BusinessType_Changed(OptionListModel value)
+    {
+        SelectedBusinessType = value;
+        DspModel.BusinessType = value.ItemCode;
+        DspModel.BusinessTypeName = value.ItemName;
+        //Load carType list
+        await Load_CarTypeList();
+    }
+
+    void CarType_Changed(OptionListModel value)
+    {
+        SelectedCarType = value;
+        DspModel.CarType = value.ItemCode;
+        DspModel.CarTypeName = value.ItemName;
+    }
+
+    void BySeat_Changed(bool value)
+    {
+        DspModel.BySeat = value;
+        //
+        if (DspModel.BySeat)
+        {
+            PriceCalMethodName = "Tính theo chỗ ngồi";
+            DspModel.FromTonage = 0;
+            DspModel.ToTonage = 0;
+        }
+        else
+        {
+            PriceCalMethodName = "Tính theo tấn";
+            DspModel.FromSeatCount = 0;
+            DspModel.ToSeatCount = 0;
+        }
+    }
+
+}

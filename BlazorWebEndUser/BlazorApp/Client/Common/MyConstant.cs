@@ -27,6 +27,14 @@ namespace BlazorApp.Client.Common
         //Action
         public const int ConfirmAction_DeleteRow = 1;
 
+        //VendorID
+        public const string Vendor_BMI = "BMI";
+        public const string Vendor_BHV = "BHV";
+
+        //Product type
+        public const string ProductType_Motor = "Motorcycle";
+        public const string ProductType_Auto = "AutoMotor";
+
 
     }// end class
 }

@@ -101,7 +101,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.GetEditorOptions()).Result;
+        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.ShowEditorOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (SpecificationModel)result.Data;

@@ -47,6 +47,13 @@ namespace BlazorApp.Client.BindingModels
         public double TaxAmount { get; set; }
         public string Currency { get; set; } = "VND";
         public double ExchangeRate { get; set; } = 1;
+        public string BusinessType { get; set; } = "";
+        public string BusinessTypeName { get; set; } = "";
+        public string CarType { get; set; } = "";
+        public string CarTypeName { get; set; } = "";
+        public double SeatCount { get; set; }
+        public double Tonage { get; set; }
+        public bool IsBySeat { get; set; } = true;
         //Discount
         public string DiscountCode { get; set; } = "";
         public string DiscountName { get; set; } = "";

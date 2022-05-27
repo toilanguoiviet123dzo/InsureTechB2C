@@ -19,6 +19,25 @@ namespace PaymentWeb.Services
             _httpHelper = new HttpHelper(MyConstant.HttpClient_Common, _httpClientFactory);
         }
 
+        private Dictionary<string, int> CarTypeDic { get; set; } = new Dictionary<string, int>()
+        {
+            {"11",1},    //Xe chở người
+            {"12",10},    //Xe tải
+            {"13",2},    //Xe vừa chở người vừa chở hàng (pickup/minivan)
+            {"110",11},    //Xe tập lái
+            {"16",12},    //Xe đầu kéo
+            {"19",13},    //Xe chuyên dụng
+            {"21",5},    //Xe chở người
+            {"22",4},    //Xe tải
+            {"23",3},    //Xe vừa chở người vừa chở hàng (pickup/minivan)
+            {"24",14},    //Xe taxi
+            {"25",15},    //Xe buýt
+            {"26",16},    //Xe đầu kéo rơ moóc
+            {"27",17},    //Xe cứu thương
+            {"28",18},    //Xe chở tiền
+            {"29",19}    //Xe chuyên dụng
+        };
+
         private async Task GetAccess()
         {
             try
@@ -229,6 +248,15 @@ namespace PaymentWeb.Services
                 veh.detail.vehicleChassisNo = "";
                 veh.detail.vehicleEngineNo = "";
                 veh.detail.vehicleRegNo = saleOrder.LicensePlate;
+                veh.detail.extInfo.vehicleCategory = int.Parse(saleOrder.BusinessType);
+                //
+                string carTypeKey = saleOrder.BusinessType + saleOrder.CarType;
+                if (CarTypeDic.ContainsKey(carTypeKey))
+                {
+                    veh.detail.extInfo.vehicleType = CarTypeDic[carTypeKey];
+                }
+                veh.detail.numOfSeat = (int)saleOrder.SeatCount;
+                veh.detail.tonnage = (int)saleOrder.Tonage;
                 newForm.insureds.Add(veh);
 
                 //policyholder
@@ -382,7 +410,8 @@ namespace PaymentWeb.Services
                 logMessage += $"Giảm giá: {order.DiscountAmount}" + Environment.NewLine;
                 logMessage += $"Tổng thanh toán: {order.PaymentAmount}" + Environment.NewLine;
                 //
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "Payment", "Exception", ReturnCode.Error_ByServer, logMessage);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "eBaoService", "Issue", "Issue", ReturnCode.Error_ByServer, order.ProcessErrorMessage);
+                MyAppLog.WriteLog(MyConstant.LogLevel_ForSale, "eBaoService", "Issue", "Issue", ReturnCode.Error_ByServer, logMessage);
             }
             //Save
             await order.SaveAsync();

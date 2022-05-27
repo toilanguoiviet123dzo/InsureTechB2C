@@ -178,6 +178,9 @@ message grpcOptionList
     string ItemName  = 6; 
     string DspOrder  = 7; 
     string Description  = 8; 
+    string ExtraInfo1  = 81; 
+    string ExtraInfo2  = 82; 
+    string ExtraInfo3  = 83; 
     google.protobuf.Timestamp CreatedOn  = 9; 
     google.protobuf.Timestamp ModifiedOn  = 10;          
     int32 UpdMode  = 11;     

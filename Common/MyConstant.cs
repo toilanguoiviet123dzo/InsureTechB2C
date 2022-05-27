@@ -17,6 +17,8 @@ namespace BlazorApp.Server.Common
         public const int LogLevel_Error = 4;
         public const int LogLevel_Critical = 5;
         public const int LogLevel_None = 6;
+        public const int LogLevel_ForSale = 7;
+        
         //Currency
         public const string NaturalCurrencyUnit = "VND";
 
@@ -37,6 +39,12 @@ namespace BlazorApp.Server.Common
         //Vendor
         public const string Vendor_BMI = "BMI";
         public const string Vendor_BHV = "BHV";
+
+        //Product
+        public const string Product_MotorBMI = "TNDS_BM";
+        public const string Product_MotorBHV = "TNDS_HV";
+        public const string Product_AutoBMI = "TNDS_BM02";
+        public const string Product_AutoBHV = "TNDS_HV02";
 
 
     }// end class

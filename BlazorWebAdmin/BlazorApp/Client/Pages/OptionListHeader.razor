@@ -138,7 +138,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<OptionListHeaderEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<OptionListHeaderEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (OptionListHeaderModel)result.Data;
@@ -162,7 +162,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<OptionListHeaderEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<OptionListHeaderEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (OptionListHeaderModel)result.Data;

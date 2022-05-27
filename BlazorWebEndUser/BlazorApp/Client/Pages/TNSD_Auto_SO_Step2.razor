@@ -36,6 +36,7 @@
                         </div>
                     </div>
 
+                    <!--EffectiveSttDate-->
                     <div class="row m-1 m-lg-2">
                         <div class="col text-left">
                             Ngày hiệu lực
@@ -53,8 +54,8 @@
                             @Model.EffectiveEndDate.ToString("dd/MM/yyyy")
                         </div>
                     </div>
-                    
-                    
+
+
                 </div>
             </MyPanel>
 
@@ -70,15 +71,7 @@
                             @Model.CusFullname
                         </div>
                     </div>
-                    <!--CusCitizenID-->
-                    @*<div class="row m-1 m-lg-2">
-                        <div class="col text-left">
-                            CMND/CCCD
-                        </div>
-                        <div class="col font-weight-bold text-right">
-                            @Model.CusCitizenID
-                        </div>
-                    </div>*@
+
                     <!--CusPhone-->
                     <div class="row m-1 m-lg-2">
                         <div class="col text-left">
@@ -97,6 +90,7 @@
                             @Model.CusEmail
                         </div>
                     </div>
+
                     <!--LicensePlate-->
                     <div class="row m-1 m-lg-2">
                         <div class="col text-left">
@@ -106,6 +100,50 @@
                             @Model.LicensePlate
                         </div>
                     </div>
+
+                    <!--BusinessTypeName-->
+                    <div class="row m-1 m-lg-2">
+                        <div class="col text-left">
+                            Mục đích kinh doanh
+                        </div>
+                        <div class="col font-weight-bold text-right text-blue" style="font-weight:700; font-size:x-large">
+                            @Model.BusinessTypeName
+                        </div>
+                    </div>
+
+                    <!--CarTypeName-->
+                    <div class="row m-1 m-lg-2">
+                        <div class="col text-left">
+                            Loại xe
+                        </div>
+                        <div class="col font-weight-bold text-right text-blue" style="font-weight:700; font-size:x-large">
+                            @Model.CarTypeName
+                        </div>
+                    </div>
+
+                    @if (Model.IsBySeat)
+                    {
+                        <div class="row m-1 m-lg-2">
+                            <div class="col text-left">
+                                Số chỗ ngồi
+                            </div>
+                            <div class="col font-weight-bold text-right text-blue" style="font-weight:700; font-size:x-large">
+                                @Model.SeatCount.ToString("N0")
+                            </div>
+                        </div>
+                    }
+                    else
+                    {
+                        <div class="row m-1 m-lg-2">
+                            <div class="col text-left">
+                                Số tấn
+                            </div>
+                            <div class="col font-weight-bold text-right text-blue" style="font-weight:700; font-size:x-large">
+                                @Model.Tonage.ToString("N1")
+                            </div>
+                        </div>
+                    }
+
                 </div>
             </MyPanel>
 

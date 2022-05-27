@@ -5,18 +5,23 @@
 @code {
     protected override void OnInitialized()
     {
-        if (HostEnvironment.Environment == "Development")
-        {
-            //Development login
-            AuthService.Development_Login();
+        //if (HostEnvironment.Environment == "Development")
+        //{
+        //    //Development login
+        //    AuthService.Development_Login();
 
-            //Development
-            Navigation.NavigateTo(Navigation.Uri);
-        }
-        else
-        {
-            //Production
-            Navigation.NavigateTo("/login");
-        }
+        //    //Development
+        //    Navigation.NavigateTo(Navigation.Uri);
+        //}
+        //else
+        //{
+        //    //Production
+        //    Navigation.NavigateTo("/login");
+        //}
+        //Development login
+        AuthService.Development_Login();
+
+        //Development
+        Navigation.NavigateTo(Navigation.Uri);
     }
 }

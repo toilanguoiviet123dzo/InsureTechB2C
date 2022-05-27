@@ -32,6 +32,9 @@
         <col style="width: 6rem;" />
         <col style="width: 6rem;" />
         <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 6rem;" />
         <col />
         <col style="width: 8rem;" />
     </ColGroup>
@@ -41,6 +44,9 @@
         <MudTh>Trị chữ</MudTh>
         <MudTh>Trị số nguyên</MudTh>
         <MudTh>Trị số thực</MudTh>
+        <MudTh>Thông tin thêm 1</MudTh>
+        <MudTh>Thông tin thêm 2</MudTh>
+        <MudTh>Thông tin thêm 3</MudTh>
         <MudTh>Ghi chú</MudTh>
         <MudTh>Ngày giờ</MudTh>
     </HeaderContent>
@@ -50,6 +56,9 @@
         <MudTd>@context.ItemCode</MudTd>
         <MudTd Style="color:blue; text-align:right;">@context.IntCode</MudTd>
         <MudTd Style="color:blue; text-align:right;">@context.DoubleCode</MudTd>
+        <MudTd>@context.ExtraInfo1</MudTd>
+        <MudTd>@context.ExtraInfo2</MudTd>
+        <MudTd>@context.ExtraInfo3</MudTd>
         <MudTd>@context.Description</MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
     </RowTemplate>
@@ -223,7 +232,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<OptionListDetailEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<OptionListDetailEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (OptionListModel)result.Data;
@@ -247,7 +256,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<OptionListDetailEdit>("", parameters, MyOptions.GetEditFormOptions()).Result;
+        var result = await DialogService.Show<OptionListDetailEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (OptionListModel)result.Data;

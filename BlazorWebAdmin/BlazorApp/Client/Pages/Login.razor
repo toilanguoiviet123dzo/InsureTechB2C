@@ -33,7 +33,7 @@
                 <DataAnnotationsValidator />
                 <ValidationSummary />
                 <!--UserName-->
-            <MyTextEdit @bind-Text="model.UserName" Literal="User name" />
+            <MyTextEdit @bind-Text="model.UserName" Literal="User name" AutoFocus=true/>
                 <ValidationMessage For="@(() => model.UserName)" />
 
                 <!--Password-->

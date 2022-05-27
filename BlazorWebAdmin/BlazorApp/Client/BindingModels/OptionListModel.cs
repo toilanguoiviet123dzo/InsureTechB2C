@@ -14,6 +14,9 @@ namespace BlazorApp.Client.BindingModels
         public string ItemName { get; set; } = "";
         public string DspOrder { get; set; } = "";
         public string Description { get; set; } = "";
+        public string ExtraInfo1 { get; set; } = "";
+        public string ExtraInfo2 { get; set; } = "";
+        public string ExtraInfo3 { get; set; } = "";
         public DateTime CreatedOn { get; set; }
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

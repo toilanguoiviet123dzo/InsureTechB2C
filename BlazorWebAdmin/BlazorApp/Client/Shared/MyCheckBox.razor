@@ -7,6 +7,8 @@
              Style="@Style"
              Tag="@Tag"
              Color="Color.Primary"
+             Error=@Error
+             ErrorText=@ErrorText
              @attributes="@Attributes">
     <ChildContent>
         @if (!string.IsNullOrWhiteSpace(Literal))
@@ -32,6 +34,8 @@
     [Parameter] public object Tag { get; set; }
     [Parameter] public bool IsFontBold { get; set; } = false;
     [Parameter] public string TextColor { get; set; } = "";
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public string ErrorText { get; set; } = "";
 
     //TextChanged
     [Parameter] public bool Checked { get; set; } = false;
@@ -40,6 +44,14 @@
     {
         Checked = newValue;
         await CheckedChanged.InvokeAsync(newValue);
+
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
     }
 
     //Attributes
@@ -79,6 +91,24 @@
                                             {
                                                 { "tabIndex", "-1" }
                                             };
+        }
+    }
+
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
         }
     }
 

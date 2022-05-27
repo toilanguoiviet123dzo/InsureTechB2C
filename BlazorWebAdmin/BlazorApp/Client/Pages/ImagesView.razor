@@ -233,7 +233,7 @@
         parameters.Add("ImageList", ImageList);
         parameters.Add("ResourceID", resourceID);
         //
-        var result = await DialogService.Show<ImageDetail>("", parameters, MyOptions.GetShowImageOptions()).Result;
+        var result = await DialogService.Show<ImageDetail>("", parameters, MyOptions.ShowImageOptions()).Result;
         if (!result.Cancelled)
         {
             await DisplayMain();

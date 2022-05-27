@@ -3,7 +3,7 @@
         padding: 0px 24px !important;
     }
 </style>
-<div style="height:calc(100vh - 48px); max-height:calc(100vh - 48px); margin-bottom:48px;" class="hidescroll">
+<div style="@(@$"height:calc(100vh - {bottomMargin}); max-height:calc(100vh - {bottomMargin}); margin-bottom:{bottomMargin};")" class="hidescroll">
     <!--Appbar-->
     <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
         @if (ShowBackButton)
@@ -43,6 +43,9 @@
     [Parameter] public bool ShowBottomAppBar { get; set; } = true;
     [Parameter] public string Class { get; set; } = "";
     [Parameter] public string Style { get; set; } = "";
+
+    //
+    string bottomMargin = "48px";
     //OnClose
     private void OnClose()
     {
@@ -57,6 +60,12 @@
         string padding = BrowserInfo.IsMobile ? "padding: 4px 4px" : "padding: 10px 24px";
         Style = "";
         Style = $"{padding}; max-height:calc(100vh - 96px); overflow-y:scroll; {Style}";
+
+        //
+        if (BrowserInfo.IsMobile)
+        {
+            bottomMargin = "96px";
+        }
     }
 
 }
