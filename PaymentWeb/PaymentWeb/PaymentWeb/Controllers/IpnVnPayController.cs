@@ -8,7 +8,7 @@ using Cores.Utilities;
 
 namespace PaymentWeb.Controllers
 {
-    [Route("api/[controller]")]
+
     [ApiController]
     public class IpnVnPayController : ControllerBase
     {
@@ -21,22 +21,23 @@ namespace PaymentWeb.Controllers
             _vnPayService = vnPayService;
         }
 
+        [Route("api/IpnVnPay")]
         [HttpGet]
-        public async Task<VnPayIpnResponseModel> ReceiveResult(double vnp_Amount,
-                                                               string vnp_BankCode,
-                                                               string vnp_OrderInfo,
-                                                               string vnp_PayDate,
-                                                               string vnp_ResponseCode,
-                                                               string vnp_SecureHash,
-                                                               string vnp_TmnCode,
-                                                               string vnp_TransactionNo,
-                                                               string vnp_TransactionStatus,
-                                                               string vnp_TxnRef)
+        public async Task<VnPayIpnResponseModel> IpnVnPay(double vnp_Amount,
+                                                          string vnp_BankCode,
+                                                          string vnp_OrderInfo,
+                                                          string vnp_PayDate,
+                                                          string vnp_ResponseCode,
+                                                          string vnp_SecureHash,
+                                                          string vnp_TmnCode,
+                                                          string vnp_TransactionNo,
+                                                          string vnp_TransactionStatus,
+                                                          string vnp_TxnRef)
         {
             var response = new VnPayIpnResponseModel();
             try
             {
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", vnp_TxnRef, ReturnCode.Error_ByServer, "VpPay reach");
+                //MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "ReceiveResult", vnp_TxnRef, ReturnCode.Error_ByServer, "VpPay reach");
 
                 //get all querystring data
                 var querryData = new Dictionary<string, string>();
@@ -162,6 +163,24 @@ namespace PaymentWeb.Controllers
             {
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "IpnVnPay", "Update_Finish", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
+        }
+
+        [Route("api/ReceiveZaloCode")]
+        [HttpGet]
+        public string ReceiveZaloCode(string code = "", string oa_id = "")
+        {
+            var response = "";
+            try
+            {
+                response = $"Code:{code}; oa_id:{oa_id}";
+                MyAppLog.WriteLog(MyConstant.LogLevel_Information, "Zalo", "ReceiveCode", code, ReturnCode.Error_ByServer, oa_id);
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "Zalo", "ReceiveCode", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+            //
+            return response;
         }
 
 

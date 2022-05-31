@@ -27,6 +27,7 @@ builder.Services.AddControllers();
 //HttpContextAccessor
 builder.Services.TryAddSingleton<IHttpContextAccessor, HttpContextAccessor>();
 
+
 //Http client
 // Create the retry policy we want
 var retryPolicy = HttpPolicyExtensions
