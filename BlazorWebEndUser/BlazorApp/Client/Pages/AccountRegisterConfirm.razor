@@ -1,0 +1,119 @@
+﻿@using Admin.Services
+@using Resource.Services
+@using System.Collections.ObjectModel;
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject MasterService masterService;
+@inject VoucherService voucherService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyAppBarForm Title="Đăng ký tài khoản" ShowCloseButton=true>
+    <ChildContent>
+        <MyTextEdit Literal="Tài khoản"
+                    ReadOnly=true
+                    TextColor=@MyTextColor.Blue
+                    @bind-Text=@Model.UserName
+                    @ref=RefUserName />
+        <MyTextEdit Literal="Họ và tên"
+                    ReadOnly=true
+                    @bind-Text=@Model.Fullname
+                    @ref=RefFullname />
+        <MyTextEdit Literal="Phone"
+                    ReadOnly=true
+                    @bind-Text=@Model.Phone
+                    @ref=RefPhone />
+        <MyTextEdit Literal="Email"
+                    ReadOnly=true
+                    @bind-Text=@Model.Email
+                    @ref=RefEmail />
+        <br />
+        <MyCheckBox Literal="Đồng ý tạo tài khoản"
+                    @bind-Checked=@IsAccept />
+    </ChildContent>
+    <ActionButtons>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.ArrowForwardIos" OnClick="ActivateAccount">Tạo tài khoản</MudButton>
+    </ActionButtons>
+</MyAppBarForm>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    //SO
+    UserAccountModel Model = new UserAccountModel();
+    //Ref
+    MyTextEdit RefUserName;
+    MyTextEdit RefFullname;
+    MyTextEdit RefPhone;
+    MyTextEdit RefEmail;
+    //format
+    public IMask DigitMask = new RegexMask(@"^\d+$");
+    bool IsAccept = false;
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        //
+    }
+
+    //Validate
+    bool Validate_Main()
+    {
+        //Accept
+        if (!IsAccept)
+        {
+            Snackbar.Add("Bạn chưa chọn đồng ý tạo tài khoản", Severity.Error);
+            return false;
+        }
+        //
+        return true;
+    }
+
+
+    async void ActivateAccount()
+    {
+        //Validate
+        if (!Validate_Main()) return;
+
+        //Activate account
+        try
+        {
+            var request = new Admin.Services.String_Request();
+            var Credential = new Admin.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            //
+            request.StringValue = Model.ActivationCode;
+            //
+            var response = await adminServiceClient.ActivateAccountAsync(request);
+            // PK
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                Snackbar.Add("Tạo tài khoản thành công.", Severity.Success);
+            }
+            else
+            {
+                Snackbar.Add("Tạo tài khoản thất bại !!!", Severity.Error);
+            }
+            //Close
+            //go to product list
+            var ret = new MyDialogResult();
+            ret.IsCloseAll = true;
+            //
+            MudDialog.Close(ret);
+        }
+        catch { }
+    }
+
+    
+
+
+
+}
+

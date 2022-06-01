@@ -7,9 +7,12 @@ using System.Threading.Tasks;
 
 namespace BlazorApp.Server.Models
 {
-    [Collection("UserAccount")]
-    public class mdUserAccount : Entity
+    [Collection("UserAccountQueue")]
+    public class mdUserAccountQueue : Entity
     {
+        public bool IsDone { get; set; } = false;
+        public string ActivationCode { get; set; } = "";
+        public DateTime ActivationOn { get; set; }
         public string UserID { get; set; } = "";
         public string UserName { get; set; } = "";
         public string Password { get; set; } = "";

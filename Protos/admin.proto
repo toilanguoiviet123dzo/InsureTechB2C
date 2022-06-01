@@ -23,6 +23,9 @@ service grpcAdminService {
     //UserAccount
     rpc SaveUserAccount (SaveUserAccount_Request) returns (String_Response);
     rpc GetUserAccount (String_Request) returns (GetUserAccount_Response);
+    rpc CreateAccountReq (CreateAccountReq_Request) returns (String_Response);
+    rpc ActivateAccount (String_Request) returns (Empty_Response);
+
     //WebPushNotification
     rpc SubscribeToNotifications (SubscribeToNotifications_Request) returns (Empty_Response);
     rpc WebPushNotification (WebPushNotification_Request) returns (Empty_Response);
@@ -228,6 +231,16 @@ message GetUserAccount_Response
     //
     repeated grpcUserAccountModel UserAccounts = 3;
 }
+message CreateAccountReq_Request {
+    UserCredential Credential = 1;
+    //
+    string UserName = 3;
+    string Password = 4;
+    string Fullname = 5;
+    string Phone = 6;
+    string Email = 7;
+}
+
 message grpcUserAccountModel
 {   
     string ID = 1;
@@ -240,21 +253,13 @@ message grpcUserAccountModel
     string Address = 8;
     string RoleID = 9;
     string RoleName = 10;
-    string BrancheID = 11;
-    string BrancheName = 12;
-    string LogisticCompanyID = 13;
-    string LogisticCompanyName = 14;
-    string RepairCompanyID = 15;
-    string RepairCompanyName = 16;
-    string ApproveAcountID = 17;
-    int32 ApproveLevel = 18;
-    string ApproveLevelName = 19;
-    int32 DocumentLevel = 20;
-    string DocumentLevelName = 21;
-    bool Status = 22;
-    google.protobuf.Timestamp ModifiedOn = 23;
-    int32 UpdMode = 24;
+    string RefUserID = 11;
+    int32 RankLevel = 12;
+    bool Status = 13;
+    google.protobuf.Timestamp ModifiedOn = 99;
+    int32 UpdMode = 100;
 }
+
 message SaveAddressMaster_Request {
     UserCredential Credential = 1;
     //

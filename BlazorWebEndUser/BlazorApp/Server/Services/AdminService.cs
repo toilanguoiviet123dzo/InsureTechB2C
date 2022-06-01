@@ -50,8 +50,6 @@ namespace BlazorApp.Server.Services
                     response.UserName = findRecord.UserName;
                     response.Fullname = findRecord.Fullname;
                     response.RoleID = findRecord.RoleID;
-                    response.ApproveLevel = findRecord.ApproveLevel;
-                    response.DocumentLevel = findRecord.DocumentLevel;
                 }
                 else
                 {
@@ -63,6 +61,96 @@ namespace BlazorApp.Server.Services
                 response.ReturnCode = GrpcReturnCode.Error_ByServer;
                 response.MsgCode = ex.Message;
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "GrpcLogin", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // CheckForCreateAccount
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Admin.Services.String_Response> CreateAccountReq(Admin.Services.CreateAccountReq_Request request, ServerCallContext context)
+        {
+            var response = new Admin.Services.String_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            response.MsgCode = "";
+            //
+            try
+            {
+                //Duplicated check
+                var findRecord = await DB.Find<mdUserAccount>()
+                                         .Match(x => x.UserName == request.UserName)
+                                         .ExecuteFirstAsync();
+                //
+                if (findRecord != null)
+                {
+                    response.MsgCode = "Tài khoản đã tồn tại";
+                    response.ReturnCode = GrpcReturnCode.Error_202;
+                    return response;
+                }
+
+                //Create queue for activation
+                var record = new mdUserAccountQueue();
+                record.ActivationCode = MyCodeGenerator.GenActivationCode();
+                record.UserName = request.UserName; 
+                record.Password = request.Password; 
+                record.Fullname = request.Fullname; 
+                record.Phone = request.Phone; 
+                record.Email = request.Email;
+                record.ModifiedOn = DateTime.UtcNow;
+                record.ActivationOn = DateTime.UtcNow;
+                //
+                await record.SaveAsync();
+                //
+                response.StringValue = record.ActivationCode;
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "CreateAccountReq", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // ActivateAccount
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Admin.Services.Empty_Response> ActivateAccount(Admin.Services.String_Request request, ServerCallContext context)
+        {
+            var response = new Admin.Services.Empty_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            response.MsgCode = "";
+            //
+            try
+            {
+                //Duplicated check
+                var queueRec = await DB.Find<mdUserAccountQueue>()
+                                         .Match(x => x.ActivationCode == request.StringValue)
+                                         .Match(x => x.IsDone == false)
+                                         .ExecuteFirstAsync();
+                //
+                if (queueRec == null)
+                {
+                    response.MsgCode = "Mã kích hoạt không tồn tại";
+                    response.ReturnCode = GrpcReturnCode.Error_201;
+                    return response;
+                }
+                queueRec.ActivationOn = DateTime.UtcNow;
+                queueRec.IsDone = true;
+                await queueRec.SaveAsync();
+
+                //Create account
+                var record = new mdUserAccount();
+                ClassHelper.CopyPropertiesData(queueRec, record);
+                await record.SaveAsync();
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "ActivateAccount", "Exception", response.ReturnCode, ex.Message);
             }
             //
             return await Task.FromResult(response);

@@ -21,6 +21,7 @@
     <Compile Include="..\..\..\Models\mdSaleOrderLog.cs" Link="Models\mdSaleOrderLog.cs" />
     <Compile Include="..\..\..\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
     <Compile Include="..\..\..\Models\mdUserAccount.cs" Link="Models\mdUserAccount.cs" />
+    <Compile Include="..\..\..\Models\mdUserAccountQueue.cs" Link="Models\mdUserAccountQueue.cs" />
     <Compile Include="..\..\..\Models\mdVoucherMaster.cs" Link="Models\mdVoucherMaster.cs" />
   </ItemGroup>
 

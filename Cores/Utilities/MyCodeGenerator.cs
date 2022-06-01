@@ -39,6 +39,10 @@ namespace Cores.Utilities
         {
             return DateTime.Now.ToString("yyMMddHHmmssfff") + RandomCode(0, 2);
         }
+        public static string GenActivationCode()
+        {
+            return DateTime.Now.ToString("yyMMddHHmmssfff") + RandomCode(5, 5);
+        }
         public static string GenResourceID()
         {
             return DateTime.Now.ToString("yyMMddHHmmssfff") + RandomCode(0, 3);
