@@ -376,6 +376,52 @@ namespace BlazorApp.Client.Services
             return RetModel;
         }
 
+        public async Task<ProductModel?> Get_Product(string productID)
+        {
+            try
+            {
+                //
+                if (string.IsNullOrWhiteSpace(productID)) return null;
+
+                var requestString = new Insure.Services.String_Request()
+                {
+                    Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = productID
+                };
+
+                //Get data from DB
+                var response = await _InsureServicesClient.GetProductAsync(requestString);
+                if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                {
+                    var retModel = new ProductModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(response.Record, retModel);
+
+                    //Specifications
+                    if (response.Record.Specifications != null)
+                    {
+                        foreach (var item in response.Record.Specifications)
+                        {
+                            var specItem = new SpecificationModel();
+                            ClassHelper.CopyPropertiesData(item, specItem);
+                            //
+                            retModel.Specifications.Add(specItem);
+                        }
+                    }
+                    //
+                    return retModel;
+                }
+            }
+            catch { }
+            //
+            return null;
+        }
+
 
 
 

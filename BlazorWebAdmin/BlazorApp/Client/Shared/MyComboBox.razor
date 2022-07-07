@@ -112,6 +112,7 @@
         SelectedValues = newValue;
         if (newValue != null && newValue.Count<TValue>() > 0)
         {
+            Value = newValue.FirstOrDefault<TValue>();
             await SelectedItemChanged.InvokeAsync(newValue.ToList<TValue>().FirstOrDefault());
         }
     }

@@ -6,11 +6,21 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <None Remove="Pages\AutoList.razor.css" />
+    <None Remove="Pages\CertificateList.razor.css" />
+    <None Remove="Pages\Index - Copy.razor.css" />
     <None Remove="Pages\Index.razor.css" />
+    <None Remove="Pages\MotorList - Copy.razor.css" />
+    <None Remove="Pages\MotorList.razor.css" />
+    <None Remove="Pages\ProductCategory.razor.css" />
   </ItemGroup>
 
   <ItemGroup>
+    <Content Include="Pages\AutoList.razor.css" />
+    <Content Include="Pages\CertificateList.razor.css" />
     <Content Include="Pages\Index.razor.css" />
+    <Content Include="Pages\MotorList.razor.css" />
+    <Content Include="Pages\ProductCategory.razor.css" />
   </ItemGroup>
 
   <ItemGroup>

@@ -1,4 +1,5 @@
 ﻿@page "/"
+@page "/{ProductID}"
 @page "/{ProductID}/{DiscountCode}"
 @using Insure.Services
 @using System.Collections.ObjectModel;
@@ -8,31 +9,8 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
+<ProductCategory/>
 
-<MudTabs Elevation="0"
-         Rounded="true"
-         Centered=true
-         ApplyEffectsToContainer="true"
-         PanelClass="p-0 p-lg-6"
-         Class="m-auto"
-         Style="@($"max-width:var(--mysize-maxwidth);")">
-    <MudTabPanel Text=@Tab1Text Icon="@Icons.Filled.AddShoppingCart" Style="font-size:medium">
-        <div class="productlist m-1 m-md-4">
-            <!--Xe gắn máy-->
-            <TNSD01_Compact ProductID="TNDS_HV" />
-            <TNSD01_Compact ProductID="TNDS_BM" />
-
-            <!--Xe oto-->
-            <TNSD01_Compact ProductID="TNDS_HV02" />
-            <TNSD01_Compact ProductID="TNDS_BM02" />
-        </div>
-    </MudTabPanel>
-    <MudTabPanel Text=@Tab2Text Icon="fa fa-certificate" Style="font-size:medium">
-        <div class="m-1 m-md-4">
-            <CertificateList />
-        </div>
-    </MudTabPanel>
-</MudTabs>
 
 @code {
     [Parameter] public string ProductID { get; set; } = "";
@@ -76,15 +54,29 @@
 
     async void SelectBuy()
     {
-        var parameters = new DialogParameters();
-        parameters.Add("ProductID", ProductID);
-        parameters.Add("DiscountCode", DiscountCode);
-        //
-        var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
-        if (!result.Cancelled && result.Data != null)
+        //Check product ID
+        var product = await masterService.Get_Product(ProductID);
+        if (product == null) return;
+
+        //Select buy || product detail
+        if (!string.IsNullOrWhiteSpace(DiscountCode))
         {
-            var retModel = (ProductModel)result.Data;
+            //Select buy
+            var parameters = new DialogParameters();
+            parameters.Add("Product", product);
+            parameters.Add("DiscountCode", DiscountCode);
+            //
+            var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        }
+        else
+        {
+            //Open product detail
+            var parameters = new DialogParameters();
+            parameters.Add("Model", product);
+            //
+            var result = await DialogService.Show<TNSD01_Detail>("", parameters, MyOptions.ShowAppbarOptions()).Result;
         }
     }
+
 }
 

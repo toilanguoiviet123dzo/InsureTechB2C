@@ -1,4 +1,5 @@
-﻿@using Insure.Services
+﻿@page "/CertificateList"
+@using Insure.Services
 @using System.Collections.ObjectModel;
 @inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
 @inject MasterService masterService;
@@ -6,54 +7,58 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 
-<MyPanels>
-    <MyPanel Title="Nhập điều kiện tìm kiếm">
-        <div class="row align-end">
-            <div class="col-12 col-sm-3">
-                <MyTextEdit Literal="Điện thoại"
-                            @ref=@RefCusPhone
-                            @bind-Text="@FilterCusPhone"
-                            IsFontBold=true />
-            </div>
-            @*<div class="col-12 col-sm-3">
+<div class="certificate-container">
+    <MyPanels>
+        <MyPanel Title="Nhập điều kiện tìm kiếm">
+            <div class="row align-end">
+                <div class="col-12 col-sm-3">
+                    <MyTextEdit Literal="Điện thoại"
+                                @ref=@RefCusPhone
+                                @bind-Text="@FilterCusPhone"
+                                IsFontBold=true />
+                </div>
+                @*<div class="col-12 col-sm-3">
                 <MyTextEdit Literal="CMND/CCCD"
-                            @ref=@RefCusCitizenID
-                            @bind-Text="@FilterCusCitizenID"
-                            IsFontBold=true />
-            </div>*@
-            <!--Search buttion-->
-            <div class="col-12 col-sm-3">
-                <MyButtonSearch OnClick="@(() => DisplayMain())" />
+                @ref=@RefCusCitizenID
+                @bind-Text="@FilterCusCitizenID"
+                IsFontBold=true />
+                </div>*@
+                <!--Search buttion-->
+                <div class="col-12 col-sm-3">
+                    <MyButtonSearch OnClick="@(() => DisplayMain())" />
+                </div>
             </div>
-        </div>
-    </MyPanel>
-</MyPanels>
+        </MyPanel>
+    </MyPanels>
 
-<MyDataGrid @ref="@grid"
-            T="SaleOrderModel"
-            ShowSearchBox=false
-            Title="Chứng nhận bảo hiểm của bạn"
-            Items="@DetailData"
-            OnViewRow="@((SaleOrderModel row) => OnViewRow_Handle(row))">
-    <ColGroup>
-        <col style="width: 7rem;" />
-        <col style="width: 7rem;" />
-        <col style="width: 6rem;" />
-        <col />
-    </ColGroup>
-    <HeaderContent>
-        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<SaleOrderModel, object>(x => x.EffectiveSttDate)">Từ ngày</MudTableSortLabel></MudTh>
-        <MudTh>Đến ngày</MudTh>
-        <MudTh>Biển số</MudTh>
-        <MudTh>Link download</MudTh>
-    </HeaderContent>
-    <RowTemplate>
-        <MudTd Style="text-align:center;">@context.EffectiveSttDate.ToString("dd/MM/yyyy")</MudTd>
-        <MudTd Style="text-align:center;">@context.EffectiveEndDate.ToString("dd/MM/yyyy")</MudTd>
-        <MudTd>@context.LicensePlate</MudTd>
-        <MudTd Style="color:blue; text-decoration:underline; cursor:pointer"> <a @onclick="@(() => OpenCertificate(context.CertificateLink))">@context.PolicyNo</a></MudTd>
-    </RowTemplate>
-</MyDataGrid>
+    <MyDataGrid @ref="@grid"
+                T="SaleOrderModel"
+                ShowSearchBox=false
+                Title="Chứng nhận bảo hiểm của bạn"
+                Items="@DetailData"
+                OnViewRow="@((SaleOrderModel row) => OnViewRow_Handle(row))">
+        <ColGroup>
+            <col style="width: 7rem;" />
+            <col style="width: 7rem;" />
+            <col style="width: 6rem;" />
+            <col />
+        </ColGroup>
+        <HeaderContent>
+            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<SaleOrderModel, object>(x => x.EffectiveSttDate)">Từ ngày</MudTableSortLabel></MudTh>
+            <MudTh>Đến ngày</MudTh>
+            <MudTh>Biển số</MudTh>
+            <MudTh>Link download</MudTh>
+        </HeaderContent>
+        <RowTemplate>
+            <MudTd Style="text-align:center;">@context.EffectiveSttDate.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd Style="text-align:center;">@context.EffectiveEndDate.ToString("dd/MM/yyyy")</MudTd>
+            <MudTd>@context.LicensePlate</MudTd>
+            <MudTd Style="color:blue; text-decoration:underline; cursor:pointer"> <a @onclick="@(() => OpenCertificate(context.CertificateLink))">@context.PolicyNo</a></MudTd>
+        </RowTemplate>
+    </MyDataGrid>
+</div>
+
+
 
 @code {
     [CascadingParameter] protected ProgramInfo Program { get; set; }

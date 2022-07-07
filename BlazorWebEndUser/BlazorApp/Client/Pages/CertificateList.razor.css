@@ -1,0 +1,7 @@
+﻿.certificate-container {
+    height: 65vh;
+    max-width: 1024px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: scroll;
+}
