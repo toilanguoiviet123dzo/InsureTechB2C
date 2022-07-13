@@ -1,0 +1,50 @@
+﻿<style>
+    .mud-expand-panel .mud-expand-panel-header {
+        min-height: 32px !important;
+        padding: 0px 24px !important;
+    }
+</style>
+
+<MudExpansionPanel @ref="@Ref"
+                   IsInitiallyExpanded="IsInitiallyExpanded"
+                   Dense="true"
+                   DisableGutters="true"
+                   Class="@Class"
+                   Style="@Style">
+    <TitleContent>
+        <h6 class="font-weight-bold">@Title</h6>
+    </TitleContent>
+    <ChildContent>
+        @ChildContent
+    </ChildContent>
+</MudExpansionPanel>
+
+@code {
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public bool IsInitiallyExpanded { get; set; } = true;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+
+    MudExpansionPanel Ref;
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Class
+        string padding = BrowserInfo.IsMobile ? "p-1" : "p-3";
+        Class = "";
+        Class = $"{padding} {Class}";
+
+    }
+
+    public void Expand()
+    {
+        Ref.Expand();
+    }
+    public void Collapse()
+    {
+        Ref.Collapse();
+    }
+}

@@ -1,0 +1,247 @@
+﻿@using Insure.Services
+@using Resource.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<style>
+    .selected {
+        background-color: #1E88E5 !important;
+    }
+
+        .selected > td {
+            color: white !important;
+        }
+
+            .selected > td .mud-input {
+                color: white !important;
+            }
+
+    .discount-title {
+        position: relative;
+        color: white;
+        font-weight: 600;
+        font-size: large;
+        text-transform: uppercase;
+        background-image: linear-gradient(to right, #2193b0, #6dd5ed);
+        height: 5rem;
+        width: 10rem;
+        display: flex;
+        text-align: center;
+        justify-content: center;
+        align-items: center;
+    }
+
+        .discount-title:before {
+            background: #ddd;
+            content: "";
+            height: 2vw;
+            position: absolute;
+            top: 0;
+            left: 0;
+            clip-path: polygon( 0 0, 2.5% 100%, 5% 0, 7.5% 100%, 10% 0,12.5% 100%,15% 0, 17.5% 100%, 20% 0,22.5% 100%,25% 0, 27.5% 100%, 30% 0,32.5% 100%,35% 0, 37.5% 100%, 40% 0,42.5% 100%,45% 0, 47.5% 100%, 50% 0,52.5% 100%,55% 0, 57.5% 100%, 60% 0,62.5% 100%,65% 0, 67.5% 100%, 70% 0,72.5% 100%,75% 0, 77.5% 100%, 80% 0,82.5% 100%,85% 0, 87.5% 100%, 90% 0,92.5% 100%,95% 0, 97.5% 100%, 100% 0);
+        }
+
+    .notfound {
+        height: 48px;
+        width: 100%;
+        padding: 0px 48px;
+        border-radius: 5px;
+        border: 0.5px solid red;
+        text-align: center;
+        line-height: 100%;
+        background-color: sandybrown;
+    }
+
+        .notfound h5 {
+            line-height: 48px;
+            color: white;
+            font-weight: 600;
+        }
+
+    .discountcode {
+        margin: 24px;
+        left: 0;
+        bottom: 0;
+        width: 50%
+    }
+</style>
+
+<MyPopup Title="Chọn hoặc nhập mã giảm giá"
+         CloseText="Đóng"
+         SubmitText="Áp dụng"
+         OnCancelClick="OnClose"
+         OnSubmitClick="Summit"
+         SubmitIcon=@Icons.Material.Filled.Check>
+    <div>
+        @if (DetailData.Count > 0)
+        {
+            <!--Grid-->
+            <MudTable @ref=grid
+                  Items=DetailData
+                  Hover="true"
+                  OnRowClick="RowClickEvent"
+                  RowClassFunc="@SelectedRowClassFunc"
+                  T="DiscountCodeModel">
+                <ColGroup>
+                    <col style="width: 10rem;" />
+                    <col />
+                </ColGroup>
+                <RowTemplate>
+                    <MudTd>
+                        <div class="discount-title">
+                            @context.DiscountName
+                        </div>
+                    </MudTd>
+                    <MudTd>
+                        <div>
+                            @((MarkupString)context.Descriptions.Replace("{ExpiredIn}", @context.ExpiredIn.ToString()))
+                        </div>
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <div class="notfound">
+                <h5>Chưa tìm thấy mã giảm giá nào cho bạn</h5>
+            </div>
+        }
+
+        <!--Input Discount code-->
+        <div class="discountcode">
+            <MyTextEdit @ref=@RefDiscountCode
+                        Literal="Nhập mã giảm giá"
+                        AutoFocus=true
+                        Immediate=true
+                        @bind-Text=@DiscountCode />
+        </div>
+    </div>
+</MyPopup>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string ProductID { get; set; } = "";
+    //
+    private MudTable<DiscountCodeModel> grid;
+    List<DiscountCodeModel> DetailData = new List<DiscountCodeModel>();
+    //
+    DiscountCodeModel RetModel = null;
+    string DiscountCode = "";
+    MyTextEdit RefDiscountCode;
+
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load data
+        await DisplayMain();
+    }
+
+    //Load data
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Validate
+            if (string.IsNullOrWhiteSpace(ProductID)) return;
+
+            //Filter
+            var requestString = new Insure.Services.String_Request()
+                {
+                    Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = ProductID
+                };
+
+            //Get data from DB
+            var response = await insureServiceClient.GetUserDiscountCodeListAsync(requestString);
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                foreach (var item in response.Records)
+                {
+                    var record = new DiscountCodeModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, record);
+                    //
+                    record.ExpiredIn = (record.ToDate - DateTime.Now).Days;
+                    //
+                    DetailData.Add(record);
+                }
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    int selectedRowNumber = -1;
+    private string SelectedRowClassFunc(DiscountCodeModel record, int rowNumber)
+    {
+        if (selectedRowNumber == rowNumber)
+        {
+            selectedRowNumber = -1;
+            return string.Empty;
+        }
+        else if (grid.SelectedItem != null && grid.SelectedItem.ID == record.ID)
+        {
+            selectedRowNumber = rowNumber;
+            RetModel = record;
+            return "selected";
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private void RowClickEvent(TableRowClickEventArgs<DiscountCodeModel> tableRowClickEventArgs)
+    {
+        if (tableRowClickEventArgs.Item != null) RetModel = tableRowClickEventArgs.Item;
+    }
+
+
+    async void Summit()
+    {
+        //Get private discount code
+        if (!string.IsNullOrWhiteSpace(DiscountCode))
+        {
+            //by DiscountCode
+            RetModel =  await masterService.CheckDiscountCode(DiscountCode);
+        }
+        //NG
+        if (RetModel == null)
+        {
+            if (string.IsNullOrWhiteSpace(DiscountCode))
+            {
+                RefDiscountCode.SetError("Chưa chọn mã giảm giá");
+            }
+            else
+            {
+                RefDiscountCode.SetError("Mã giảm giá không hợp lệ");
+            }
+            return;
+        }
+        //OK
+        MudDialog.Close(RetModel);
+    }
+
+    void OnClose()
+    {
+        MudDialog.Cancel();
+    }
+
+
+
+}
+

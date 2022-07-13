@@ -15,11 +15,14 @@ namespace PaymentWeb.Services
     {
         private VnPayService _vnPay;
         private eBaoService _ebaoService;
+        private BHVService _bhvService;
         public PaymentService(VnPayService vnPay,
-                              eBaoService ebaoService)
+                              eBaoService ebaoService,
+                              BHVService bhvService)
         {
             _vnPay = vnPay;
             _ebaoService = ebaoService;
+            _bhvService = bhvService;
         }
         /// <summary>
         /// Init payment
@@ -36,7 +39,7 @@ namespace PaymentWeb.Services
             try
             {
                 //VnPay
-                if (paymentChannelID == MyConstant.PyamentChannel_VnPay)
+                if (paymentChannelID == MyConstant.PaymentChannel_VnPay)
                 {
                     return await _vnPay.InitPayment(initOrderToken, transactionID);
                 }
@@ -102,8 +105,88 @@ namespace PaymentWeb.Services
                 //Save
                 await record.SaveAsync();
 
-                //Issue Order to eBao
-                var issueRes = await _ebaoService.eBao_CreateToIssue_TNDS(record);
+                //
+                //Call insurance provider to issuer Certificate
+                //
+                var issueRes = await IssueCertificate(record);
+                ret.ReturnCode = issueRes.ReturnCode;
+                ret.ErrorMessage = issueRes.ErrorMessage;
+
+                //Return record
+                ret.Record = record;
+
+                //Update Discount Code
+                if (ret.ReturnCode == ReturnCode.OK)
+                {
+                    SaleOrderService.Update_DiscountCode(record);
+                }
+
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "DonateOrder", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                ret.ReturnCode = ReturnCode.Error_ByServer;
+            }
+            //
+            return ret;
+        }
+
+        /// <summary>
+        /// Cash payment
+        /// </summary>
+        /// <param name="initOrderToken"></param>
+        /// <param name="transactionID"></param>
+        /// <returns></returns>
+        public async Task<FinishPaymentResult> CashPayment(string initOrderToken, string transactionID)
+        {
+            var ret = new FinishPaymentResult();
+            ret.ReturnCode = ReturnCode.OK;
+            //
+            try
+            {
+                //201: UnAuthorized
+                //202: No transaction found
+                //Check security
+                if (!MyTokenService.Check_InitOrderToken(initOrderToken, transactionID))
+                {
+                    Console.WriteLine(transactionID);
+
+                    ret.ReturnCode = ReturnCode.Error_201;
+                    ret.ErrorMessage = "Lỗi bảo mật";
+                    return ret;
+                }
+
+                //Check Transaction
+                var record = await DB.Find<mdSaleOrder>()
+                                          .Match(x => x.TransactionID == transactionID)
+                                          .Match(x => x.IsPayRequest == false)
+                                          .ExecuteFirstAsync();
+                //No data
+                if (record == null)
+                {
+                    ret.ReturnCode = ReturnCode.Error_202;
+                    ret.ErrorMessage = "Không tồn tại giao dịch tương ứng";
+                    return ret;
+                }
+                ret.Record = record;
+
+                //Update donate
+                int timeOutIn = await SettingMaster.GetInt1("017");
+                if (timeOutIn == 0) timeOutIn = 30;
+                //
+                record.IsPayRequest = true;
+                record.RequestTime = DateTime.UtcNow;
+                record.ExpiredTime = DateTime.UtcNow.AddMinutes(timeOutIn);
+                //Payment done
+                record.IsPayDone = true;
+                record.IsPayError = false;
+                //Save
+                await record.SaveAsync();
+
+                //
+                //Call insurance provider to issuer Certificate
+                //
+                var issueRes = await IssueCertificate(record);
                 ret.ReturnCode = issueRes.ReturnCode;
                 ret.ErrorMessage = issueRes.ErrorMessage;
 
@@ -139,7 +222,7 @@ namespace PaymentWeb.Services
             try
             {
                 //VnPay
-                if (PaymentChannelID == MyConstant.PyamentChannel_VnPay)
+                if (PaymentChannelID == MyConstant.PaymentChannel_VnPay)
                 {
                     return await _vnPay.Gen_PaymentRedirectLink(ipAddress, record);
                 }
@@ -169,9 +252,17 @@ namespace PaymentWeb.Services
             try
             {
                 //VnPay
-                if (PaymentChannelID == MyConstant.PyamentChannel_VnPay)
+                if (PaymentChannelID == MyConstant.PaymentChannel_VnPay)
                 {
-                    return await _vnPay.FinishPayment(result, queryData);
+                    ret = await _vnPay.FinishPayment(result, queryData);
+
+                    //Issue certificate
+                    if (ret.ReturnCode == ReturnCode.OK)
+                    {
+                        var issueReturn = await IssueCertificate(ret.Record);
+                        ret.ReturnCode = issueReturn.ReturnCode;
+                        ret.ErrorMessage = issueReturn.ErrorMessage;
+                    }
                 }
             }
             catch (Exception ex)
@@ -182,7 +273,43 @@ namespace PaymentWeb.Services
             //
             return ret;
         }
-        
+        //
+        public async Task<CallApiReturn> IssueCertificate(mdSaleOrder order)
+        {
+            var ret = new CallApiReturn();
+            ret.ReturnCode = ReturnCode.OK;
+            try
+            {
+                //BMI
+                if (order.VendorID == MyConstant.Vendor_BMI)
+                {
+                    //Motor & Autor
+                    ret = await _ebaoService.eBao_CreateToIssue_TNDS(order);
+                }
+
+                //BHV
+                if (order.VendorID == MyConstant.Vendor_BHV)
+                {
+                    //TNDS motor
+                    if (order.ProductID == MyConstant.Product_MotorBHV)
+                    {
+                        ret = await _bhvService.Create_MotorTNDS(order);
+                    }
+
+                    //TNDS auto
+                    if (order.ProductID == MyConstant.Product_AutoBHV)
+                    {
+                        ret = await _bhvService.Create_AutoTNDS(order);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "IssueCertificate", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                ret.ReturnCode = ReturnCode.Error_ByServer;
+            }
+            return ret;
+        }
 
 
         //

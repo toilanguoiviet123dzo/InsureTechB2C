@@ -1,0 +1,82 @@
+﻿@page "/"
+@page "/{ProductID}"
+@page "/{ProductID}/{DiscountCode}"
+@using Insure.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<ProductCategory/>
+
+
+@code {
+    [Parameter] public string ProductID { get; set; } = "";
+    [Parameter] public string DiscountCode { get; set; } = "";
+
+    //
+    string Tab1Text = "&nbsp;&nbsp;Mua bảo hiểm&nbsp;&nbsp;";
+    string Tab2Text = "Giấy chứng nhận&nbsp;";
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        // Get browser info
+        await Get_BrowserInfo();
+
+        if (BrowserInfo.IsMobile)
+        {
+            Tab1Text = "Mua bảo hiểm";
+            Tab2Text = "Chứng nhận";
+        }
+
+        if (!string.IsNullOrWhiteSpace(ProductID))
+        {
+            SelectBuy();
+        }
+    }
+
+    async Task Get_BrowserInfo()
+    {
+        var info = await JsRuntime.InvokeAsync<BrowserDimension>("getDimensions");
+        if (info != null)
+        {
+            BrowserInfo.Height = info.Height;
+            BrowserInfo.Width = info.Width;
+            if (BrowserInfo.Width <= 768)
+            {
+                BrowserInfo.IsMobile = true;
+            }
+        }
+    }
+
+    async void SelectBuy()
+    {
+        //Check product ID
+        var product = await masterService.Get_Product(ProductID);
+        if (product == null) return;
+
+        //Select buy || product detail
+        if (!string.IsNullOrWhiteSpace(DiscountCode))
+        {
+            //Select buy
+            var parameters = new DialogParameters();
+            parameters.Add("Product", product);
+            parameters.Add("DiscountCode", DiscountCode);
+            //
+            var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        }
+        else
+        {
+            //Open product detail
+            var parameters = new DialogParameters();
+            parameters.Add("Model", product);
+            //
+            var result = await DialogService.Show<TNSD01_Detail>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        }
+    }
+
+}
+

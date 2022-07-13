@@ -79,7 +79,7 @@ namespace PaymentWeb.Pages
                 MyData.BaseUrl = @$"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
 
                 //Finish payment
-                var ret = await _paymentService.FinishPayment(MyConstant.PyamentChannel_VnPay, result, querryData);
+                var ret = await _paymentService.FinishPayment(MyConstant.PaymentChannel_VnPay, result, querryData);
                 //
                 ReturnCode = ret.ReturnCode;
                 ErrorMessage = ret.ErrorMessage;

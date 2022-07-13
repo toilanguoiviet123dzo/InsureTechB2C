@@ -184,6 +184,8 @@ namespace PaymentWeb.Services
                 newForm.insurerTenantCode = "BM_VN";
                 //insureds
                 var veh = new InsuredModel();
+                //2 nguoi ngoi tren xe
+                veh.detail.extInfo.coverPA = saleOrder.Motor2People;
                 veh.detail.vehicleChassisNo = "";
                 veh.detail.vehicleEngineNo = "";
                 veh.detail.vehicleRegNo = saleOrder.LicensePlate;

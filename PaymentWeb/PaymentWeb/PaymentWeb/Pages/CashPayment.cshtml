@@ -1,0 +1,158 @@
+﻿@page "{InitOrderToken}/{TransactionID}"
+@using BlazorApp.Server.Common;
+@model PaymentWeb.Pages.DonateOrderModel
+@{
+}
+
+<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" />
+<link rel="stylesheet" type="text/css" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" />
+<style type="text/css">
+
+    body {
+        background: #f2f2f2;
+    }
+
+    .payment {
+        border: 1px solid #f2f2f2;
+        height: 350px;
+        border-radius: 20px;
+        background: #fff;
+    }
+
+    .payment_header {
+        background: rgba(255,102,0,1);
+        padding: 20px;
+        border-radius: 20px 20px 0px 0px;
+    }
+
+    .check {
+        margin: 0px auto;
+        width: 50px;
+        height: 50px;
+        border-radius: 100%;
+        background: #fff;
+        text-align: center;
+    }
+
+        .check i {
+            vertical-align: middle;
+            line-height: 50px;
+            font-size: 30px;
+        }
+
+    .content {
+        text-align: center;
+    }
+
+        .content h1 {
+            font-size: 25px;
+            padding-top: 25px;
+        }
+
+        .content a {
+            width: 200px;
+            height: 35px;
+            color: #fff;
+            border-radius: 30px;
+            padding: 5px 10px;
+            background: rgba(255,102,0,1);
+            transition: all ease-in-out 0.3s;
+        }
+
+            .content a:hover {
+                text-decoration: none;
+                background: #000;
+            }
+
+
+    .payment_error {
+        border: 1px solid #f01b1b;
+        height: 350px;
+        border-radius: 20px;
+        background: #fff;
+    }
+
+    .payment_header_error {
+        background: #f01b1b;
+        padding: 20px;
+        border-radius: 20px 20px 0px 0px;
+    }
+
+    .btnStack {
+        font-family: Oswald;
+        background-color: orange;
+        color: white;
+        font-weight: 500;
+        text-decoration: none;
+        display: inline-block;
+        padding: 6px 12px;
+        margin-bottom: 0;
+        font-size: 14px;
+        font-weight: normal;
+        line-height: 1.428571429;
+        text-align: center;
+        white-space: nowrap;
+        vertical-align: middle;
+        cursor: pointer;
+        border: 1px solid transparent;
+        border-radius: 4px;
+        -webkit-user-select: none;
+        -moz-user-select: none;
+        -ms-user-select: none;
+        -o-user-select: none;
+        user-select: none;
+    }
+
+    a.btnStack:hover {
+        background-color: #000;
+    }
+</style>
+
+<div class="container">
+    <div class="row">
+        <div class="col-md-6 mx-auto mt-5">
+            <!--Success-->
+            @if (Model.ReturnCode == ReturnCode.OK)
+            {
+                <div class="payment">
+                    <div class="payment_header">
+                        <div class="check"><i class="fa fa-check" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="m-2">
+                        <h2 class="mx-auto text-center mt-2">Cấp bảo hiểm thành công !</h2>
+                        <h5 class="mx-auto text-center mt-3">Cảm ơn bạn đã ủng hộ chúng tôi.</h5>
+                        <p class="m-2 text-justify">
+                            Chứng nhận bảo hiểm sẽ được sẽ được gởi qua email <span style="color:blue">@Model.Record.CusEmail</span>
+                            hoặc sms qua số điện thoại <span style="color:blue">@Model.Record.CusPhone</span>. 
+                            Hoặc bạn có thể download ngay bằng nút bên dưới
+                        </p>
+                    </div>
+                    <div class="m-2 text-center">
+                        <a class="m-2 btnStack" href="@Model.Record.CertificateLink">Download giấy chứng nhận</a>
+                    </div>
+                </div>
+            }
+
+            <!--Failed-->
+            @if (Model.ReturnCode != ReturnCode.OK)
+            {
+                <div class="payment_error">
+                    <div class="payment_header_error">
+                        <div class="check"><i class="fa fa-exclamation-triangle" aria-hidden="true"></i></div>
+                    </div>
+
+                    <div class="m-2">
+                        <h2 class="mx-auto text-center mt-2" style="color:red">Cấp bảo hiểm thất bại !!!</h2>
+                        <p class="m-2 text-justify">
+                            @Model.ErrorMessage
+                        </p>
+                    </div>
+                    <div class="m-2 text-center">
+                        <a class="m-2 btnStack" onClick="javascript:window.close('','_parent','');">Trở lại</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

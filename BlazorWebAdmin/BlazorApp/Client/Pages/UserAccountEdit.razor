@@ -1,6 +1,7 @@
 ﻿@inject MasterService masterService;
+@inject ISnackbar Snackbar
 
-<MyPopupEdit Title="Nhập chi nhánh bồi thường"
+<MyPopupEdit Title="Tài khoản người dùng"
              T="UserAccountModel"
              Model="DspModel"
              OnCancelClick="OnCancel"
@@ -11,6 +12,8 @@
     <MudTextField Label="Phone" @bind-Value="DspModel.Phone" />
     <MudTextField Label="Email" @bind-Value="DspModel.Email" />
     <MudTextField Label="Address" @bind-Value="DspModel.Address" />
+    <MyComboBox @ref=@RefRoleID Literal="Vai trò" @bind-Value="SelectedRole" Data="@RoleList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    <MyComboBox @ref=@RefMerchant Literal="Đại lý" @bind-Value="SelectedMerchant" Data="@MerchantList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
     <MudSwitch @bind-Checked="@DspModel.Status" Color="Color.Primary">Hữu hiệu</MudSwitch>
 </MyPopupEdit>
 
@@ -20,8 +23,14 @@
     //
     UserAccountModel DspModel = new UserAccountModel();
     // Master
+    private List<OptionListModel> RoleList = new List<OptionListModel>();
+    private List<OptionListModel> MerchantList = new List<OptionListModel>();
     //Selected
-    //
+    OptionListModel SelectedRole;
+    OptionListModel SelectedMerchant;
+    //Ref
+    MyComboBox<OptionListModel> RefRoleID;
+    MyComboBox<OptionListModel> RefMerchant;
     protected override void OnParametersSet()
     {
         base.OnParametersSet();
@@ -36,10 +45,44 @@
     //Submit
     private void OnSubmit()
     {
+        //Validate
+        if (!ValidateMain()) return;
+
         ClassHelper.CopyPropertiesData(DspModel, Model);
 
         //Return changed
         MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    bool ValidateMain()
+    {
+        if (SelectedRole != null)
+        {
+            DspModel.RoleID = SelectedRole.ItemCode;  
+            DspModel.RoleName = SelectedRole.ItemName;  
+        }
+        if (SelectedMerchant != null)
+        {
+            DspModel.MerchantID = SelectedMerchant.ItemCode;
+            DspModel.MerchantName = SelectedMerchant.ItemName;
+        } 
+
+        //RefRoleID
+        if (string.IsNullOrWhiteSpace(DspModel.RoleID))
+        {
+            Snackbar.Add("Chưa nhập vai trò", Severity.Error);
+            RefRoleID.Focus();
+            return false;
+        }
+
+        //RefMerchant
+        if (string.IsNullOrWhiteSpace(DspModel.MerchantID))
+        {
+            Snackbar.Add("Chưa nhập đại lý", Severity.Error);
+            RefMerchant.Focus();
+            return false;
+        }
+        return true;
     }
 
     protected override async Task OnInitializedAsync()
@@ -47,9 +90,17 @@
         base.OnInitialized();
 
         //Load master
-        await Task.FromResult(0);
+        await LoadMaster();
 
     }
 
+    async Task LoadMaster()
+    {
+        RoleList = await masterService.Load_OptionList("005");
+        MerchantList = await masterService.Load_OptionList("006");
+        //
+        SelectedRole = RoleList.Find(x => x.ItemCode == Model.RoleID);
+        SelectedMerchant = MerchantList.Find(x => x.ItemCode == Model.MerchantID);
+    }
 
 }

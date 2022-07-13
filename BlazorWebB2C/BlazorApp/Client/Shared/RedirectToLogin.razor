@@ -1,0 +1,33 @@
+﻿@using Microsoft.AspNetCore.Components.WebAssembly.Hosting
+@inject IWebAssemblyHostEnvironment HostEnvironment
+@inject NavigationManager Navigation
+@inject IAuthenticationService AuthService
+@code {
+    protected override async void OnInitialized()
+    {
+        if (HostEnvironment.Environment == "Development")
+        {
+            //Development login
+            AuthService.Development_Login();
+
+            //Development
+            Navigation.NavigateTo(Navigation.Uri);
+        }
+        else
+        {
+            //Check is login from local storage
+            await AuthService.Login(null);
+            //
+            if (WebUserCredential.IsAuthenticated)
+            {
+                //Current page
+                Navigation.NavigateTo(Navigation.Uri);
+            }
+            else
+            {
+                //Login
+                Navigation.NavigateTo("/login");
+            }
+        }
+    }
+}

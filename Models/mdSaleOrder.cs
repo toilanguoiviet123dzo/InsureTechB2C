@@ -13,6 +13,7 @@ namespace BlazorApp.Server.Models
         //Order info
         public string TransactionID { get; set; } = "";
         public string OrderID { get; set; } = "";
+        public DateTime OrderDate { get; set; }
         public string PolicyID { get; set; } = "";
         public string QuoteNo { get; set; } = "";
         public string PolicyNo { get; set; } = "";
@@ -43,7 +44,7 @@ namespace BlazorApp.Server.Models
         public int Quantity { get; set; }
         public double UnitPrice { get; set; }
         public double Amount { get; set; }
-        public bool IsIncludeVAT { get; set; }
+        public bool IsIncludeVAT { get; set; } = true;
         public double TaxRate { get; set; }
         public double TaxAmount { get; set; }
         public string Currency { get; set; } = "VND";
@@ -53,6 +54,10 @@ namespace BlazorApp.Server.Models
         public string CarType { get; set; } = "";
         public double SeatCount { get; set; }
         public double Tonage { get; set; }
+
+        //For motor
+        public bool Motor2People { get; set; }
+        public int BuyYear { get; set; }
 
         //Discount
         public string DiscountCode { get; set; } = "";
@@ -71,7 +76,15 @@ namespace BlazorApp.Server.Models
         public string ProcessErrorMessage { get; set; } = "";
         public bool IsIssueCertificate { get; set; }
         public bool IsDelivery { get; set; }
+        //Merchant
+        public string MerchantID { get; set; } = "";
+        public string AccountID { get; set; } = "";
+        public double BonusRate { get; set; }
+        public double BonusAmount { get; set; }
+        public bool IsPayBonus { get; set; } = false;
+
         //Payment
+        public string PaymentChannelID { get; set; } = "";
         public string PaymentRefID { get; set; } = "";
         public string PaymentResponseCode { get; set; } = "";
         public string PaymentResponseData { get; set; } = "";

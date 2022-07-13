@@ -1,0 +1,109 @@
+﻿@inject MasterService masterService;
+@inject ISnackbar Snackbar
+
+<MyPopupEdit Title="Cài đặt đại lý"
+             T="MerchantSettingModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+
+    <MyComboBox @ref=@RefProduct
+                Literal="Sản phẩm"
+                @bind-Value="SelectedProduct"
+                Data="@ProductList"
+                TextFieldName="@(nameof(ProductModel.ProductName))"
+                DropdownTextFunc="@((product) => product.VendorID.FillSpace(12) + product.ProductName)" />
+    <MudNumericField @ref=RefBonusRate
+                     Class="mr-2"
+                     Label="% chiết khấu"
+                     @bind-Value="DspModel.BonusRate"
+                     Min=0.0
+                     Max=100.0
+                     HideSpinButtons="true"
+                     Format="N0"
+                     T="double" />
+    <MyDateEdit Literal="Ngày hiệu lực"
+                @bind-Date=DspModel.EffSttDate
+                MinDate=@DateTime.Now />
+    <MudTextField Label="Ghi chú" @bind-Value="DspModel.Notes" />
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public MerchantSettingModel Model { get; set; }
+    [Parameter] public List<ProductModel> ProductList { get; set; }
+    //
+    MerchantSettingModel DspModel = new MerchantSettingModel();
+    // Master
+
+    //Selected
+    ProductModel SelectedProduct;
+    //Ref
+    MyComboBox<ProductModel> RefProduct;
+    MudNumericField<double> RefBonusRate;
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+
+        //BonusRate * 100
+        DspModel.BonusRate = DspModel.BonusRate * 100;
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        //Validate
+        if (!ValidateMain()) return;
+
+        //BonusRate * 100
+        DspModel.BonusRate = Math.Round(DspModel.BonusRate / 100, 2);
+
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    bool ValidateMain()
+    {
+        if (SelectedProduct != null)
+        {
+            DspModel.ProductID = SelectedProduct.ProductID;
+            DspModel.ProductName = SelectedProduct.ProductName;
+            DspModel.VendorID = SelectedProduct.VendorID;
+        }
+
+        //RefRoleID
+        if (string.IsNullOrWhiteSpace(DspModel.ProductID))
+        {
+            Snackbar.Add("Chưa nhập sản phẩm", Severity.Error);
+            RefProduct.Focus();
+            return false;
+        }
+
+        //RefMerchant
+        if (DspModel.BonusRate == 0)
+        {
+            Snackbar.Add("Chưa nhập tỉ lệ chiết khấu", Severity.Error);
+            RefBonusRate.FocusAsync();
+            return false;
+        }
+        return true;
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Load master
+
+    }
+
+
+}

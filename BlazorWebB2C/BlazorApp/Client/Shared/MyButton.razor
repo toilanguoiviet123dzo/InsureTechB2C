@@ -1,0 +1,37 @@
+﻿<MudChip Variant="Variant.Filled"
+         Icon="@Icon"
+         Color="@Color"
+         Class="@Class"
+         Style="@Style"
+         Tag="@Tag"
+         OnClick="OnClickHandler">
+    @Literal
+</MudChip>
+
+@code {
+    [Parameter] public string Literal { get; set; } = "Click me";
+    [Parameter] public string Icon { get; set; } = "";
+    [Parameter] public string Width { get; set; } = "120px";
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public object Tag { get; set; }
+    [Parameter] public MudBlazor.Color Color { get; set; } = Color.Primary;
+    [Parameter] public EventCallback OnClick { get; set; }
+
+    private async void OnClickHandler()
+    {
+        await OnClick.InvokeAsync();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Set width
+        if (!string.IsNullOrWhiteSpace(Width))
+        {
+            if (!Style.Contains($"width:{Width};")) Style = $"width:{Width}; {Style}";
+        }
+    }
+}
+

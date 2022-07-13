@@ -62,8 +62,7 @@ namespace Cores.GrpcClient.Authentication
             WebUserCredential.Username = "";
             WebUserCredential.Fullname = "";
             WebUserCredential.RoleID = "";
-            WebUserCredential.ApproveLevel = 0;
-            WebUserCredential.DocumentLevel = 0;
+            WebUserCredential.MerchantID = "";
             WebUserCredential.IsAuthenticated = false;
 
             //Notify

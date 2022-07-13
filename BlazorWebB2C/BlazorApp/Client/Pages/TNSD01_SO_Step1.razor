@@ -1,0 +1,461 @@
+﻿@page "/Motor"
+@using Insure.Services
+@using Resource.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject VoucherService voucherService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyAppBarForm Title="Bảo hiểm xe gắn máy" ShowCloseButton=true>
+    <ChildContent>
+        <MyPanels>
+            <MyPanel Title="Thông tin chủ hợp đồng">
+                <MyTextEdit Literal="Điện thoại*"
+                            IsFontBold=true
+                            AutoFocus=true
+                            Text=@Model.CusPhone
+                            TextChanged="@((string text) => CusPhone_TextChanged(text))"
+                            @ref=RefCusPhone />
+                <MyTextEdit Literal="Họ và tên chủ xe*"
+                            IsFontBold=true
+                            Text=@Model.CusFullname
+                            TextChanged="@((string text) => OwnerFullname_TextChanged(text))"
+                            @ref=RefCusFullname />
+                <MyTextEdit Literal="Email"
+                            TextColor=@MyTextColor.Blue
+                            @bind-Text=@Model.CusEmail
+                            @ref=RefCusEmail />
+
+                <div class="row align-items-end mt-4">
+                    <div class="col-12 col-lg-4">
+                        <MyDateEdit Literal="Ngày hiệu lực"
+                                    TabStop=false
+                                    IsFontBold=true
+                                    TextColor=@MyTextColor.Blue
+                                    MinDate=@DateTime.Now.AddDays(-1)
+                                    @bind-Date=@Model.EffectiveSttDate
+                                    @ref=RefEffectiveSttDate />
+                    </div>
+                    <div class="col-12 col-lg-8">
+                        @if (ProductID == "TNDS_HV")
+                        {
+                            <MudRadioGroup SelectedOption="@SelectedYear"
+                                       SelectedOptionChanged="@((string value) => BuyYear_Changed(value))">
+                                <MudRadio Option="@("1")" Color="Color.Primary">1 năm</MudRadio>
+                                <MudRadio Option="@("2")" Color="Color.Tertiary">2 năm</MudRadio>
+                                <MudRadio Option="@("3")" Color="Color.Secondary">3 năm</MudRadio>
+                            </MudRadioGroup>
+                        }
+                    </div>
+                </div>
+
+                <MyCheckBox Literal="Bảo hiểm 2 người ngồi trên xe"
+                            Checked=@Model.Motor2People
+                            CheckedChanged="@((bool value) => BuyPeople_Changed(value))"
+                            TabStop=false />
+
+                <div class="row align-items-end">
+                    <div class="col-6">
+                        <MyTextEdit Literal="Biển số xe*"
+                                    IsFontBold=true
+                                    IsUpperCase=true
+                                    TextColor=@MyTextColor.Blue
+                                    Mask=@licensePlateMask
+                                    Text=@Model.LicensePlate
+                                    TextChanged="@((string text) => LicensePlate_TextChanged(text))"
+                                    @ref=RefLicensePlate />
+                    </div>
+                    @if (!BrowserInfo.IsMobile)
+                    {
+                        <div class="col-6">
+                            <MyCheckBox Literal="@FormatText"
+                                    TabStop=false
+                                    CheckedChanged="@((bool value) => UseFormat_Changed(value))"
+                                    Checked=@UseFormat_LicLicensePlate />
+                        </div>
+                    }
+                </div>
+
+            </MyPanel>
+
+            <MyPanel Title="Chọn nhà cung cấp">
+                <MudRadioGroup SelectedOption="@ProductID"
+                               SelectedOptionChanged="@((string value) => Product_Changed(value))">
+                    <MudRadio Option="@("TNDS_HV")" Color="Color.Primary">Hùng Vương</MudRadio>
+                    <MudRadio Option="@("TNDS_BM")" Color="Color.Tertiary">Bảo Minh</MudRadio>
+                </MudRadioGroup>
+            </MyPanel>
+
+        </MyPanels>
+
+        <p class="text-muted text-justify m-3">
+            Lưu ý: Giấy chứng nhận bảo hiểm điện tử được gởi qua email, tin nhắn SMS
+            hoặc có thể download ngay sau khi thanh toán xong.
+        </p>
+    </ChildContent>
+    <ActionButtons>
+        <div class="d-flex align-end">
+            <MudText Typo="Typo.h5" Style="font-weight: bold; color: #2453c4">@(Model.PaymentAmount.ToString("N0") + "đ")</MudText>
+            <MudText Typo="Typo.inherit" Class="text-muted ml-1" Style="font-weight: bold; color: gray">/@(SelectedYear) năm</MudText>
+        </div>
+        <div>
+            <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.ArrowForwardIos" OnClick="SelectGo">Tiếp tục</MudButton>
+        </div>
+    </ActionButtons>
+</MyAppBarForm>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    //SO
+    SaleOrderModel Model = new SaleOrderModel();
+    //Master
+    //Ref
+    MyTextEdit RefCusFullname;
+    MyTextEdit RefCusEmail;
+    MyTextEdit RefCusPhone;
+    MyTextEdit RefAddress;
+    MyTextEdit RefLicensePlate;
+    MyDateEdit RefEffectiveSttDate;
+    //format
+    string FormatText = "Nhập theo định dạng";
+    bool UseFormat_LicLicensePlate = true;
+    IMask licensePlateMask;
+    public IMask DigitMask;
+    string DiscountText = "";
+    //Buy year
+    string SelectedYear = "1";
+    string ProductID = "TNDS_HV";
+    ProductModel Product;
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Input mask
+        if (!BrowserInfo.IsMobile)
+        {
+            licensePlateMask = new PatternMask("00-a0 00.000");
+            DigitMask = new RegexMask(@"^\d+$");
+        }
+
+        //Display main
+        await DisplayMain();
+    }
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Load product
+            Product = await masterService.Get_Product(ProductID);
+
+            //CreateSO
+            Model.OrderID = MyCodeGenerator.GenRecNo(); // await voucherService.Get_NewVoucherNo("001");
+            Model.ProductType = Product.ProductType;
+            Model.VendorID = Product.VendorID;
+            Model.VendorName = Product.VendorName;
+            Model.ProductID = Product.ProductID;
+            Model.ProductName = Product.ProductName;
+            Model.Duration = Product.Duration;
+            Model.DurationUnit = Product.DurationUnit;
+            Model.Quantity = 1;
+            Model.UnitPrice = Product.UnitPrice;
+            Model.Amount = Product.UnitPrice;
+            Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
+            Model.IsIncludeVAT = Product.IsIncludeVAT;
+            Model.TaxRate = Product.TaxRate;
+            Model.TaxAmount = Math.Round(Model.Amount * Product.TaxRate, 0);
+            Model.EffectiveSttDate = DateTime.Now;
+            Model.BuyPolicy = Product.BuyPolicy;
+            Model.Motor2People = true;
+            Model.VendorLogoID = Product.VendorLogoID;
+            //Mode
+            Model.ModifiedOn = DateTime.Now;
+            Model.UpdMode = 1;
+
+            //Calc price
+            Calc_Price();
+
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    //UseFormat_Changed
+    void UseFormat_Changed(bool useFormat)
+    {
+        UseFormat_LicLicensePlate = useFormat;
+        if (useFormat)
+        {
+            FormatText = "Nhập theo định dạng";
+            licensePlateMask = new PatternMask("00-a0 00.000");
+        }
+        else
+        {
+            FormatText = "Nhập tự do";
+            licensePlateMask = null;
+        }
+    }
+
+    void OwnerFullname_TextChanged(string text)
+    {
+        Model.CusFullname = text.Beautify_VnName();
+        //
+        if (string.IsNullOrWhiteSpace(Model.OwnerFullname))
+        {
+            Model.OwnerFullname = Model.CusFullname;
+        }
+    }
+
+    async void CusPhone_TextChanged(string text)
+    {
+        Model.CusPhone = text;
+
+        //Lookup history
+        if (!string.IsNullOrWhiteSpace(Model.CusPhone) && string.IsNullOrWhiteSpace(Model.CusFullname))
+        {
+            var requestString = new Insure.Services.GetSaleOrderByPhone_Request()
+                {
+                    Credential = new Insure.Services.UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    ProductID = Model.ProductID,
+                    CusPhone = Model.CusPhone
+                };
+
+            //Get data from DB
+            var response = await insureServiceClient.GetSaleOrderByPhoneAsync(requestString);
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                Model.OwnerFullname = response.Record.OwnerFullname;
+                Model.CusFullname = response.Record.CusFullname;
+                Model.CusEmail = response.Record.CusEmail;
+                Model.CusCitizenID = response.Record.CusCitizenID;
+
+                //Same product
+                if (response.IsMatchByProduct)
+                {
+                    Model.LicensePlate = response.Record.LicensePlate;
+                    Model.EffectiveSttDate = response.Record.EffectiveEndDate.ToDateTime().AddDays(1);
+                }
+
+                //
+                this.StateHasChanged();
+
+                //Focus to LicensePlate
+                RefLicensePlate.Focus();
+
+                //Validate to clear error
+                Validate_Main();
+            }
+        }
+    }
+
+    async void LicensePlate_TextChanged(string text)
+    {
+        Model.LicensePlate = text;
+        Model.EffectiveSttDate = DateTime.Now;
+        this.StateHasChanged();
+        //Duplicated check
+        var res = await DuplicatedCheck();
+    }
+
+
+    //Validate
+    bool Validate_Main()
+    {
+        bool validateResult = true;
+
+        //Clear error
+        RefLicensePlate.ClearError();
+        RefCusFullname.ClearError();
+        RefCusPhone.ClearError();
+        RefCusEmail.ClearError();
+
+        //RefCusPhone
+        if (string.IsNullOrWhiteSpace(Model.CusPhone))
+        {
+            RefCusPhone.Focus();
+            RefCusPhone.SetError("Bắt buộc nhập");
+            validateResult = false;
+        }
+        else if (!Model.CusPhone.IsPhoneNumber())
+        {
+            RefCusPhone.Focus();
+            RefCusPhone.SetError("Số điện thoại không hợp lệ");
+            validateResult = false;
+        }
+        //RefCusFullname
+        if (string.IsNullOrWhiteSpace(Model.CusFullname))
+        {
+            RefCusFullname.Focus();
+            RefCusFullname.SetError("Bắt buộc nhập");
+            validateResult = false;
+        }
+
+        //RefLicensePlate
+        if (string.IsNullOrWhiteSpace(Model.LicensePlate))
+        {
+            RefLicensePlate.Focus();
+            RefLicensePlate.SetError("Bắt buộc nhập");
+            validateResult = false;
+        }
+        //
+        return validateResult;
+    }
+
+    async void SelectGo()
+    {
+        //Validate
+        if (!Validate_Main()) return;
+
+        Model.CusFullname = Model.CusFullname.Beautify_VnName();
+        //EffectiveEndDate
+        Model.EffectiveEndDate = Model.EffectiveSttDate.AddYears(Model.BuyYear);
+
+        //Buy year
+        Model.BuyYear = Int32.Parse(SelectedYear);
+
+        //Duplicated check
+        var isDuplicated = await DuplicatedCheck();
+        if (isDuplicated) return;
+
+        //Next step
+        var parameters = new DialogParameters();
+        parameters.Add("Model", Model);
+        //
+        var result = await DialogService.Show<TNSD01_SO_Step2>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var ret = (MyDialogResult)result.Data;
+            if (ret.IsCloseAll)
+            {
+                var ret2 = new MyDialogResult();
+                ret2.IsCloseAll = true;
+                //
+                MudDialog.Close(ret2);
+            }
+        }
+    }
+
+    private async Task<bool> DuplicatedCheck()
+    {
+        try
+        {
+            var request = new DuplicatedCheck_Request();
+            var Credential = new Insure.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            request.EffectiveSttDate = Model.EffectiveSttDate.ToTimestampFromLocalTime();
+            request.ProductID = Model.ProductID;
+            request.LicensePlate = Model.LicensePlate;
+            //
+            var response = await insureServiceClient.DuplicatedCheckAsync(request);
+            // Duplicated
+            if (response != null && response.ReturnCode == GrpcReturnCode.Error_201)
+            {
+                Snackbar.Add(response.MsgCode, Severity.Error);
+                Model.EffectiveSttDate = response.EffectiveEndDate.ToLocalDateFromTimestamp().AddDays(1);
+                this.StateHasChanged();
+                return true;
+            }
+            //Server error
+            if (response == null && response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_ServerError, Severity.Error);
+                return true;
+            }
+        }
+        catch { }
+        //
+        return false;
+    }
+
+    void BuyYear_Changed(string value)
+    {
+        SelectedYear = value;
+        Calc_Price();
+    }
+
+    void BuyPeople_Changed(bool value)
+    {
+        Model.Motor2People = value;
+        Calc_Price();
+    }
+
+    void Calc_Price()
+    {
+        //1 year
+        if (SelectedYear == "1")
+        {
+            Model.BuyYear = 1;
+            Model.Amount = Model.UnitPrice;
+        }
+        //2 year
+        if (SelectedYear == "2")
+        {
+            Model.BuyYear = 2;
+            Model.Amount = Model.UnitPrice * 2;
+        }
+        //3 year
+        if (SelectedYear == "3")
+        {
+            Model.BuyYear = 3;
+            Model.Amount = Model.UnitPrice * 3;
+        }
+        //VAT
+        Model.Amount = Model.Amount + Model.Amount * 0.1;
+        Model.Amount = Math.Round(Model.Amount, 0);
+
+        //2 people
+        Model.Amount = Model.Amount + Model.BuyYear * 20000;
+        //
+        Calc_Sum();
+    }
+
+    void Calc_Sum()
+    {
+        Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
+        if (Model.PaymentAmount < 0)
+        {
+            Model.PaymentAmount = 0;
+            Model.DiscountAmount = Model.UnitPrice;
+        }
+        //DiscountText
+        DiscountText = "";
+        if (Model.DiscountAmount > 0)
+        {
+            DiscountText = $"{Model.DiscountAmount.ToString("N0")}đ - {Model.DiscountName}";
+        }
+        this.StateHasChanged();
+    }
+
+    async void Product_Changed(string productID)
+    {
+        ProductID = productID;
+        //BMI 1 year only
+        if (productID == "TNDS_BM")
+        {
+            SelectedYear = "1";
+        }
+        await DisplayMain();
+    }
+
+}
+

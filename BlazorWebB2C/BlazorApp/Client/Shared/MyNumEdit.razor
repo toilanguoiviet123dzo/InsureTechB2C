@@ -1,0 +1,167 @@
+﻿@using System.Globalization
+@typeparam T
+
+<!--TextChanged="@((string text) => OnTextChanged(text))"-->
+
+<MudNumericField @ref="@Ref"
+                 T="T"
+                 Value="@Value"
+                 Text=@Text
+                 ValueChanged="@((T value) => OnValueChanged(value))"
+                 TextChanged="@((string text) => OnTextChanged(text))"
+                 OnBlur="OnBlur_Handle"
+                 Immediate="false"
+                 Label="@Literal"
+                 Placeholder="@Placeholder"
+                 Clearable="@Clearable"
+                 Disabled="@Disabled"
+                 ReadOnly="@ReadOnly"
+                 FullWidth="@FullWidth"
+                 Format="@Format"
+                 Culture="@_en"
+                 HelperText="@HelperText"
+                 HelperTextOnFocus="true"
+                 HideSpinButtons="true"
+                 Variant="@Variant"
+                 Adornment="@Adornment"
+                 AdornmentIcon="@AdornmentIcon"
+                 AdornmentText="@AdornmentText"
+                 Class="@Class"
+                 Style="@Style"
+                 Tag="@Tag"
+                 Min=Min
+                 Max=Max
+                 Error=@Error
+                 ErrorText=@ErrorText
+                 @attributes="@Attributes" />
+
+
+@code {
+    [Parameter] public bool TabStop { get; set; } = true;
+    [Parameter] public string Literal { get; set; } = "";
+    [Parameter] public string Placeholder { get; set; } = "";
+    [Parameter] public string HelperText { get; set; } = "";
+    [Parameter] public bool Clearable { get; set; } = false;
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public bool FullWidth { get; set; } = true;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public object Tag { get; set; }
+    [Parameter] public string Width { get; set; } = "";
+    [Parameter] public Variant Variant { get; set; } = Variant.Text;
+    [Parameter] public Adornment Adornment { get; set; } = Adornment.None;
+    [Parameter] public string AdornmentIcon { get; set; } = "";
+    [Parameter] public string AdornmentText { get; set; } = "";
+    [Parameter] public string Format { get; set; } = "N0";
+    [Parameter] public bool IsFontBold { get; set; } = false;
+    [Parameter] public string TextColor { get; set; } = "";
+    [Parameter] public T Min { get; set; }
+    [Parameter] public T Max { get; set; }
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public string ErrorText { get; set; } = "";
+
+
+    //ValueChanged
+    [Parameter] public T Value { get; set; }
+    [Parameter] public EventCallback<T> ValueChanged { get; set; }
+    private async void OnValueChanged(T newValue)
+    {
+        Value = newValue;
+        await ValueChanged.InvokeAsync(newValue);
+    }
+    //TextChanged
+    [Parameter] public string Text { get; set; }
+    [Parameter] public EventCallback<string> TextChanged { get; set; }
+    private async void OnTextChanged(string newValue)
+    {
+        Text = newValue;
+        await TextChanged.InvokeAsync(newValue);
+        await Ref.Validate();
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
+    }
+    //OnBlur
+    [Parameter] public EventCallback<FocusEventArgs> OnBlur { get; set; }
+    private async void OnBlur_Handle(FocusEventArgs e)
+    {
+        await OnBlur.InvokeAsync(e);
+    }
+
+    //Culture
+    public CultureInfo _en = CultureInfo.GetCultureInfo("en-US");
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //ReadOnly -> Disable
+        Disabled = false;
+        if (ReadOnly) Disabled = true;
+
+        //IsFontBold
+        if (IsFontBold)
+        {
+            if (!Style.Contains("font-weight: bold;")) Style = $"font-weight: bold; {Style}";
+        }
+
+        //Text Color
+        if (!string.IsNullOrWhiteSpace(TextColor))
+        {
+            if (TextColor == MyTextColor.Green && !Style.Contains(MyTextColor.Green)) Style = $"{MyTextColor.Green}; {Style}";
+            if (TextColor == MyTextColor.Blue && !Style.Contains(MyTextColor.Blue)) Style = $"{MyTextColor.Blue}; {Style}";
+            if (TextColor == MyTextColor.Navy && !Style.Contains(MyTextColor.Navy)) Style = $"{MyTextColor.Navy}; {Style}";
+            if (TextColor == MyTextColor.Maroon && !Style.Contains(MyTextColor.Maroon)) Style = $"{MyTextColor.Maroon}; {Style}";
+            if (TextColor == MyTextColor.Purple && !Style.Contains(MyTextColor.Purple)) Style = $"{MyTextColor.Purple}; {Style}";
+            if (TextColor == MyTextColor.Red && !Style.Contains(MyTextColor.Red)) Style = $"{MyTextColor.Red}; {Style}";
+        }
+
+        //Set width
+        if (!string.IsNullOrWhiteSpace(Width))
+        {
+            FullWidth = false;
+            if (!Style.Contains($"width:{Width};")) Style = $"width:{Width}; {Style}";
+        }
+
+        //ReadOnly
+        if (ReadOnly || !TabStop)
+        {
+            Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "tabIndex", "-1" }
+                                            };
+        }
+    }
+    //Focus
+    private MudNumericField<T> Ref;
+    public async void Focus()
+    {
+        await Ref.FocusAsync();
+    }
+
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
+    }
+
+}

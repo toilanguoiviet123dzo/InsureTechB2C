@@ -32,7 +32,7 @@
     <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
         <MudAvatar Color="Color.Default" Variant="Variant.Filled" Class="mr-3">
             <MudAvatar Color="Color.Secondary" Image="./images/Logo1.png" Size="Size.Large"
-                       @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "http://insurtechvietnam.com.vn/", "_blank"))" />
+                       @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "https://insurtechvietnam.com.vn/", "_blank"))" />
         </MudAvatar>
         @if (string.IsNullOrWhiteSpace(WebUserCredential.Program.ProgramName))
         {
@@ -82,6 +82,7 @@
                             <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.InsertChart" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("CarPriceList","Bảng giá bán TNDS ôtô")))">Bảng giá bán TNDS ôtô</MudNavLink>
                             <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Discount" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("DiscountCode","Danh sách code khuyến mãi")))">Danh sách code khuyến mãi</MudNavLink>
                             <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
+                            <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.SupervisedUserCircle" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("MerchantSetting","Cài đặt đại lý")))">Cài đặt đại lý</MudNavLink>
                             <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.LocationOn" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("AddressMaster","Danh mục địa chỉ")))">Danh mục địa chỉ</MudNavLink>
                         </MudNavMenu>
                     </ChildContent>

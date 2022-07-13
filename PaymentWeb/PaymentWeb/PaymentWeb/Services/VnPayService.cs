@@ -7,14 +7,6 @@ namespace PaymentWeb.Services
 {
     public class VnPayService
     {
-        private eBaoService _ebaoService;
-        private BHVService _bhvService;
-        public VnPayService(eBaoService ebaoService,
-                            BHVService bhvService)
-        {
-            _ebaoService = ebaoService;
-            _bhvService = bhvService;
-        }
         public static Dictionary<string, string> VnPay_ErrorDic { get; set; } = new Dictionary<string, string>()
         {
             {"00","Giao dịch thành công" },
@@ -238,7 +230,7 @@ namespace PaymentWeb.Services
                     ret.ErrorMessage = "Đơn hàng đã xử lý xong trước đó hoặc đã quá thời gian thanh toán cho phép";
                     return ret;
                 }
-                ret.Record = record;
+                
 
                 //vnp_Amount
                 if ((record.PaymentAmount * 100).ToString() != result.vnp_Amount.ToString())
@@ -280,24 +272,8 @@ namespace PaymentWeb.Services
                 //
                 await record.SaveAsync();
 
-                //Payment failed
-                if (record.IsPayError) return ret;
-
-                //
-                //Call insurance provider to issuer Certificate
-                //
-                var issueRes = await IssueCertificate(record);
-                ret.ReturnCode = issueRes.ReturnCode;
-                ret.ErrorMessage = issueRes.ErrorMessage;
-
-                //Return record
+                //Record
                 ret.Record = record;
-
-                //Update Discount Code
-                if (ret.ReturnCode == ReturnCode.OK)
-                {
-                    SaleOrderService.Update_DiscountCode(record);
-                }
             }
             catch (Exception ex)
             {
@@ -305,43 +281,6 @@ namespace PaymentWeb.Services
                 ret.ReturnCode = ReturnCode.Error_ByServer;
             }
             //
-            return ret;
-        }
-
-        public async Task<CallApiReturn> IssueCertificate(mdSaleOrder order)
-        {
-            var ret = new CallApiReturn();
-            ret.ReturnCode = ReturnCode.OK;
-            try
-            {
-                //BMI
-                if (order.VendorID == MyConstant.Vendor_BMI)
-                {
-                    //Motor & Autor
-                    ret = await _ebaoService.eBao_CreateToIssue_TNDS(order);
-                }
-
-                //BHV
-                if (order.VendorID == MyConstant.Vendor_BHV)
-                {
-                    //TNDS motor
-                    if (order.ProductID == MyConstant.Product_MotorBHV)
-                    {
-                        ret = await _bhvService.Create_MotorTNDS(order);
-                    }
-
-                    //TNDS auto
-                    if (order.ProductID == MyConstant.Product_AutoBHV)
-                    {
-                        ret = await _bhvService.Create_AutoTNDS(order);
-                    }
-                }
-            }
-            catch (Exception ex)
-            {
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "PaymentService", "IssueCertificate", "Exception", ReturnCode.Error_ByServer, ex.Message);
-                ret.ReturnCode = ReturnCode.Error_ByServer;
-            }
             return ret;
         }
 

@@ -1,0 +1,115 @@
+﻿
+<MudCheckBox Checked="@Checked"
+             CheckedChanged="@((bool x) => CheckedChanged_Handle(x))"
+             ReadOnly="@ReadOnly"
+             Disabled="@Disabled"
+             Class="@Class"
+             Style="@Style"
+             Tag="@Tag"
+             Color="Color.Primary"
+             Error=@Error
+             ErrorText=@ErrorText
+             @attributes="@Attributes">
+    <ChildContent>
+        @if (!string.IsNullOrWhiteSpace(Literal))
+        {
+            @Literal
+        }
+        else
+        {
+            @ChildContent
+        }
+    </ChildContent>
+</MudCheckBox>
+
+
+@code {
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public bool TabStop { get; set; } = true;
+    [Parameter] public string Literal { get; set; } = "";
+    [Parameter] public bool Disabled { get; set; } = false;
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public object Tag { get; set; }
+    [Parameter] public bool IsFontBold { get; set; } = false;
+    [Parameter] public string TextColor { get; set; } = "";
+    [Parameter] public bool Error { get; set; }
+    [Parameter] public string ErrorText { get; set; } = "";
+
+    //TextChanged
+    [Parameter] public bool Checked { get; set; } = false;
+    [Parameter] public EventCallback<bool> CheckedChanged { get; set; }
+    private async void CheckedChanged_Handle(bool newValue)
+    {
+        Checked = newValue;
+        await CheckedChanged.InvokeAsync(newValue);
+
+        //reset Error
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
+    }
+
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //ReadOnly -> Disable
+        Disabled = false;
+        if (ReadOnly) Disabled = true;
+
+        //IsFontBold
+        if (IsFontBold)
+        {
+            if (!Style.Contains("font-weight: bold;")) Style = $"font-weight: bold; {Style}";
+        }
+
+        //Text Color
+        if (!string.IsNullOrWhiteSpace(TextColor))
+        {
+            if (TextColor == MyTextColor.Green && !Style.Contains(MyTextColor.Green)) Style = $"{MyTextColor.Green}; {Style}";
+            if (TextColor == MyTextColor.Blue && !Style.Contains(MyTextColor.Blue)) Style = $"{MyTextColor.Blue}; {Style}";
+            if (TextColor == MyTextColor.Navy && !Style.Contains(MyTextColor.Navy)) Style = $"{MyTextColor.Navy}; {Style}";
+            if (TextColor == MyTextColor.Maroon && !Style.Contains(MyTextColor.Maroon)) Style = $"{MyTextColor.Maroon}; {Style}";
+            if (TextColor == MyTextColor.Purple && !Style.Contains(MyTextColor.Purple)) Style = $"{MyTextColor.Purple}; {Style}";
+            if (TextColor == MyTextColor.Red && !Style.Contains(MyTextColor.Red)) Style = $"{MyTextColor.Red}; {Style}";
+        }
+
+        //mb-n3
+        if (!Class.Contains("mb-n3")) Class = $"mb-n3 {Class}";
+
+        //ReadOnly
+        if (ReadOnly || !TabStop)
+        {
+            Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "tabIndex", "-1" }
+                                            };
+        }
+    }
+
+    //Set Error
+    public void SetError(string errorText)
+    {
+        Error = true;
+        ErrorText = errorText;
+        this.StateHasChanged();
+    }
+    //Clear Error
+    public void ClearError()
+    {
+        if (Error)
+        {
+            Error = false;
+            ErrorText = "";
+            this.StateHasChanged();
+        }
+    }
+
+}

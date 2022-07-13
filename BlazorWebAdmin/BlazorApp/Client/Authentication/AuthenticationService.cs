@@ -30,8 +30,6 @@ namespace Cores.GrpcClient.Authentication
             WebUserCredential.Username = "";
             WebUserCredential.Fullname = "";
             WebUserCredential.RoleID = "";
-            WebUserCredential.ApproveLevel = 0;
-            WebUserCredential.DocumentLevel = 0;
             //
             try
             {
@@ -56,8 +54,7 @@ namespace Cores.GrpcClient.Authentication
                     WebUserCredential.Username = response.UserName;
                     WebUserCredential.Fullname = response.Fullname;
                     WebUserCredential.RoleID = response.RoleID;
-                    WebUserCredential.ApproveLevel = response.ApproveLevel;
-                    WebUserCredential.DocumentLevel = response.DocumentLevel;
+                    WebUserCredential.MerchantID = response.MerchantID;
                     //
                     loginResult = true;
                     //Notify login
@@ -75,8 +72,7 @@ namespace Cores.GrpcClient.Authentication
             WebUserCredential.Username = "AdminDev";
             WebUserCredential.Fullname = "Admin Development";
             WebUserCredential.RoleID = "99";
-            WebUserCredential.ApproveLevel = 99;
-            WebUserCredential.DocumentLevel = 99;
+            WebUserCredential.MerchantID = "INS";
             WebUserCredential.IsDevelopmentMode = true;
             //
             //Notify login

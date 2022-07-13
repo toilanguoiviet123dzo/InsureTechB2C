@@ -1,0 +1,54 @@
+@inject IJSRuntime JsRuntime;
+
+<CascadingAuthenticationState>
+    <Router AppAssembly="@typeof(Program).Assembly" PreferExactMatches="@true">
+        <Found Context="routeData">
+            <AuthorizeRouteView RouteData="@routeData" DefaultLayout="@typeof(MainLayout)">
+                <NotAuthorized>
+                    @if (!context.User.Identity.IsAuthenticated)
+                    {
+                        <RedirectToLogin />
+                    }
+                    else
+                    {
+                        <p>You are not authorized to access this resource.</p>
+                    }
+                </NotAuthorized>
+            </AuthorizeRouteView>
+        </Found>
+        <NotFound>
+            <LayoutView Layout="@typeof(MainLayout)">
+                <p>Sorry, there's nothing at this address.</p>
+            </LayoutView>
+        </NotFound>
+    </Router>
+
+</CascadingAuthenticationState>
+
+@code {
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        // Get browser info
+        await Get_BrowserInfo();
+    }
+
+    async Task Get_BrowserInfo()
+    {
+        var info = await JsRuntime.InvokeAsync<BrowserDimension>("getDimensions");
+        if (info != null)
+        {
+            BrowserInfo.Height = info.Height;
+            BrowserInfo.Width = info.Width;
+            if (BrowserInfo.Width <= 768)
+            {
+                BrowserInfo.IsMobile = true;
+            }
+        }
+    }
+}
+
+
+
+

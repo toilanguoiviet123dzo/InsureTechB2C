@@ -29,7 +29,8 @@ namespace BlazorApp.Server.Common
         public const string HttpClient_Common = "HttpClient_Common";
 
         //Payment channel list
-        public const string PyamentChannel_VnPay = "VnPay";
+        public const string PaymentChannel_Cash = "Cash";
+        public const string PaymentChannel_VnPay = "VnPay";
 
         //ProductType
         public const string ProductType_Motocycle = "Motorcycle";

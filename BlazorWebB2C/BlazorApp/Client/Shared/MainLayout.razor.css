@@ -1,0 +1,169 @@
+
+.header-image {
+    cursor: pointer;
+    height: 100%;
+    width: 15rem;
+}
+
+.header-image img {
+    height: 100%;
+    width: 100%;
+    object-fit: contain;
+}
+
+.header-title {
+    height: 2.5rem;
+    line-height: 2.5rem;
+    text-align: center;
+    margin-left: 3rem;
+    display: inline-block;
+    font-size: 1.7rem;
+    font-weight: 500;
+    color: #5089fd;
+}
+
+.page-container {
+    margin-bottom: 1rem;
+    max-width: 1200px;
+    margin-left: auto;
+    margin-right: auto;
+    overflow: scroll;
+}
+
+.button {
+    border: 0;
+    cursor: pointer;
+    border-radius: 5px;
+    display: flex;
+    align-items: center;
+    overflow: hidden;
+    position: relative;
+}
+
+
+.button-primary {
+    color: white;
+    background-color: #0C80DF;
+    z-index: 1;
+}
+
+    .button-primary::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        background-color: #3b98e5;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        transition: width .25s linear;
+    }
+
+    .button-primary:hover:before {
+        width: 100%;
+    }
+
+.button-secondary {
+    color: white;
+    background-color: #FF1F69;
+    z-index: 1;
+}
+
+    .button-secondary::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        background-color: #dd68b3;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        transition: width .25s linear;
+    }
+
+    .button-secondary:hover:before {
+        width: 100%;
+    }
+
+.button-tertiary {
+    color: white;
+    background-color: #086220;
+    z-index: 1;
+}
+
+    .button-tertiary::before {
+        content: "";
+        position: absolute;
+        z-index: -1;
+        background-color: #499b5f;
+        top: 0;
+        left: 0;
+        width: 0;
+        height: 100%;
+        transition: width .25s linear;
+    }
+
+    .button-tertiary:hover:before {
+        width: 100%;
+    }
+
+.button-icon {
+    font-size: 1rem;
+    padding: 0.5rem;
+}
+
+.button-title {
+    text-align: center;
+    padding-left: 0.5rem;
+    padding-right: 1rem;
+    font-size: 1rem;
+    font-weight: 500;
+}
+
+.bottom-appbar {
+    padding: 0.5rem;
+    background-color: #24250F;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    column-gap: 2rem;
+    bottom: 0;
+    width: 100%;
+    border: 0.5px solid #808080;
+    position: fixed;
+    right: 0;
+    bottom: 0;
+    left: 0;
+    overflow: hidden;
+    z-index: 2;
+}
+
+@media screen and (max-width: 1023px) {
+    .header-hotline {
+        display: none;
+    }
+}
+
+@media screen and (max-width: 767px) {
+    .header {
+        padding: 0.5rem 0px;
+    }
+
+    .header-title {
+        display: none;
+    }
+
+    .mud-button-label {
+        font-size: 0.8rem !important;
+    }
+}
+
+
+.container {
+    width: 100%;
+    padding-right: 15px;
+    padding-left: 15px;
+    margin-right: auto;
+    margin-left: auto;
+}
+

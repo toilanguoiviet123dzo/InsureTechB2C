@@ -1,0 +1,271 @@
+﻿@page "/MerchantSetting"
+@using Admin.Services
+@using System.Collections.ObjectModel;
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<div style="width:15rem">
+    <MyComboBox @ref="RefMerchant"
+                Value="SelectedMerchant"
+                ValueChanged="@((OptionListModel value) => Merchant_Changed(value))"
+                Data="@MerchantList"
+                Literal="Đại lý"
+                TextFieldName="@nameof(OptionListModel.ItemName)">
+    </MyComboBox>
+</div>
+<br />
+
+<MyDataGrid @ref="@grid"
+            T="MerchantSettingModel"
+            Title="Bảng cấu hình cho đại lý"
+            Items="@DetailData"
+            IsAddNew="true"
+            IsDelete="true"
+            OnAddRow="@(() => OnAddRow_Handle())"
+            OnViewRow="@((MerchantSettingModel row) => OnViewRow_Handle(row))"
+            OnDeleteRow="@((MerchantSettingModel row) => OnDeleteRow_Handle(row))">
+    <ColGroup>
+        <col style="width: 8rem;" />
+        <col style="width: 15rem;" />
+        <col style="width: 6rem;" />
+        <col style="width: 8rem;" />
+        <col />
+        <col style="width: 8rem;" />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<MerchantSettingModel, object>(x => x.VendorID)">Cty bảo hiểm</MudTableSortLabel></MudTh>
+        <MudTh>Sản phẩm</MudTh>
+        <MudTh>% chiết khấu</MudTh>
+        <MudTh>Ngày hiệu lực</MudTh>
+        <MudTh>Ghi chú</MudTh>
+        <MudTh>Ngày giờ cập nhật</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd>@context.VendorID</MudTd>
+        <MudTd>@context.ProductName</MudTd>
+        <MudTd Style="text-align:right;color:blue; font-weight:600">@((context.BonusRate * 100).ToString("N0") + "%")</MudTd>
+        <MudTd Style="text-align:center;">@context.EffSttDate.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd>@context.Notes</MudTd>
+        <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<MerchantSettingModel> grid;
+    readonly List<MerchantSettingModel> DetailData = new List<MerchantSettingModel>();
+    // Master
+    private List<ProductModel> ProductList = new List<ProductModel>();
+    private List<OptionListModel> MerchantList = new List<OptionListModel>();
+    //Ref
+    MyComboBox<OptionListModel> RefMerchant;
+    OptionListModel SelectedMerchant;
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        base.OnInitialized();
+
+        //Load master
+        await LoadMaster();
+
+        //Display data ..
+        await DisplayMain();
+    }
+    #region Load data
+    async Task LoadMaster()
+    {
+        ProductList = await masterService.Load_ProductList();
+        MerchantList = await masterService.Load_OptionList("006");
+    }
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Validate
+            if (SelectedMerchant == null) return;
+
+            //Filter
+            var requestString = new String_Request()
+                {
+                    Credential = new UserCredential()
+                    {
+                        Username = WebUserCredential.Username,
+                        RoleID = WebUserCredential.RoleID,
+                        AccessToken = WebUserCredential.AccessToken,
+                        ApiKey = WebUserCredential.ApiKey
+                    },
+                    StringValue = SelectedMerchant.ItemCode
+                };
+
+            //Get data from DB
+            DetailData.Clear();
+            var response = await adminServiceClient.GetMerchantSettingAsync(requestString);
+            if (response != null && response.ReturnCode == 200)
+            {
+                foreach (var item in response.Records)
+                {
+                    MerchantSettingModel dataRow = new MerchantSettingModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
+                    //Upd mode
+                    dataRow.UpdMode = 0;
+                    //
+                    DetailData.Add(dataRow);
+                }
+                //
+                grid.Refresh();
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    #endregion
+
+
+    #region Grid main
+    //Save Row
+    async Task<bool> SaveRow(MerchantSettingModel saveRow)
+    {
+        try
+        {
+            //Request
+            var request = new SaveMerchantSetting_Request();
+            var Credential = new UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            // Convert to DB row
+            request.Record = new grpcMerchantSettingModel();
+            ClassHelper.CopyPropertiesDataDateConverted(saveRow, request.Record);
+            // Call api
+            var response = await adminServiceClient.SaveMerchantSettingAsync(request);
+            // Success
+            if (response == null || response.ReturnCode != GrpcReturnCode.OK)
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+            else
+            {
+                //Update ID
+                saveRow.ID = response.StringValue;
+            }
+            //OK
+            return true;
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+        }
+        //
+        return false;
+    }
+
+    bool Validate_Header()
+    {
+        if (SelectedMerchant == null)
+        {
+            Snackbar.Add("Chưa chọn đại lý", Severity.Warning);
+            RefMerchant.Focus();
+            return false;
+        }
+        return true;
+    }
+
+    //Add row
+    async void OnAddRow_Handle()
+    {
+        //Validate header
+        if (!Validate_Header()) return;
+
+        //Init new row
+        var newRow = new MerchantSettingModel();
+        newRow.MerchantID = SelectedMerchant.ItemCode;
+        newRow.MerchantName = SelectedMerchant.ItemName;
+        newRow.EffSttDate = DateTime.Now;
+        newRow.UpdMode = 1;
+        newRow.ModifiedOn = DateTime.Now;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", newRow);
+        parameters.Add("ProductList", ProductList);
+        //
+        var result = await DialogService.Show<MerchantSettingEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (MerchantSettingModel)result.Data;
+
+            //Save to DB
+            var saveRet = await SaveRow(retModel);
+            if (saveRet)
+            {
+                //Add to grid
+                DetailData.Add(retModel);
+                grid.Refresh();
+            }
+        }
+    }
+    //Update row
+    async void OnViewRow_Handle(MerchantSettingModel row)
+    {
+        //UpdMode
+        row.UpdMode = 2;
+        //
+        var parameters = new DialogParameters();
+        parameters.Add("Model", row);
+        parameters.Add("ProductList", ProductList);
+        //
+        var result = await DialogService.Show<MerchantSettingEdit>("", parameters, MyOptions.ShowEditFormOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var retModel = (MerchantSettingModel)result.Data;
+            var updateReccord = DetailData.Find(x => x.ID == retModel.ID);
+            if (updateReccord != null)
+            {
+                //Update to Grid
+                ClassHelper.CopyPropertiesData(retModel, updateReccord);
+
+                //Save to DB
+                var saveRet = await SaveRow(retModel);
+                if (saveRet)
+                {
+                    grid.Refresh();
+                }
+            }
+        }
+    }
+
+    //Delete row
+    async void OnDeleteRow_Handle(MerchantSettingModel row)
+    {
+        //UpdMode
+        row.UpdMode = 3;
+
+        //Save to DB
+        var saveRet = await SaveRow(row);
+        if (saveRet)
+        {
+            DetailData.Remove(row);
+            grid.Refresh();
+        }
+    }
+
+    async void Merchant_Changed(OptionListModel value)
+    {
+        SelectedMerchant = value;
+        await DisplayMain();
+    }
+
+    #endregion
+    //
+}

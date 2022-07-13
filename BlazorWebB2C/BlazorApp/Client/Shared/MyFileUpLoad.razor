@@ -1,0 +1,133 @@
+﻿@using Resource.Services
+@using System.Collections.ObjectModel;
+@using System.IO;
+@inject grpcResourceService.grpcResourceServiceClient resourceServiceClient;
+@inject ISnackbar Snackbar
+
+<InputFile id="fileInput" hidden multiple
+           OnChange="@(async(e) => await LoadFile(e))"
+           @attributes="Attributes" />
+
+<MudButton HtmlTag="label"
+           Variant="Variant.Filled"
+           Color="Color.Primary"
+           StartIcon="@Icons.Filled.CloudUpload"
+           Size="@Size"
+           for="fileInput">
+    Upload Files
+</MudButton>
+
+@code {
+    [Parameter] public string OwnerID { get; set; } = "";
+    [Parameter] public string CategoryID { get; set; } = "";
+    [Parameter] public string Accept { get; set; } = "";
+    [Parameter] public bool MultipleFile { get; set; } = false;
+    [Parameter] public Int32 SecureLevel { get; set; } = 0;
+    [Parameter] public string Icon { get; set; } = Icons.Filled.CloudUpload;
+    [Parameter] public Size Size { get; set; } = Size.Medium;
+
+    [Parameter] public EventCallback<List<UpLoadFileModel>> OnSubmit { get; set; }
+    //
+    List<UpLoadFileModel> ReturnFileList = new List<UpLoadFileModel>();
+
+    //Attributes
+    private Dictionary<string, object> Attributes { get; set; }
+    //OnParametersSet
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Attributes
+        Attributes = new Dictionary<string, object>()
+                                            {
+                                                { "accept", $"{Accept}" }
+                                            };
+
+        //Execl file: application/vnd.openxmlformats-officedocument.spreadsheetml.sheet, application/vnd.ms-excel
+    }
+
+    //IList<IBrowserFile> files = new List<IBrowserFile>();
+    async Task LoadFile(InputFileChangeEventArgs e)
+    {
+        try
+        {
+            //Clear
+            ReturnFileList.Clear();
+            //
+            foreach (var file in e.GetMultipleFiles())
+            {
+                //files.Add(file);
+                //Read file
+                Stream stream = file.OpenReadStream(10000000);
+                MemoryStream ms = new MemoryStream();
+                await stream.CopyToAsync(ms);
+                stream.Close();
+
+                //UpLoadFileModel
+                var uploadItem = new UpLoadFileModel();
+                uploadItem.OwnerID = OwnerID;
+                uploadItem.CategoryID = CategoryID;
+                uploadItem.FileType = MyFile.Get_FileExtention(file.Name);
+                uploadItem.FileName = file.Name;
+                uploadItem.FileContent = ms.ToArray();
+                uploadItem.SecureLevel = SecureLevel;
+                uploadItem.AccountID = WebUserCredential.Username;
+                uploadItem.IssueDate = DateTime.Now;
+                uploadItem.RecNo = MyCodeGenerator.GenRecNo();
+                uploadItem.UpdMode = 1;
+                //
+                ReturnFileList.Add(uploadItem);
+
+                //Single file mode
+                if (!MultipleFile) break;
+            }
+            if (ReturnFileList.Count == 0) return;
+
+            //Save images to Server
+            var request = new Resource.Services.SaveResourceFiles_Request();
+            var Credential = new Resource.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            //
+            foreach (var item in ReturnFileList)
+            {
+                var record = new grpcResourceFileModel();
+                ClassHelper.CopyPropertiesDataDateConverted(item, record);
+                request.Records.Add(record);
+            }
+            // Call api
+            var response = await resourceServiceClient.SaveResourceFilesAsync(request);
+            // Success
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                if (response.Results != null && response.Results.Count > 0)
+                {
+                    //Update ResourceID
+                    foreach (var item in response.Results)
+                    {
+                        var updateItem = ReturnFileList.Find(x => x.RecNo == item.RecNo);
+                        if (updateItem != null)
+                        {
+                            updateItem.ResourceID = item.ResourceID;
+                        }
+                    }
+                }
+                //Submit
+                await OnSubmit.InvokeAsync(ReturnFileList);
+            }
+            else
+            {
+                Snackbar.Add(MyMessage.Error_SaveFailed, Severity.Error);
+            }
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadFile, Severity.Error);
+        }
+    }
+
+}

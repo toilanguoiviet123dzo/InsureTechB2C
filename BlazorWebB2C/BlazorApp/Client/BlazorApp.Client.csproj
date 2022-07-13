@@ -1,0 +1,48 @@
+<Project Sdk="Microsoft.NET.Sdk.BlazorWebAssembly">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <ServiceWorkerAssetsManifest>service-worker-assets.js</ServiceWorkerAssetsManifest>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <None Remove="Pages\AutoList.razor.css" />
+    <None Remove="Pages\CertificateList - Copy.razor.css" />
+    <None Remove="Pages\CertificateList.razor.css" />
+    <None Remove="Pages\Index - Copy.razor.css" />
+    <None Remove="Pages\Index.razor.css" />
+    <None Remove="Pages\MotorList - Copy.razor.css" />
+    <None Remove="Pages\MotorList.razor.css" />
+    <None Remove="Pages\ProductCategory.razor.css" />
+    <None Remove="Shared\CompanyInfo - Copy.razor.css" />
+    <None Remove="Shared\CompanyInfo.razor.css" />
+    <None Remove="Shared\HeaderAppBar.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Content Include="Pages\AutoList.razor.css" />
+    <Content Include="Pages\CertificateList.razor.css" />
+    <Content Include="Pages\Index.razor.css" />
+    <Content Include="Pages\MotorList.razor.css" />
+    <Content Include="Pages\ProductCategory.razor.css" />
+    <Content Include="Shared\CompanyInfo.razor.css" />
+    <Content Include="Shared\HeaderAppBar.razor.css" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Blazored.LocalStorage" Version="4.2.0" />
+    <PackageReference Include="Grpc.Net.Client.Web" Version="2.41.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Authentication" Version="6.0.1" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.DevServer" Version="6.0.1" PrivateAssets="all" />
+    <PackageReference Include="MudBlazor" Version="6.0.6" />
+    <PackageReference Include="System.Net.Http.Json" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ServiceWorker Include="wwwroot\service-worker.js" PublishedContent="wwwroot\service-worker.published.js" />
+    <ProjectReference Include="..\..\..\Cores\Cores.csproj" />
+    <ProjectReference Include="..\Shared\BlazorApp.Shared.csproj" />
+  </ItemGroup>
+
+</Project>

@@ -157,7 +157,7 @@ namespace PaymentWeb.Controllers
                 if (record == null) return;
 
                 //Finish payment
-                var ret = await _paymentService.FinishPayment(MyConstant.PyamentChannel_VnPay, request, querryData);
+                var ret = await _paymentService.FinishPayment(MyConstant.PaymentChannel_VnPay, request, querryData);
             }
             catch (Exception ex)
             {

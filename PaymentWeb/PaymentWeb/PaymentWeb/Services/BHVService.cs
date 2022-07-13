@@ -208,8 +208,14 @@ namespace PaymentWeb.Services
                 var request = new BhvRequest();
                 request.action_name = "external/vehicle/motor/register";
                 request.token_access = _accessToken;
-                request.data = Create_MotorTNDS_Data(saleOrder);
+                request.data = await Create_MotorTNDS_Data(saleOrder);
                 request.data_key = await Sign_Data(request.data);
+
+                //Check data
+                if (string.IsNullOrWhiteSpace(request.data))
+                {
+                    saleOrder.ProcessErrorMessage = "Không lấy được giá bán từ BHV";
+                }
 
                 //Motocycle
                 var response = await _httpHelper.PostAsync<BhvRequest, BhvResponse>(_url, request);
@@ -475,7 +481,7 @@ namespace PaymentWeb.Services
 
 
 
-        private string Create_MotorTNDS_Data(mdSaleOrder saleOrder)
+        private async Task<string> Create_MotorTNDS_Data(mdSaleOrder saleOrder)
         {
             string bodyData = "";
             //
@@ -496,9 +502,28 @@ namespace PaymentWeb.Services
                 requestData.MOTOR_CHASSIS = "";
                 requestData.MOTOR_NUMBER_ENGINE = "";
                 requestData.MOTOR_TYPE = "a58419fd-6a1e-4409-9a5f-eb9ff90ab417";
+                //Yeay buy
                 requestData.MOTOR_YEAR_BUY = "e7b66343-62ca-4064-881c-2b39f4bd33ab";
+                if (saleOrder.BuyYear == 1) requestData.MOTOR_YEAR_BUY = "e7b66343-62ca-4064-881c-2b39f4bd33ab";
+                if (saleOrder.BuyYear == 2) requestData.MOTOR_YEAR_BUY = "58b0409b-7aa2-4735-a4c3-e7691c32237f";
+                if (saleOrder.BuyYear == 3) requestData.MOTOR_YEAR_BUY = "6619177d-aa33-462d-a135-52bb9fd95f55";
+
+                // 2 nguoi tren xe
                 requestData.MOTOR_PACKAGE = "";
+                requestData.CHK_BUY_MOTOR_VPA = "0";
+                if (saleOrder.Motor2People) 
+                {
+                    requestData.MOTOR_PACKAGE = "4894fc2e-da00-4c86-aea9-bbcff478e653";
+                    requestData.CHK_BUY_MOTOR_VPA = "1";
+                } 
+                //
                 requestData.CHK_BUY_MOTOR_CCL = "1";
+
+                requestData.total_payment = await GetPrice_MotorTNDS(saleOrder);
+                if (string.IsNullOrWhiteSpace(requestData.total_payment))
+                {
+                    return "";
+                }
 
                 //BhvDataModel
                 var data = new BhvRequestData();
@@ -567,6 +592,92 @@ namespace PaymentWeb.Services
             //
             return bodyData;
         }
+
+        private async Task<string> GetPrice_MotorTNDS(mdSaleOrder saleOrder)
+        {
+            var ret = "";
+            //
+            try
+            {
+                //Init
+                if (!(await Init()))
+                {
+                    return ret;
+                }
+
+                //Request
+                var request = new BhvRequest();
+                request.action_name = "external/vehicle/motor/load/premium";
+                request.token_access = _accessToken;
+                request.data = GetPrice_MotorTNDS_Data(saleOrder);
+                request.data_key = await Sign_Data(request.data);
+
+                //Motocycle
+                var response = await _httpHelper.PostAsync<BhvRequest, BhvResponse>(_url, request);
+                if (response != null && response.status_code == "200")
+                {
+                    var data = MyJson.Deserialize<MotorTNDS_GetPriceReturn>(response.data);
+                    if (data != null && data.data_value != null)
+                    {
+                        double totalPayment = 0;
+                        foreach (var item in data.data_value)
+                        {
+                            totalPayment += item.payment_value;
+                        }
+                        return totalPayment.ToString();
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Download_AutoTNDS_Certificate", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+            //
+            return ret;
+        }
+
+        private string GetPrice_MotorTNDS_Data(mdSaleOrder saleOrder)
+        {
+            string bodyData = "";
+            //
+            try
+            {
+                //AutoTNDSRequestData
+                var requestData = new MotorTNDS_GetPriceData();
+                requestData.MOTOR_TYPE = "a58419fd-6a1e-4409-9a5f-eb9ff90ab417";   //Motor 2 banh tren 50cc
+                //Yeay buy
+                requestData.MOTOR_YEAR_BUY = "e7b66343-62ca-4064-881c-2b39f4bd33ab";
+                if (saleOrder.BuyYear == 1) requestData.MOTOR_YEAR_BUY = "e7b66343-62ca-4064-881c-2b39f4bd33ab";
+                if (saleOrder.BuyYear == 2) requestData.MOTOR_YEAR_BUY = "58b0409b-7aa2-4735-a4c3-e7691c32237f";
+                if (saleOrder.BuyYear == 3) requestData.MOTOR_YEAR_BUY = "6619177d-aa33-462d-a135-52bb9fd95f55";
+
+                // 2 nguoi tren xe
+                requestData.MOTOR_PACKAGE = "";
+                requestData.CHK_BUY_MOTOR_VPA = "0";
+                if (saleOrder.Motor2People) 
+                {
+                    requestData.MOTOR_PACKAGE = "4894fc2e-da00-4c86-aea9-bbcff478e653";
+                    requestData.CHK_BUY_MOTOR_VPA = "1";
+                }
+                //
+                requestData.CHK_BUY_MOTOR_CCL = "1";
+                
+
+                //BhvDataModel
+                var data = new BhvRequestData();
+                data.collation_code = saleOrder.TransactionID;
+                data.data_value = MyJson.Serialize(requestData);
+
+                //Return
+                return MyJson.Serialize(data);
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "GetPrice_MotorTNDS_Data", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+            //
+            return bodyData;
+        }
         #endregion
 
 
@@ -597,7 +708,12 @@ namespace PaymentWeb.Services
                     var data = MyJson.Deserialize<AutoTNDS_GetPriceReturn>(response.data);
                     if (data != null && data.data_value != null)
                     {
-                        return data.data_value[0].payment_value;
+                        double totalPayment = 0;
+                        foreach (var item in data.data_value)
+                        {
+                            totalPayment += item.payment_value;
+                        }
+                        return totalPayment.ToString();
                     }
                 }
             }
@@ -932,7 +1048,12 @@ namespace PaymentWeb.Services
                 requestData.CAR_GOAL = saleOrder.BusinessType;
                 requestData.CAR_SEAT = Get_SeatCode(saleOrder.SeatCount);
                 requestData.CAR_WEIGH_GOODS = Get_TonageCode(saleOrder.Tonage);
+                //Yeay buy
                 requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e70";
+                if (saleOrder.BuyYear == 1) requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e70";
+                if (saleOrder.BuyYear == 2) requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e71";
+                if (saleOrder.BuyYear == 3) requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e72";
+
                 requestData.CAR_PACKAGE = "";
                 requestData.BUY_POV = "0";
                 requestData.BUY_CHK_CCL = "1";
@@ -973,7 +1094,12 @@ namespace PaymentWeb.Services
                 requestData.CAR_GOAL = saleOrder.BusinessType;
                 requestData.CAR_SEAT = Get_SeatCode(saleOrder.SeatCount);
                 requestData.CAR_WEIGH_GOODS = Get_TonageCode(saleOrder.Tonage);
+                //CAR_YEAR_BUY
                 requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e70";
+                if (saleOrder.BuyYear == 1) requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e70";
+                if (saleOrder.BuyYear == 2) requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e71";
+                if (saleOrder.BuyYear == 3) requestData.CAR_YEAR_BUY = "53d91be0-a641-4309-bd6b-e76befbe4e72";
+                //
                 requestData.CAR_PACKAGE = "";
                 requestData.BUY_POV = "0";
                 requestData.BUY_CHK_CCL = "1";
@@ -1199,6 +1325,30 @@ namespace PaymentWeb.Services
         public string certificate_code = "";
     }
 
+    class MotorTNDS_GetPriceData
+    {
+        public string MOTOR_TYPE = "";
+        public string MOTOR_YEAR_BUY = "";
+        public string MOTOR_PACKAGE = "";
+        public string CHK_BUY_MOTOR_CCL = "1";
+        public string CHK_BUY_MOTOR_VPA = "";
+    }
+
+    class MotorTNDS_GetPriceReturn
+    {
+        public string collation_code = "";
+        public List<MotorTNDS_GetPriceReturnData> data_value = new List<MotorTNDS_GetPriceReturnData>();
+    }
+
+    class MotorTNDS_GetPriceReturnData
+    {
+        public string benefit_name = "";
+        public double payment_value = 0;
+        public double tax_value = 0;
+        public double discount = 0;
+        public double year_buy = 0;
+    }
+
     class AutoTNDS_DownloadReturn
     {
         public string collation_code = "";
@@ -1272,11 +1422,11 @@ namespace PaymentWeb.Services
     class AutoTNDS_GetPriceReturnData
     {
         public string benefit_name = "";
-        public string payment_value = "";
-        public string tax_value = "";
-        public string discount = "";
+        public double payment_value = 0;
+        public double tax_value = 0;
+        public double discount = 0;
         public string seat_buy = "";
-        public string year_buy = "";
+        public double year_buy = 0;
     }
 
     class AutoTNDS_Payment

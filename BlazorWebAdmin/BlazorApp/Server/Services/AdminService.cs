@@ -51,8 +51,7 @@ namespace BlazorApp.Server.Services
                     response.UserName = findRecord.UserName;
                     response.Fullname = findRecord.Fullname;
                     response.RoleID = findRecord.RoleID;
-                    response.ApproveLevel = findRecord.ApproveLevel;
-                    response.DocumentLevel = findRecord.DocumentLevel;
+                    response.MerchantID = findRecord.MerchantID;
                 }
                 else
                 {
@@ -322,30 +321,11 @@ namespace BlazorApp.Server.Services
             {
                 if (request.Record.UpdMode != 3)
                 {
-                    //Get Save password
-                    var oldRecord = await DB.Find<mdUserAccount>()
-                                            .Match(x => x.ID == request.Record.ID)
-                                            .ExecuteFirstAsync();
-                    string oldEnctyptedPassWord = "";
-                    if (oldRecord != null)
-                    {
-                        oldEnctyptedPassWord = oldRecord.Password;
-                    }
-
                     //Insert || Update
                     var saveRecord = new mdUserAccount();
                     ClassHelper.CopyPropertiesData(request.Record, saveRecord);
                     //Insert
                     if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
-                    //Encrypt password
-                    if (!string.IsNullOrWhiteSpace(saveRecord.Password))
-                    {
-                        saveRecord.Password = saveRecord.Password;
-                    }
-                    else
-                    {
-                        saveRecord.Password = oldEnctyptedPassWord;
-                    }
                     //
                     await saveRecord.SaveAsync();
                     //return saved ID
@@ -390,8 +370,6 @@ namespace BlazorApp.Server.Services
                     {
                         var grpcItem = new grpcUserAccountModel();
                         ClassHelper.CopyPropertiesData(item, grpcItem);
-                        //Clear password
-                        grpcItem.Password = "";
                         //
                         response.UserAccounts.Add(grpcItem);
                     });
@@ -987,6 +965,80 @@ namespace BlazorApp.Server.Services
 
         }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // SaveMerchantSetting
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Admin.Services.String_Response> SaveMerchantSetting(SaveMerchantSetting_Request request, ServerCallContext context)
+        {
+            var response = new Admin.Services.String_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                if (request.Record.UpdMode != 3)
+                {
+                    //Insert || Update
+                    var saveRecord = new mdMerchantSetting();
+                    ClassHelper.CopyPropertiesData(request.Record, saveRecord);
+                    //Insert
+                    if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
+                    //
+                    await saveRecord.SaveAsync();
+                    //return saved ID
+                    response.StringValue = saveRecord.ID;
+                }
+                else
+                {
+                    //Delete
+                    await DB.DeleteAsync<mdMerchantSetting>(request.Record.ID);
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "SaveMerchantSetting", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
+
+        //-------------------------------------------------------------------------------------------------------/
+        // GetMerchantSetting
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<GetMerchantSetting_Response> GetMerchantSetting(Admin.Services.String_Request request, ServerCallContext context)
+        {
+            var response = new GetMerchantSetting_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            response.MsgCode = "";
+            //
+            try
+            {
+                var query = DB.Find<mdMerchantSetting>();
+                if (!string.IsNullOrWhiteSpace(request.StringValue))
+                {
+                    query.Match(a => a.MerchantID == request.StringValue);
+                }
+                var findRecords = await query.ExecuteAsync();
+                //
+                if (findRecords != null && findRecords.Count > 0)
+                {
+                    findRecords.ForEach(item =>
+                    {
+                        var grpcItem = new grpcMerchantSettingModel();
+                        ClassHelper.CopyPropertiesData(item, grpcItem);
+                        //
+                        response.Records.Add(grpcItem);
+                    });
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "AdminService", "GetMerchantSetting", "Exception", response.ReturnCode, ex.Message);
+            }
+            //
+            return await Task.FromResult(response);
+        }
 
     }//End class
 }//End namespace

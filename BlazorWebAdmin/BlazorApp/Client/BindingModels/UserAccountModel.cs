@@ -18,17 +18,11 @@ namespace BlazorApp.Client.BindingModels
         public string Address { get; set; } = "";
         public string RoleID { get; set; } = "";
         public string RoleName { get; set; } = "";
-        public string BrancheID { get; set; } = "";
-        public string BrancheName { get; set; } = "";
-        public string LogisticCompanyID { get; set; } = "";
-        public string LogisticCompanyName { get; set; } = "";
-        public string RepairCompanyID { get; set; } = "";
-        public string RepairCompanyName { get; set; } = "";
-        public string ApproveAcountID { get; set; } = "";
-        public int ApproveLevel { get; set; }
-        public string ApproveLevelName { get; set; }
-        public int DocumentLevel { get; set; }
-        public string DocumentLevelName { get; set; }
+        public string MerchantID { get; set; } = "";
+        public string MerchantName { get; set; } = "";
+        public string UserCode { get; set; } = "";
+        public string RefCode { get; set; } = "";
+        public int RankLevel { get; set; }
         public bool Status { get; set; }
         public DateTime ModifiedOn { get; set; }
         public int UpdMode { get; set; }

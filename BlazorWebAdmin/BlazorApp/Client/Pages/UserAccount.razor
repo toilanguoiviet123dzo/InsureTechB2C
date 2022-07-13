@@ -9,7 +9,7 @@
 
 <MyDataGrid @ref="@grid"
             T="UserAccountModel"
-            Title="Danh sách yêu cầu bồi thường"
+            Title="Danh sách tài khoản người dùng"
             Items="@DetailData"
             IsAddNew="true"
             IsDelete="true"
@@ -24,11 +24,6 @@
         <col />
         <col style="width: 6rem;" />
         <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
-        <col style="width: 8rem;" />
         <col style="width: 4rem;" />
         <col style="width: 8rem;" />
     </ColGroup>
@@ -39,12 +34,7 @@
         <MudTh>Email</MudTh>
         <MudTh>Address</MudTh>
         <MudTh>Vai trò</MudTh>
-        <MudTh>Chi nhánh</MudTh>
-        <MudTh>Cty vận chuyển</MudTh>
-        <MudTh>Nơi sửa chữa</MudTh>
-        <MudTh>Người duyệt</MudTh>
-        <MudTh>Cấp duyệt</MudTh>
-        <MudTh>Bảo mật tài liệu</MudTh>
+        <MudTh>Đại lý</MudTh>
         <MudTh>Hữu hiệu</MudTh>
         <MudTh>Ngày giờ cập nhật</MudTh>
     </HeaderContent>
@@ -55,12 +45,7 @@
         <MudTd>@context.Email</MudTd>
         <MudTd>@context.Address</MudTd>
         <MudTd>@context.RoleName</MudTd>
-        <MudTd>@context.BrancheName</MudTd>
-        <MudTd>@context.LogisticCompanyName</MudTd>
-        <MudTd>@context.RepairCompanyName</MudTd>
-        <MudTd>@context.ApproveAcountID</MudTd>
-        <MudTd>@context.ApproveLevelName</MudTd>
-        <MudTd>@context.DocumentLevelName</MudTd>
+        <MudTd>@context.MerchantName</MudTd>
         <MudTd><MudCheckBox Checked="@context.Status" Color="Color.Primary" ReadOnly="true"></MudCheckBox></MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
     </RowTemplate>
@@ -73,8 +58,7 @@
     readonly List<UserAccountModel> DetailData = new List<UserAccountModel>();
     // Master
     private List<OptionListModel> RoleList = new List<OptionListModel>();
-    private List<OptionListModel> ApproveLevelList = new List<OptionListModel>();
-    private List<OptionListModel> DocumentLevelList = new List<OptionListModel>();
+    private List<OptionListModel> MerchantList = new List<OptionListModel>();
     //
     protected override async Task OnInitializedAsync()
     {
@@ -89,9 +73,8 @@
     #region Load data
     async Task LoadMaster()
     {
-        ApproveLevelList = await masterService.Load_OptionList("002");
-        DocumentLevelList = await masterService.Load_OptionList("003");
-        RoleList = await masterService.Load_OptionList("003");
+        RoleList = await masterService.Load_OptionList("005");
+        MerchantList = await masterService.Load_OptionList("006");
     }
 
     async Task DisplayMain()
@@ -122,8 +105,6 @@
                     ClassHelper.CopyPropertiesDataDateConverted(item, dataRow);
                     //Upd mode
                     dataRow.UpdMode = 0;
-                    //Set blank for password -> not save
-                    dataRow.Password = "";
                     //
                     DetailData.Add(dataRow);
                 }

@@ -1,0 +1,72 @@
+﻿<style>
+    .mud-dialog .mud-dialog-title {
+        padding: 0px 24px !important;
+    }
+</style>
+<div style="@(@$"max-height:calc(100vh - {bottomMargin}); margin-bottom:{bottomMargin}; min-width: {Width}")" class="hidescroll">
+    <!--Appbar-->
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+        @if (ShowBackButton)
+        {
+            <MudIconButton Style="color:white" Icon="@BackIcon" aria-label="back" @onclick="OnClose"></MudIconButton>
+        }
+        <h5 class="m-auto">@Title</h5>
+        <MudSpacer />
+        @if (ShowCloseButton)
+        {
+            <MudIconButton Style="color:red" Icon="@CloseIcon" aria-label="back" @onclick="OnClose"></MudIconButton>
+        }
+    </MudAppBar>
+    <div style="@Style" class="@Class hidescroll">
+        @ChildContent
+    </div>
+    <!--Bottom App bar-->
+    @if (ShowBottomAppBar)
+    {
+        <MudAppBar Bottom="true" Fixed="true" Elevation="1" Dense="true" Style="@($"color:white; background:{Colors.Grey.Lighten3};")">
+            <div style="width: 100%;" class="d-flex justify-space-around">
+                @ActionButtons
+            </div>
+        </MudAppBar>
+    }
+</div>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string Title { get; set; } = "";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public RenderFragment ActionButtons { get; set; }
+    [Parameter] public string BackIcon { get; set; } = Icons.Material.Filled.ArrowBackIosNew;
+    [Parameter] public string CloseIcon { get; set; } = Icons.Material.Filled.Close;
+    [Parameter] public bool ShowCloseButton { get; set; } = false;
+    [Parameter] public bool ShowBackButton { get; set; } = true;
+    [Parameter] public bool ShowBottomAppBar { get; set; } = true;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public string Width { get; set; } = "100%";
+
+    //
+    string bottomMargin = "48px";
+    //OnClose
+    private void OnClose()
+    {
+        MudDialog.Cancel();
+    }
+
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Style
+        string padding = BrowserInfo.IsMobile ? "padding: 4px 4px" : "padding: 10px 24px";
+        Style = "";
+        Style = $"{padding}; max-height:calc(100vh - 96px); overflow-y:scroll; {Style}";
+
+        //
+        if (BrowserInfo.IsMobile)
+        {
+            bottomMargin = "96px";
+        }
+    }
+
+}

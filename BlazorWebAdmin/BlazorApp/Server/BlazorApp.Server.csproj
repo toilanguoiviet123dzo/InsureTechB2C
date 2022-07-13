@@ -14,6 +14,7 @@
     <Compile Include="..\..\..\Models\mdCarPriceList.cs" Link="Models\mdCarPriceList.cs" />
     <Compile Include="..\..\..\Models\mdDiscountCode.cs" Link="Models\mdDiscountCode.cs" />
     <Compile Include="..\..\..\Models\mdFirebasePushMessageQueue.cs" Link="Models\mdFirebasePushMessageQueue.cs" />
+    <Compile Include="..\..\..\Models\mdMerchantSetting.cs" Link="Models\mdMerchantSetting.cs" />
     <Compile Include="..\..\..\Models\mdNotificationSubcribe.cs" Link="Models\mdNotificationSubcribe.cs" />
     <Compile Include="..\..\..\Models\mdOptionList.cs" Link="Models\mdOptionList.cs" />
     <Compile Include="..\..\..\Models\mdOptionListHeader.cs" Link="Models\mdOptionListHeader.cs" />

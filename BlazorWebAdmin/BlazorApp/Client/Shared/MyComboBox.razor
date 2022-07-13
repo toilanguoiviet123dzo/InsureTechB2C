@@ -38,7 +38,7 @@
            Label="@Literal">
     @foreach (TValue item in Data)
     {
-        <MudSelectItem Value="@item">@(ClassHelper.GetPropertiesData<string>(item,TextFieldName))</MudSelectItem>
+        <MudSelectItem Value="@item">@(DropdownTextFunc(item))</MudSelectItem>
     }
 </MudSelect>
 
@@ -67,6 +67,7 @@
     [Parameter] public bool Dense { get; set; } = true;
     [Parameter] public int MaxHeight { get; set; } = 300;
     [Parameter] public Func<TValue, string> ToStringFunc { get; set; }
+    [Parameter] public Func<TValue, string> DropdownTextFunc { get; set; }
     [Parameter] public string Class { get; set; } = "";
     [Parameter] public string Style { get; set; } = "";
     [Parameter] public object Tag { get; set; }
@@ -171,7 +172,15 @@
                                             };
         }
         //String function
-        this.ToStringFunc = (value) => ClassHelper.GetPropertiesData<string>(value, TextFieldName);
+        if (ToStringFunc == null)
+        {
+            ToStringFunc = (value) => ClassHelper.GetPropertiesData<string>(value, TextFieldName);  
+        } 
+        //DropdownTextFunc
+        if (DropdownTextFunc == null)
+        {
+            DropdownTextFunc = ToStringFunc;
+        }
     }
     //Focus
     public async void Focus()

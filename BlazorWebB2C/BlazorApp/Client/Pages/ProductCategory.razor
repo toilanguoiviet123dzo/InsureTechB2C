@@ -1,0 +1,120 @@
+﻿@page "/Category"
+@using System.Collections.ObjectModel;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject NavigationManager Navigation
+
+<section class="category">
+    <div class="category-container">
+        <div class="category-title">Dánh sách các sản phẩm bảo hiểm</div>
+        <div class="category-list">
+            <!--Xe gan may-->
+            <div class="category-item" @onclick="Show_Motor">
+                <div class="category-item-image">
+                    <img src="images/motor.jpg" alt="Xe gắn máy">
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        Xe gắn máy
+                    </div>
+                </div>
+            </div>
+            <!--Xe o to-->
+            <div class="category-item" @onclick="Show_Auto">
+                <div class="category-item-image">
+                    <img src="images/auto.png" alt="Xe ô tô">
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        TNDS xe ô tô
+                    </div>
+                </div>
+            </div>
+            <!--Suc khoe-->
+            <div class="category-item">
+                <div class="category-item-image">
+                    <a href="">
+                        <img src="images/health.png" alt="Bảo hiểm sức khỏe">
+                    </a>
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        <a href="">Bảo hiểm sức khỏe</a>
+                    </div>
+                </div>
+            </div>
+            <!--Bao hiem tai nan-->
+            <div class="category-item">
+                <div class="category-item-image">
+                    <a href="">
+                        <img src="images/works.png" alt="Bảo hiểm tai nạn">
+                    </a>
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        <a href="">Bảo hiểm tai nạn 24/7</a>
+                    </div>
+                </div>
+            </div>
+            <!--Bao hiem chay no-->
+            <div class="category-item">
+                <div class="category-item-image">
+                    <a href="">
+                        <img src="images/burn.jpg" alt="Bảo hiểm cháy nổ">
+                    </a>
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        <a href="">Bảo hiểm cháy nổ</a>
+                    </div>
+                </div>
+            </div>
+            <!--Bao hiem hoc sinh-->
+            <div class="category-item">
+                <div class="category-item-image">
+                    <a href="">
+                        <img src="images/student.png" alt="Bảo hiểm học sinh">
+                    </a>
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        <a href="">Bảo hiểm học sinh</a>
+                    </div>
+                </div>
+            </div>
+
+        </div>
+    </div>
+</section>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+
+    }
+
+    async void Show_Motor()
+    {
+        var parameters = new DialogParameters();
+        //
+        var result = await DialogService.Show<TNSD01_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+    }
+
+    async void Show_Auto()
+    {
+        var parameters = new DialogParameters();
+        //
+        var result = await DialogService.Show<TNSD_Auto_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+    }
+
+
+
+}
+

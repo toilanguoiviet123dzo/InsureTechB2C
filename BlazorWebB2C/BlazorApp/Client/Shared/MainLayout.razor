@@ -1,0 +1,88 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime;
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<!--Top App bar-->
+@*<MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+    <div class="header-image" @onclick="@(async () => await JsRuntime.InvokeVoidAsync("open", "https://insurtechvietnam.com.vn/", "_blank"))">
+        <img src="images/insurtech_logo.png" alt="InsurTech Việt Nam">
+    </div>
+    <div class="header-title">
+        InsurTech Việt Nam
+    </div>
+    <MudSpacer />
+    <LoginDisplay />
+</MudAppBar>*@
+
+<HeaderAppBar />
+
+<!--Body content-->
+<div class="page-container">
+    @Body
+</div>
+
+
+<!--Bottum app bar-->
+<div class="bottom-appbar">
+    <div class="button button-primary" @onclick="Open_CategoryList">
+        <div class="button-icon">
+            <i class="fa fa-shopping-cart" aria-hidden="true"></i>
+        </div>
+        <div class="button-title">Mua bảo hiểm</div>
+    </div>
+    <div class="button button-secondary" @onclick="Open_CertificateList">
+        <div class="button-icon">
+            <i class="fa fa-certificate" aria-hidden="true"></i>
+        </div>
+        <div class="button-title">Giấy chứng nhận</div>
+    </div>
+
+    <div class="button button-tertiary" @onclick="Open_SaleSummary">
+        <div class="button-icon">
+            <i class="fa fa-sack-dollar" aria-hidden="true"></i>
+        </div>
+        <div class="button-title">Doanh số bán hàng</div>
+    </div>
+</div>
+
+
+
+@code {
+    public ProgramInfo Program { get; set; } = new ProgramInfo("", "");
+    private MudMenu adminMenu;
+    private MudMenu masterMenu;
+    private MudMenu claimMenu;
+
+    bool _drawerOpen = false;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void Open_CategoryList()
+    {
+        Navigation.NavigateTo("/Category");
+    }
+
+    void Open_CertificateList()
+    {
+        Navigation.NavigateTo("/CertificateList");
+    }
+
+    void Open_SaleSummary()
+    {
+        Navigation.NavigateTo("/SaleSummary");
+    }
+
+    async void Open_CompanyHomePage()
+    {
+        await JsRuntime.InvokeVoidAsync("open", "https://insurtechvietnam.com.vn", "_blank");
+    }
+
+}
+

@@ -1,0 +1,96 @@
+﻿<style>
+    .mud-dialog .mud-dialog-title {
+        padding: 0 !important;
+    }
+</style>
+
+<div style="@($"max-height:calc(100vh - 48px); width:{@Width}; margin-bottom:48px;")" class="hidescroll">
+    <!--Appbar-->
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+        <MudIconButton Style="color:white" Icon="@BackIcon" aria-label="back" @onclick="OnCancel"></MudIconButton>
+        <h5 class="m-auto">@Title</h5>
+        <MudSpacer />
+        <MudIconButton Style="color:red" Icon="@Icons.Material.Filled.Close" aria-label="back" @onclick="OnCancel"></MudIconButton>
+    </MudAppBar>
+    <!--Content-->
+    <div style="@Style" class="@Class hidescroll">
+        @ChildContent
+    </div>
+    <!--Appbar bottom-->
+    @if (ShowButtonAppBar)
+    {
+        <MudAppBar Bottom="true" Fixed="true" Elevation="1" Dense="true" Style="@($"color:white; background:{Colors.Grey.Lighten3};")">
+            <div style="width: 70%; margin:0px auto" class="d-flex justify-space-around">
+                @if (ShowScloseButton)
+                {
+                    <MudButton Variant="Variant.Filled"
+                       Color="Color.Default"
+                       Class="mr-4"
+                       StartIcon="@Icons.Material.Filled.Cancel"
+                       OnClick="OnCancel">@CloseText</MudButton>
+                }
+
+                @if (!ReadOnly && ShowSubmitButton)
+                {
+                    <MudButton ButtonType="ButtonType.Submit"
+                       Variant="Variant.Filled"
+                       Color="Color.Primary"
+                       StartIcon="@SubmitIcon"
+                       OnClick="OnSubmit">@SubmitText</MudButton>
+                }
+            </div>
+        </MudAppBar>
+    }
+</div>
+
+@code {
+    [Parameter] public string Title { get; set; } = "Edit form";
+    [Parameter] public RenderFragment ChildContent { get; set; }
+    [Parameter] public bool ReadOnly { get; set; } = false;
+    [Parameter] public int UpdMode { get; set; } = 0;
+    [Parameter] public string Class { get; set; } = "";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public bool ShowButtonAppBar { get; set; } = true;
+    [Parameter] public bool ShowScloseButton { get; set; } = true;
+    [Parameter] public bool ShowSubmitButton { get; set; } = true;
+    [Parameter] public string SubmitText { get; set; } = "Save";
+    [Parameter] public string CloseText { get; set; } = "Cancel";
+    [Parameter] public string Width { get; set; } = MyFormSize.Small;
+    [Parameter] public string SubmitIcon { get; set; } = Icons.Material.Filled.Save;
+    //
+    public string BackIcon { get; set; } = Icons.Material.Filled.ArrowBackIosNew;
+
+    //Cancel
+    [Parameter] public EventCallback OnCancelClick { get; set; }
+    private async void OnCancel()
+    {
+        await OnCancelClick.InvokeAsync();
+    }
+
+    //Submit
+    [Parameter] public EventCallback OnSubmitClick { get; set; }
+    private async void OnSubmit()
+    {
+        await OnSubmitClick.InvokeAsync();
+    }
+
+    //Ref
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Addnew mode
+        if (UpdMode == 1) BackIcon = Icons.Material.Filled.Add;
+
+        //Update mode
+        if (UpdMode == 2) BackIcon = Icons.Material.Filled.Create;
+
+        //Style
+        string padding = BrowserInfo.IsMobile ? "0px" : "24px";
+        Style = $"padding: {padding}; max-height:calc(100vh - 96px); overflow-y:scroll; {Style}";
+
+        //Width
+        if (BrowserInfo.IsMobile) Width = "100vw";
+    }
+
+}

@@ -167,6 +167,7 @@ message CreateSaleOrder_Request {
 message grpcSaleOrderModel {
     string ID = 1;
     string OrderID = 2;
+    google.protobuf.Timestamp OrderDate = 201;
     string OwnerFullname = 3;
     string LicensePlate = 4;
     string CusFullname = 5;
@@ -200,6 +201,8 @@ message grpcSaleOrderModel {
     string CarType = 282;
     double SeatCount = 283;
     double Tonage = 284;
+    bool Motor2People = 285;
+    int32 BuyYear = 286;
     //Status
     google.protobuf.Timestamp RequestTime  = 29;
     google.protobuf.Timestamp PaymentTime  = 30;
@@ -226,6 +229,13 @@ message grpcSaleOrderModel {
     double DiscountRate = 48;
     double DiscountAmount = 49;
     double PaymentAmount = 50;
+    //Merchant
+    string MerchantID = 51;
+    string AccountID = 52;
+    double BonusRate = 53;
+    double BonusAmount = 54;
+    bool IsPayBonus = 55;
+    string PaymentChannelID = 56;
     //
     google.protobuf.Timestamp ModifiedOn = 99;
     int32 UpdMode = 100;
@@ -254,7 +264,7 @@ message GetCertificateList_Request {
     UserCredential Credential = 1;
     //
     string CusPhone = 2;
-    string CusCitizenID = 3;
+    string MerchantID = 3;
 }
 message GetCertificateList_Response {
     int32 ReturnCode = 1;

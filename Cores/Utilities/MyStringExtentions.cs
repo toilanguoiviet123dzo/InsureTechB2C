@@ -5,6 +5,7 @@ using System.Linq;
 using System.Security.Cryptography;
 using System.Text;
 using System.Text.RegularExpressions;
+using Microsoft.VisualBasic;
 
 namespace Cores.Utilities
 {
@@ -24,6 +25,32 @@ namespace Cores.Utilities
         public static string Mid(this string s, int nIndex, int nCount)
         {
             return s.Substring(nIndex, nCount);
+        }
+
+        public static string FillHtmlSpace(this string s, int totalLength)
+        {
+            int spaceCount = totalLength - s.Length;
+            if (spaceCount <= 0) return s;
+            //
+            string spaceString = "";
+            for (int i = 0; i < spaceCount; i++)
+            {
+                spaceString += "&nbsp";
+            }
+            return s + spaceString;
+        }
+
+        public static string FillSpace(this string s, int totalLength)
+        {
+            int spaceCount = totalLength - s.Length;
+            if (spaceCount <= 0) return s;
+            //
+            string spaceString = "";
+            for (int i = 0; i < spaceCount; i++)
+            {
+                spaceString += " ";
+            }
+            return s + spaceString;
         }
         /// <summary>
         /// Trích ra từ một chuỗi các giá trị số

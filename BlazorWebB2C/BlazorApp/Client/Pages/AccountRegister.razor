@@ -1,0 +1,186 @@
+﻿@using Admin.Services
+@using Resource.Services
+@using System.Collections.ObjectModel;
+@inject grpcAdminService.grpcAdminServiceClient adminServiceClient;
+@inject MasterService masterService;
+@inject VoucherService voucherService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyAppBarForm Title="Đăng ký tài khoản" ShowCloseButton=true>
+    <ChildContent>
+        <MyTextEdit Literal="Tài khoản"
+                    AutoFocus=true
+                    @bind-Text=@Model.UserName
+                    @ref=RefUserName />
+        <MyTextEdit Literal="Họ và tên"
+                    @bind-Text=@Model.Fullname
+                    @ref=RefFullname />
+        <MyTextEdit Literal="Phone"
+                    TextColor=@MyTextColor.Blue
+                    @bind-Text=@Model.Phone
+                    @ref=RefPhone />
+        <MyTextEdit Literal="Email"
+                    TextColor=@MyTextColor.Blue
+                    @bind-Text=@Model.Email
+                    @ref=RefEmail />
+
+
+        <p class="text-muted text-justify m-3">
+            Lưu ý: Giấy chứng nhận bảo hiểm bắt buộc và trách nhiệm dân sự và bảo hiểm tự nguyện chủ xe mô tô - xe gắn máy
+            được cấp Giấy chứng nhận bảo hiểm điện tử qua email hoặc tin nhắn SMS.
+        </p>
+    </ChildContent>
+    <ActionButtons>
+        <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Filled.ArrowForwardIos" OnClick="CreateAccountRequest">Tiếp tục</MudButton>
+    </ActionButtons>
+</MyAppBarForm>
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    //SO
+    UserAccountModel Model = new UserAccountModel();
+    //Ref
+    MyTextEdit RefUserName;
+    MyTextEdit RefFullname;
+    MyTextEdit RefPhone;
+    MyTextEdit RefEmail;
+    //format
+    public IMask DigitMask = new RegexMask(@"^\d+$");
+
+    //OnInitializedAsync
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+        //
+    }
+
+    //Validate
+    async Task<bool> Validate_Main()
+    {
+        bool validateResult = true;
+
+        //Clear error
+        RefUserName.ClearError();
+        RefFullname.ClearError();
+        RefPhone.ClearError();
+        RefEmail.ClearError();
+
+        //RefFullname
+        if (string.IsNullOrWhiteSpace(Model.Fullname))
+        {
+            RefFullname.Focus();
+            RefFullname.SetError("Bắt buộc nhập");
+            validateResult = false;
+        }
+
+        //RefPhone
+        if (string.IsNullOrWhiteSpace(Model.Phone))
+        {
+            RefPhone.Focus();
+            RefPhone.SetError("Bắt buộc nhập");
+            validateResult = false;
+        }
+        else if (!Model.Phone.IsPhoneNumber())
+        {
+            RefPhone.Focus();
+            RefPhone.SetError("Số điện thoại không hợp lệ");
+            validateResult = false;
+        }
+
+        //RefEmail
+        if (!string.IsNullOrWhiteSpace(Model.Email) && !Model.Email.IsEmail())
+        {
+            RefEmail.Focus();
+            RefEmail.SetError("Email không hợp lệ");
+            validateResult = false;
+        }
+        //Check username
+        if (string.IsNullOrWhiteSpace(Model.Fullname))
+        {
+            RefFullname.Focus();
+            RefFullname.SetError("Bắt buộc nhập");
+            validateResult = false;
+        }
+        else
+        {
+            //Check valid username
+            string checkRes = await Check_UserName(Model.UserName);
+            if (!string.IsNullOrWhiteSpace(checkRes))
+            {
+                RefFullname.Focus();
+                RefFullname.SetError(checkRes);
+                validateResult = false;
+            }
+        }
+
+        //
+        return validateResult;
+    }
+
+
+    async void CreateAccountRequest()
+    {
+        //Validate
+        if (!(await Validate_Main())) return;
+
+        //Next step > confirm
+        var parameters = new DialogParameters();
+        parameters.Add("Model", Model);
+        //
+        var result = await DialogService.Show<AccountRegisterConfirm>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+        if (!result.Cancelled && result.Data != null)
+        {
+            var ret = (MyDialogResult)result.Data;
+            if (ret.IsCloseAll)
+            {
+                var ret2 = new MyDialogResult();
+                ret2.IsCloseAll = true;
+                //
+                MudDialog.Close(ret2);
+            }
+        }
+    }
+
+    private async Task<string> Check_UserName(string username)
+    {
+        try
+        {
+            //
+            var request = new Admin.Services.CreateAccountReq_Request();
+            var Credential = new Admin.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+            request.Credential = Credential;
+            //
+            request.UserName = Model.UserName;
+            request.Password = Model.Password;
+            request.Fullname = Model.Fullname;
+            request.Phone = Model.Phone;
+            request.Email = Model.Email;
+            //
+            var response = await adminServiceClient.CreateAccountReqAsync(request);
+            // PK
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                Model.ActivationCode = response.StringValue;
+                return "";
+            }
+            //Error
+            return response == null ? "Account đã tồn tại" : response.MsgCode;
+        }
+        catch { }
+        //
+        return "Account đã tồn tại";
+    }
+
+
+
+}
+

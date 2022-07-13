@@ -19,7 +19,10 @@ namespace BlazorApp.Server.Models
         public string Address { get; set; } = "";
         public string RoleID { get; set; } = "";
         public string RoleName { get; set; } = "";
-        public string RefUserID { get; set; } = "";
+        public string MerchantID { get; set; } = "";
+        public string MerchantName { get; set; } = "";
+        public string UserCode { get; set; } = "";
+        public string RefCode { get; set; } = "";
         public int RankLevel { get; set; }
         public bool Status { get; set; }
         public DateTime ModifiedOn { get; set; }
