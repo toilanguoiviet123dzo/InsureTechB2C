@@ -1,0 +1,60 @@
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+
+  <PropertyGroup>
+    <TargetFramework>net6.0</TargetFramework>
+    <UserSecretsId>e1247988-46e2-4397-89ab-89b0860c59ae</UserSecretsId>
+    <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileContext>.</DockerfileContext>
+    <DockerComposeProjectPath>docker-compose.dcproj</DockerComposeProjectPath>
+    <AssemblyName>CoreService.Event</AssemblyName>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <Compile Include="..\CommonServices\EventService.cs" Link="CommonServices\EventService.cs" />
+    <Compile Include="..\CommonServices\MyAppLog.cs" Link="CommonServices\MyAppLog.cs" />
+    <Compile Include="..\Common\MyConstant.cs" Link="Common\MyConstant.cs" />
+    <Compile Include="..\Common\SettingMaster.cs" Link="CommonServices\SettingMaster.cs" />
+    <Compile Include="..\Common\SettingMasterModel.cs" Link="CommonServices\SettingMasterModel.cs" />
+    <Compile Include="..\Configs\DatabaseConfig.cs" Link="Configs\DatabaseConfig.cs" />
+    <Compile Include="..\Configs\GrpcConfig.cs" Link="Configs\GrpcConfig.cs" />
+    <Compile Include="..\Infrastructure\AuthenticationInterceptor.cs" Link="Infrastructure\AuthenticationInterceptor.cs" />
+    <Compile Include="..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
+    <Compile Include="..\Models\mdOptionList.cs" Link="Models\mdOptionList.cs" />
+    <Compile Include="..\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
+  </ItemGroup>
+  
+  <ItemGroup>
+    <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.47.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Systemd" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.WindowsServices" Version="6.0.0" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.16.1" />
+    <PackageReference Include="MongoDB.Entities" Version="20.26.3" />
+    <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="Polly" Version="7.2.3" />
+    <PackageReference Include="Serilog" Version="2.11.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="Common\" />
+    <Folder Include="Infrastructure\" />
+    <Folder Include="CommonServices\" />
+    <Folder Include="Common\" />
+    <Folder Include="Protos\" />
+    <Folder Include="Protos\" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\Cores\Cores.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Protobuf Include="..\Protos\Insure.proto" GrpcServices="Client">
+      <Link>Protos\Insure.proto</Link>
+    </Protobuf>
+    <Protobuf Include="..\Protos\Event.proto">
+      <Link>Protos\Event.proto</Link>
+    </Protobuf>
+  </ItemGroup>
+
+</Project>

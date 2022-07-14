@@ -6,7 +6,7 @@ using System.Linq;
 using System.Threading.Tasks;
 
 
-namespace BlazorApp.Server.Models
+namespace Database.Models
 
 {
     [Collection("FirebasePushMessageQueue")]

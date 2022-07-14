@@ -1,4 +1,3 @@
-using Cores.Configs;
 using Cores.Grpc.Client;
 using BlazorApp.Server.Services;
 using Microsoft.AspNetCore.Builder;

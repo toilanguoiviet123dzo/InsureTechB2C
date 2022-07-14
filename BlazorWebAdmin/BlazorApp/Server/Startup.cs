@@ -1,4 +1,4 @@
-using Cores.Configs;
+using Grpc.Configs;
 using Cores.Grpc.Client;
 using BlazorApp.Server.Services;
 using Microsoft.AspNetCore.Builder;
@@ -11,11 +11,11 @@ using Microsoft.Extensions.Hosting;
 using System.Linq;
 using Cores.Grpc.Authentication;
 using System;
-using BlazorApp.Server.Common;
 using MongoDB.Driver;
 using MongoDB.Entities;
 using System.Threading.Tasks;
 using System.Threading;
+using Database.Configs;
 
 namespace BlazorApp.Server
 {

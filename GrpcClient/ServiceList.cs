@@ -8,10 +8,9 @@ namespace Cores.Grpc.Client
     public static class ServiceList
     {
         //Main services
-        public const string SystemConfig = "SystemConfig";
-        public const string AppLog = "AppLog";
+        public const string Event = "Event";
+        public const string Insure = "Insure";
         public const string Admin = "Admin";
-        public const string Claim = "Claim";
         public const string Resource = "Resource";
     }
 }

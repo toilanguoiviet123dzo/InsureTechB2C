@@ -1,4 +1,4 @@
-﻿using BlazorApp.Server.Models;
+﻿using Database.Models;
 using Cores.Helpers;
 using MongoDB.Entities;
 using System;

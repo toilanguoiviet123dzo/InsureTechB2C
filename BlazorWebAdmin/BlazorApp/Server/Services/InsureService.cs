@@ -14,7 +14,7 @@ using Grpc.Net.Client;
 using Cores.Grpc.Client;
 using Cores.Helpers;
 using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Database.Models;
 using Cores.Utilities;
 using Insure.Services;
 
@@ -261,7 +261,6 @@ namespace BlazorApp.Server.Services
             {
                 var gotRecords = await DB.Find<mdSaleOrderLog>()
                                          .Match(x => x.CusPhone == request.CusPhone)
-                                         .Match(x => x.CusCitizenID == request.CusCitizenID)
                                          .ExecuteAsync();
                 //
                 if (gotRecords != null)

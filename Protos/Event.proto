@@ -1,0 +1,73 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Event.Services";
+import "google/protobuf/timestamp.proto";
+package grpcEventService;
+//Services
+service grpcEventService {
+
+    //AppEvents
+    rpc PublicEvents (PublicEvents_Request) returns (Empty_Response);
+}
+//======================================================
+// Common Messages
+//======================================================
+message UserCredential {
+    string Username = 1;
+    string RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+//
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+     string StringValue = 2;
+}
+message String_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     string StringValue = 3;
+}
+message Int_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+     int32 IntValue = 3;
+}
+//
+//======================================================
+// Messages
+//======================================================
+message PublicEvents_Request {
+    UserCredential Credential = 1;
+    //
+    string Publicer = 2;
+    string Subcriber = 3;
+    string EventName = 4;
+    string JsonStringData = 5;
+    int32 CallType = 6;
+    int32 MaxRetryCount = 7;
+    bool NeedAlarm = 8;
+}
+
+
+
+
+
+
+
+
+
+
+

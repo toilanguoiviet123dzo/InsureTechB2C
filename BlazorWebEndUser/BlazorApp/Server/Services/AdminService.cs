@@ -11,7 +11,7 @@ using BlazorApp.Shared.Models;
 using System.Text.Json;
 using Microsoft.Extensions.Logging;
 using MongoDB.Entities;
-using BlazorApp.Server.Models;
+using Database.Models;
 using BlazorApp.Server.Common;
 using Cores.Helpers;
 using Cores.Utilities;

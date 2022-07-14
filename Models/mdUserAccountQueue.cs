@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorApp.Server.Models
+namespace Database.Models
 {
     [Collection("UserAccountQueue")]
     public class mdUserAccountQueue : Entity

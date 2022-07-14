@@ -11,12 +11,14 @@
     <Compile Include="..\GrpcClient\ServiceList.cs" Link="GrpcClient\ServiceList.cs" />
     <Compile Include="..\GrpcClient\ServiceListModel.cs" Link="GrpcClient\ServiceListModel.cs" />
     <Compile Include="..\GrpcClient\UserCredential.cs" Link="GrpcClient\UserCredential.cs" />
+    <Compile Include="..\Models\mdServiceList.cs" Link="GrpcClient\mdServiceList.cs" />
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Google.Protobuf" Version="3.15.7" />
-    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.41.0" />
-    <PackageReference Include="Microsoft.Extensions.Http" Version="5.0.0" />
+    <PackageReference Include="Google.Protobuf" Version="3.21.2" />
+    <PackageReference Include="Grpc.Net.ClientFactory" Version="2.47.0" />
+    <PackageReference Include="Microsoft.Extensions.Http" Version="6.0.0" />
+    <PackageReference Include="MongoDB.Entities" Version="20.26.3" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
     <PackageReference Include="System.Drawing.Common" Version="6.0.0" />
   </ItemGroup>

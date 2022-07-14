@@ -5,6 +5,12 @@ package grpcInsureService;
 
 //Services
 service grpcInsureService {    
+    // Health check
+    rpc HealthCheck (Empty_Request) returns (String_Response);
+
+    //For refresh: config, caching,..
+    rpc SubcribeEvents (SubcribeEvents_Request) returns (Empty_Response); 
+
     //Product
     rpc SaveProduct (SaveProduct_Request) returns (String_Response);
     rpc GetProduct (String_Request) returns (GetProduct_Response);
@@ -33,6 +39,12 @@ service grpcInsureService {
 //======================================================
 // Common Messages
 //======================================================
+message SubcribeEvents_Request {
+    UserCredential Credential = 1;
+    //
+    string EventName = 2;
+    string JsonStringData = 3;
+}
 message UserCredential {
     string Username = 1;
     string RoleID = 2;

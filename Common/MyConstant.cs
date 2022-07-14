@@ -5,7 +5,7 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace BlazorApp.Server.Common
+namespace Server.Common
 {
     public static class MyConstant
     {
@@ -18,7 +18,13 @@ namespace BlazorApp.Server.Common
         public const int LogLevel_Critical = 5;
         public const int LogLevel_None = 6;
         public const int LogLevel_ForSale = 7;
-        
+
+        //Events: config, caching
+        public const int EventCallType_3303 = 1;
+        public const int EventCallType_2202 = 2;
+        public const string EventName_ServiceList = "ServiceList";
+        public const string EventName_SettingMaster = "SettingMaster";
+
         //Currency
         public const string NaturalCurrencyUnit = "VND";
 

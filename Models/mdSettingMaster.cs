@@ -5,7 +5,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorApp.Server.Models
+namespace Database.Models
 {
     [Collection("SettingMaster")]
     public class mdSettingMaster : Entity

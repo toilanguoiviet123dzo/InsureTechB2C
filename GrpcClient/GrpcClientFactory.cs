@@ -7,6 +7,8 @@ using Microsoft.Extensions.Logging;
 using System.Net.Http;
 using System.Threading;
 using Cores.Helpers;
+using MongoDB.Entities;
+using Database.Models;
 
 namespace Cores.Grpc.Client
 {
@@ -45,10 +47,9 @@ namespace Cores.Grpc.Client
             else
             {
                 //For debug without master
-                _serviceDict.Add(ServiceList.SystemConfig, "http://222.253.79.223:5099");
-                _serviceDict.Add(ServiceList.AppLog, "http://222.253.79.223:5050");
-                _serviceDict.Add(ServiceList.Admin, "http://222.253.79.223:5001");
-                _serviceDict.Add(ServiceList.Claim, "http://222.253.79.223:5002");
+                _serviceDict.Add(ServiceList.Admin, "http://222.253.79.223:5099");
+                _serviceDict.Add(ServiceList.Insure, "http://222.253.79.223:5050");
+                _serviceDict.Add(ServiceList.Resource, "http://222.253.79.223:5001");
             }
 
             //Create dict of GrpcChannelFactory
@@ -89,37 +90,15 @@ namespace Cores.Grpc.Client
             var serviceList = new List<ServiceListModel>();
             try
             {
-                //GetServiceList_Response result = await CallServiceAtSpecificUrl<GetServiceList_Response>(_systemConfigUrl, async channel =>
-                //{
-                //    try
-                //    {
-                //        var client = new grpcSystemConfigService.grpcSystemConfigServiceClient(channel);
-                //        var response = await client.GetServiceListAsync(new Empty_Request()
-                //        {
-                //            Credential = new UserCredential()
-                //            {
-                //                Username = GrpcCredential.Username,
-                //                RoleID = GrpcCredential.RoleID,
-                //                AccessToken = GrpcCredential.AccessToken,
-                //                ApiKey = GrpcCredential.ApiKey
-                //            }
-                //        });
-                //        return response;
-                //    }
-                //    catch { }
-                //    return default;
-                //});
-                ////Result
-                //if (result != null && result.ReturnCode == GrpcReturnCode.OK)
-                //{
-                //    foreach (var item in result.ServiceList)
-                //    {
-                //        Console.WriteLine(item.Url);
-                //        var serviceListItem = new ServiceListModel();
-                //        ClassHelper.CopyPropertiesData(item, serviceListItem);
-                //        serviceList.Add(serviceListItem);
-                //    }
-                //}
+                var records = await DB.Find<mdServiceList>()
+                                      .ExecuteAsync();
+
+                foreach (var record in records)
+                {
+                    var serviceListItem = new ServiceListModel();
+                    ClassHelper.CopyPropertiesData(record, serviceListItem);
+                    serviceList.Add(serviceListItem);
+                }
             }
             catch { }
 

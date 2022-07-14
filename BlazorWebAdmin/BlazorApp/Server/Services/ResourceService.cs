@@ -15,7 +15,7 @@ using Grpc.Net.Client;
 using Resource.Services;
 using Cores.Grpc.Client;
 using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Database.Models;
 using Cores.Helpers;
 using Cores.Utilities;
 using System.IO;

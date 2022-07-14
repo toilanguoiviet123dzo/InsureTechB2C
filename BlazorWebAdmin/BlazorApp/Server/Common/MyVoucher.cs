@@ -1,6 +1,6 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BlazorApp.Server.Models;
+using Database.Models;
 using Cores.Utilities;
 using MongoDB.Entities;
 

@@ -56,8 +56,6 @@ namespace Cores.GrpcClient.Authentication
                     WebUserCredential.Username = response.UserName;
                     WebUserCredential.Fullname = response.Fullname;
                     WebUserCredential.RoleID = response.RoleID;
-                    WebUserCredential.ApproveLevel = response.ApproveLevel;
-                    WebUserCredential.DocumentLevel = response.DocumentLevel;
                     //
                     loginResult = true;
                     //Notify login

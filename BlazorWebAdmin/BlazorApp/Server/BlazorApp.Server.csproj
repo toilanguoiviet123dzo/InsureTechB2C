@@ -8,6 +8,7 @@
   </PropertyGroup>
 
   <ItemGroup>
+    <Compile Include="..\..\..\Configs\DatabaseConfig.cs" Link="Configs\DatabaseConfig.cs" />
     <Compile Include="..\..\..\Configs\GrpcConfig.cs" Link="Configs\GrpcConfig.cs" />
     <Compile Include="..\..\..\Models\mdAddressMaster.cs" Link="Models\mdAddressMaster.cs" />
     <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
@@ -44,7 +45,6 @@
 
   <ItemGroup>
     <Folder Include="Controllers\" />
-    <Folder Include="Configs\" />
     <Folder Include="Models\" />
   </ItemGroup>
 

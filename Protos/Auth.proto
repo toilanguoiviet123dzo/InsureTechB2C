@@ -1,0 +1,336 @@
+﻿syntax = "proto3";
+option csharp_namespace = "Auth.Services";
+import "google/protobuf/timestamp.proto";
+package grpcAuthService;
+
+service grpcAuthService{
+    // Health check
+    rpc HealthCheck (Empty_Request) returns (String_Response);
+
+    //For refresh: config, caching,..
+    rpc SubcribeEvents (SubcribeEvents_Request) returns (Empty_Response);
+
+    // ClientApp
+    rpc SaveClientApp (SaveClientApp_Request) returns (Empty_Response);
+    rpc GetClientApp (GetClientApp_Request) returns (GetClientApp_Response);
+    rpc InitSdk (InitSdk_Request) returns (InitSdk_Response);    
+
+    // GameAuthorized
+    rpc SaveGameAuthorized (SaveGameAuthorized_Request) returns (Empty_Response);
+    rpc GetGameAuthorized (Empty_Request) returns (GetGameAuthorized_Response);    
+    
+    //ApiKey
+    rpc SaveApiKey (SaveApiKey_Request) returns (Empty_Response);
+    rpc GetApiKey (Empty_Request) returns (GetApiKey_Response);
+        
+    //PartnerMaster
+    rpc SavePartnerMaster (SavePartnerMaster_Request) returns (Empty_Response);
+    rpc GetPartnerMaster (Empty_Request) returns (GetPartnerMaster_Response);
+    //check sign
+    rpc CheckSign (CheckSign_Request) returns (String_Response);
+    //GameUserSettings
+    rpc SaveGameUserSettings (SaveGameUserSettings_Request) returns (Empty_Response);
+    rpc GetGameUserSettings (String_Request) returns (GetGameUserSettings_Response);
+}
+//======================================================
+// Common Messages
+//======================================================
+message SubcribeEvents_Request {
+    UserCredential Credential = 1;
+    //
+    string EventName = 2;
+    string JsonStringData = 3;
+}
+message UserCredential {
+    string Username = 1;
+    int32 RoleID = 2;
+    string AccessToken = 3;
+    string ApiKey = 4;
+}
+message Empty_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+}
+message String_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string StringValue = 3;
+}
+message Empty_Request {
+    UserCredential Credential = 1;
+}
+message String_Request
+{
+    UserCredential Credential = 1;
+    //
+     string StringValue = 2;
+}
+//
+//======================================================
+// Messages
+//======================================================
+//
+//OAuthApplication
+//
+message SaveOAuthApplication_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcOAuthApplication OAuthApplications = 2;
+}
+//
+message GetOAuthApplication_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcOAuthApplication OAuthApplications = 3;
+}
+//
+message grpcOAuthApplication
+{
+    string ID  = 1; 
+    string UserName  = 2;     
+    string ClientID  = 3;     
+    string Secret  = 4; 
+    string ApplicationName  = 5; 
+    string Site  = 6; 
+    string Logo  = 7;     
+    int32 Enabled  = 8;     
+    bool AlwaysTrust  = 9;     
+    string CssLink  = 10; 
+    string PopupCssLink  = 11; 
+    string JsLink  = 12; 
+    string RegSourceID  = 13; 
+    string IsStore  = 14; 
+    string IsStoreIOS  = 15; 
+    string AndroidVersion  = 16; 
+    string IOSVersion  = 17; 
+    string Location  = 18; 
+    //
+    google.protobuf.Timestamp CreatedOn  = 19; 
+    google.protobuf.Timestamp ModifiedOn  = 20;          
+    int32 UpdMode  = 21;
+}
+//
+//OAuthApplication_RedirectURI
+//
+message SaveOAuthApplication_RedirectURI_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcOAuthApplication_RedirectURI OAuthApplication_RedirectURIs = 2;
+}
+//
+message GetOAuthApplication_RedirectURI_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcOAuthApplication_RedirectURI OAuthApplication_RedirectURIs = 3;
+}
+//
+message grpcOAuthApplication_RedirectURI
+{
+    string ID  = 1;     
+    string ClientID  = 2; 
+    string RedirectURI  = 3;    
+    google.protobuf.Timestamp ModifiedOn  = 4;          
+    int32 UpdMode  = 5;
+}
+//
+//GameAuthorized
+//
+message SaveGameAuthorized_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcGameAuthorized GameAuthorizeds = 2;
+}
+//
+message GetGameAuthorized_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcGameAuthorized GameAuthorizeds = 3;
+}
+//
+message grpcGameAuthorized
+{
+    string ID = 1;
+    string UserName = 2;
+    string GameGroup = 3;
+    string GameID = 4;
+    string Description = 5;           
+    google.protobuf.Timestamp CreatedOn  = 6; 
+    google.protobuf.Timestamp ModifiedOn  = 7;          
+    int32 UpdMode  = 8; 
+}
+
+//
+//SaveApiKey_Request
+//
+message SaveApiKey_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcApiKey ApiKeys = 2;
+}
+//
+//GetApiKey_Response
+//
+message GetApiKey_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcApiKey ApiKeys = 3;
+}
+message grpcApiKey
+{
+    string ID = 1;
+    string ClientID = 2;
+    string ClientName = 3;
+    int32 RoleID = 4;
+    string Notes = 5;
+    string ApiKey = 6;
+    string HashKey = 7;
+    string CreatedBy = 8;    
+    google.protobuf.Timestamp CreatedOn  = 9; 
+    google.protobuf.Timestamp ModifiedOn  = 10;          
+    int32 UpdMode  = 11; 
+}
+
+//
+// SaveClientApp_Request
+//
+message SaveClientApp_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcClientApp ClientApps = 2;
+}
+message grpcClientApp
+{
+    string ID = 1;
+    string PartnerID = 2;
+    string PartnerName = 3;
+    string ClientID = 4;
+    string ClientName = 5;
+    int32 ClientType = 6;    
+    string Descriptions = 7;
+    string Password = 8;
+    string SecretKey = 9;
+    string ClientSignature = 10;    
+    string Framework = 11;
+    string SdkConfigs = 12;
+    string SdkCredentials = 13;
+    string SdkSecretKey = 14;
+    string RestrictIPs = 15;
+    string RedirectUrls = 16;
+    string PermitedGames = 17;
+    string PermitedGameServers = 18;
+    string AllowedFunctions = 19;
+    string GosuTransferType = 20;
+    double MaxAmount = 21;      
+    int32 Enabled = 22;    
+    google.protobuf.Timestamp ModifiedOn  = 23;          
+    string ModifiedBy = 24;
+    int32 UpdMode  = 25; 
+    //add AlwaysTrust
+    int32 AlwaysTrust  = 26; 
+}
+
+message GetClientApp_Request
+{
+    UserCredential Credential = 1;
+    //
+    int32 ClientType = 2;
+    string ClientID = 3;
+}
+
+message GetClientApp_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcClientApp ClientApps = 3;
+}
+message InitSdk_Request
+{
+    UserCredential Credential = 1;
+    //
+    string ClientID = 2;
+    string DeviceID = 3; 
+    string SdkSignature = 4;
+}
+message InitSdk_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    string InitData = 3;
+}
+message grpcPartnerModel {
+    string ID = 1;
+    string PartnerID = 2;
+    string PartnerName = 3;
+    string Notes = 4;
+    bool Enabled = 5;
+    google.protobuf.Timestamp ModifiedOn = 6;
+    int32 UpdMode = 7;
+}
+message SavePartnerMaster_Request {
+    UserCredential Credential = 1;
+    //
+    repeated grpcPartnerModel Partners = 2;
+}
+message GetPartnerMaster_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcPartnerModel Partners = 3;
+}
+message CheckSign_Request
+{
+    UserCredential Credential = 1;
+    //
+    string PartnerID = 2;
+    string GameID = 3;
+    string Params = 4;
+    string IP = 5;
+    string Sign = 6;
+    int32 ClientType = 7;
+}
+//
+message Bool_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    bool BoolValue = 3;
+}
+
+message SaveGameUserSettings_Request
+{
+    UserCredential Credential = 1;
+    //
+    repeated grpcGameUserSettings GameUserSettings = 2; 
+}
+//
+message GetGameUserSettings_Response
+{
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcGameUserSettings GameUserSettings = 3;
+}
+//
+message grpcGameUserSettings
+{
+    string ID = 1;
+    string UserName = 2;
+    string GameID = 3;
+    string Lable = 4;
+    bool Show = 5;    
+    int32 UpdMode = 6;
+}

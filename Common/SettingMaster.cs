@@ -1,4 +1,4 @@
-﻿using BlazorApp.Server.Models;
+﻿using Database.Models;
 using Cores.Helpers;
 using MongoDB.Entities;
 using System;
@@ -6,7 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace BlazorApp.Server.Common
+namespace Common.Services
 {
     public static class SettingMaster
     {
