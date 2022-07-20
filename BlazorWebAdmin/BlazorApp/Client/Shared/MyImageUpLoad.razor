@@ -8,14 +8,16 @@
            OnChange="@(async(e) => await LoadFile(e))"
            @attributes="Attributes" />
 
-<MudFab HtmlTag="label"
-        Color="Color.Secondary"
+<MudButton HtmlTag="label"
+        Variant="Variant.Filled"
+        Color="Color.Primary"
         StartIcon="@Icon"
         Size="@Size"
-        for="@Id" />
+        for="@Id"> @Literal </MudButton>
 
 @code {
     [Parameter] public string Id { get; set; } = "fileInput";
+    [Parameter] public string Literal { get; set; } = "Upload images";
     [Parameter] public string OwnerID { get; set; } = "";
     [Parameter] public string CategoryID { get; set; } = "";
     [Parameter] public bool IsMakeThumbnail { get; set; } = true;
@@ -57,7 +59,7 @@
             {
                 //files.Add(file);
                 //Read file
-                Stream stream = file.OpenReadStream(10000000);
+                Stream stream = file.OpenReadStream(10 * 1000 * 1024);
                 MemoryStream ms = new MemoryStream();
                 await stream.CopyToAsync(ms);
                 stream.Close();
@@ -117,6 +119,7 @@
                         var updateItem = ReturnImageList.Find(x => x.RecNo == item.RecNo);
                         if (updateItem != null)
                         {
+                            updateItem.ResourceID = item.ResourceID;
                             updateItem.ResourceID = item.ResourceID;
                         }
                     }

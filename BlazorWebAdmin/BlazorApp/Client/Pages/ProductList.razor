@@ -23,36 +23,22 @@
         <col style="width: 8rem;" />
         <col style="width: 8rem;" />
         <col style="width: 5rem;" />
-        <col style="width: 5rem;" />
-        <col style="width: 5rem;" />
-        <col style="width: 5rem;" />
-        <col style="width: 5rem;" />
-        <col style="width: 9rem;" />
+        <col style="width: 12rem;" />
     </ColGroup>
     <HeaderContent>
         <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<ProductModel, object>(x => x.ProductID)">Mã</MudTableSortLabel></MudTh>
         <MudTh>Tên</MudTh>
         <MudTh>Nhà cung cấp</MudTh>
-        <MudTh>Số tiền bảo hiểm</MudTh>
-        <MudTh>Giá bán</MudTh>
-        <MudTh>Giá NNTX</MudTh>
         <MudTh>% VAT</MudTh>
         <MudTh>Gồm VAT</MudTh>
-        <MudTh>Thời hạn</MudTh>
-        <MudTh>Đơn vị</MudTh>
         <MudTh>Cập nhật cuối</MudTh>
     </HeaderContent>
     <RowTemplate>
         <MudTd>@context.ProductID</MudTd>
         <MudTd>@context.ProductName</MudTd>
         <MudTd>@context.VendorName</MudTd>
-        <MudTd Style="color:blue; font-weight: bold; text-align:end">@context.InsureAmount.ToString("N0")</MudTd>
-        <MudTd Style="color:green; font-weight: bold; text-align:end">@context.UnitPrice.ToString("N0")</MudTd>
-        <MudTd Style="color:green; font-weight: bold; text-align:end">@context.ExtraPrice.ToString("N0")</MudTd>
         <MudTd Style="text-align:end">@context.TaxRate.ToString("P0")</MudTd>
         <MudTd ><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true" Class="m-auto"></MudCheckBox></MudTd>
-        <MudTd Style="color:purple; font-weight: bold; text-align:end">@context.Duration.ToString("N0")</MudTd>
-        <MudTd>@context.DurationUnit</MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
     </RowTemplate>
 </MyDataGrid>
@@ -184,7 +170,6 @@
     {
         //Init new row
         var newRow = new ProductModel();
-        newRow.DurationUnit = "Ngày";
         newRow.IsIncludeVAT = true;
         newRow.UpdMode = 1;
         newRow.ModifiedOn = DateTime.Now;
@@ -216,7 +201,7 @@
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.ShowEditFormOptions(MaxWidth.Large)).Result;
+        var result = await DialogService.Show<ProductEdit>("", parameters, MyOptions.ShowEditFormOptions(MaxWidth.ExtraLarge)).Result;
         if (!result.Cancelled && result.Data != null)
         {
             var retModel = (ProductModel)result.Data;

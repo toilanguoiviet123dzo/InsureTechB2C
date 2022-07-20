@@ -67,6 +67,19 @@ namespace BlazorApp.Server.Services
                             }
                         }
 
+                        //SalePackages
+                        saveRecord.SalePackages.Clear();
+                        if (request.Record.SalePackages != null)
+                        {
+                            foreach (var item in request.Record.SalePackages)
+                            {
+                                var subItem = new SalePackageModel();
+                                ClassHelper.CopyPropertiesData(item, subItem);
+                                //
+                                saveRecord.SalePackages.Add(subItem);
+                            }
+                        }
+
                         //GenerateNewID
                         if (request.Record.UpdMode == 1) saveRecord.ID = saveRecord.GenerateNewID();
                         saveRecord.ModifiedOn = DateTime.UtcNow;
@@ -121,6 +134,19 @@ namespace BlazorApp.Server.Services
                             response.Record.Specifications.Add(specItem);
                         }
                     }
+
+                    //SalePackages
+                    response.Record.SalePackages.Clear();
+                    if (gotRecord.SalePackages != null)
+                    {
+                        foreach (var item in gotRecord.SalePackages)
+                        {
+                            var subItem = new grpcSalePackageModel();
+                            ClassHelper.CopyPropertiesData(item, subItem);
+                            //
+                            response.Record.SalePackages.Add(subItem);
+                        }
+                    }
                 }
                 else
                 {
@@ -152,21 +178,33 @@ namespace BlazorApp.Server.Services
                 //
                 if (gotRecords != null)
                 {
-                    foreach (var item in gotRecords)
+                    foreach (var record in gotRecords)
                     {
                         var retRecord = new grpcProductModel();
-                        ClassHelper.CopyPropertiesData(item, retRecord);
+                        ClassHelper.CopyPropertiesData(record, retRecord);
 
                         //Specifications
                         retRecord.Specifications.Clear();
-                        if (item.Specifications != null)
+                        if (record.Specifications != null)
                         {
-                            foreach (var specItem in item.Specifications)
+                            foreach (var specItem in record.Specifications)
                             {
                                 var grpcSpecItem = new grpcSpecificationModel();
                                 ClassHelper.CopyPropertiesData(specItem, grpcSpecItem);
                                 //
                                 retRecord.Specifications.Add(grpcSpecItem);
+                            }
+                        }
+                        //SalePackages
+                        retRecord.SalePackages.Clear();
+                        if (record.SalePackages != null)
+                        {
+                            foreach (var item in record.SalePackages)
+                            {
+                                var subItem = new grpcSalePackageModel();
+                                ClassHelper.CopyPropertiesData(item, subItem);
+                                //
+                                retRecord.SalePackages.Add(subItem);
                             }
                         }
                         //

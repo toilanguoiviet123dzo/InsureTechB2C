@@ -27,9 +27,6 @@
     <Protobuf Include="..\..\..\Protos\Insure.proto">
       <Link>Protos\Insure.proto</Link>
     </Protobuf>
-    <Protobuf Include="..\..\..\Protos\SystemConfig.proto">
-      <Link>Protos\SystemConfig.proto</Link>
-    </Protobuf>
     <Protobuf Include="..\..\..\Protos\Resource.proto">
       <Link>Protos\Resource.proto</Link>
     </Protobuf>

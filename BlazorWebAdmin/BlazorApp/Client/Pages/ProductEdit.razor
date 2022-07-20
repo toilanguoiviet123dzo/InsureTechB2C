@@ -8,11 +8,11 @@
              T="ProductModel"
              Model="DspModel"
              ReadOnly="@ReadOnly"
-             Width=@MyFormSize.Small
+             Width=@MyFormSize.Medium
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
 
-    <div class="d-flex">
+    <div class="d-flex align-center">
         <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Class="mr-2" Style="text-transform: uppercase" AutoFocus=true />
         <MyComboBox @ref="@RefProductType" Literal="Loại" @bind-Value="SelectedProductType" Data="@ProductTypeList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
         <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.LogoContent))" Alt="Product Avatar" />
@@ -24,7 +24,7 @@
                        SingleImage=true
                        ThumbnailHeight=200
                        ThumbnailWidth=200
-                       Icon=@Icons.Material.Filled.Create
+                       Icon=@Icons.Filled.CloudUpload
                        Size=Size.Small
                        SecureLevel="0"
                        OnSubmit="@((List<UpLoadFileModel> files) => LoadProductLogo_Handle(files))" />
@@ -42,64 +42,117 @@
                        SingleImage=true
                        ThumbnailHeight=200
                        ThumbnailWidth=200
-                       Icon=@Icons.Material.Filled.Create
+                       Icon=@Icons.Filled.CloudUpload
                        Size=Size.Small
                        SecureLevel="0"
                        OnSubmit="@((List<UpLoadFileModel> files) => LoadVendorLogo_Handle(files))" />
     </div>
-    <div class="d-flex">
-        <MudNumericField Label="Số tiền bảo hiểm" @bind-Value="DspModel.InsureAmount" Min=1.0 Max=999999999.0 For="@(() => DspModel.InsureAmount)" HideSpinButtons="true" Format="N0" T="double" Class="mr-2" Style="color:maroon; font-weight:bold" />
-        <MudNumericField Label="Giá bán" @bind-Value="DspModel.UnitPrice" Min=1.0 Max=9999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" Style="color:blue; font-weight:bold" />
-    </div
-    <div class="d-flex">
-        <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" Min=0.0 Max=99.0 For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="N0" T="double" />
-        <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
+    <div class="d-flex justify-start align-center">
+        <div style="width: 50%">
+            <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" Min=0.0 Max=99.0 For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="N0" T="double" />
+        </div>
+        <div style="width: 50%">
+            <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
+        </div>
     </div>
-    <div class="d-flex align-center">
-        <MudNumericField Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" Min=1 Max=99 For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" Style="width:4rem; color:purple; font-weight:bold" />
-        <MudRadioGroup @bind-SelectedOption="@DspModel.DurationUnit">
-            <MudRadio Option="@("Ngày")" Color="Color.Primary">Ngày</MudRadio>
-            <MudRadio Option="@("Tháng")" Color="Color.Warning">Tháng</MudRadio>
-            <MudRadio Option="@("Năm")" Color="Color.Secondary">Năm</MudRadio>
-        </MudRadioGroup>
+
+    <!--Sale packages-->
+    <div class="mt-4">
+        <MyDataGrid @ref="@grid"
+                    T="SalePackageModel"
+                    Title="Danh sách gói bán"
+                    Items="@DspModel.SalePackages"
+                    RowsPerPage=100
+                    ShowSearchBox="false"
+                    ShowPager=false
+                    IsAddNew="true"
+                    IsDelete="true"
+                    OnAddRow="@(() => OnAddRow_Handle())"
+                    OnViewRow="@((SalePackageModel row) => OnViewRow_Handle(row))"
+                    OnDeleteRow="@((SalePackageModel row) => OnDeleteRow_Handle(row))">
+            <ColGroup>
+                <col style="width: 2rem;" />
+                <col style="width: 12rem;" />
+                <col style="width: 10rem;" />
+                <col style="width: 10rem;" />
+                <col />
+            </ColGroup>
+            <HeaderContent>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SalePackageModel, object>(x => x.PackageID)">No.</MudTableSortLabel></MudTh>
+                <MudTh>Tên gói</MudTh>
+                <MudTh>Phí</MudTh>
+                <MudTh>Mức trách nhiệm</MudTh>
+                <MudTh>Ghi chú</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd Style="text-align:center;">@context.PackageID</MudTd>
+                <MudTd>@context.PackageName</MudTd>
+                <MudTd Style="font-weight:600;color:blue;text-align:right">@context.UnitPrice.ToString("N0")</MudTd>
+                <MudTd Style="font-weight:600;color:maroon;text-align:right">@context.BenefitAmount.ToString("N0")</MudTd>
+                <MudTd>@context.Notes</MudTd>
+            </RowTemplate>
+        </MyDataGrid>
     </div>
-    <MudTextField Label="Link chi tiết sp" @bind-Value="DspModel.VendorLinks" />
-    <MudTextField Label="Link Q&A" @bind-Value="DspModel.QALinks" />
-    <MudTextField @bind-Value="@BuyPolicyDisplayText"
-                  Label="Chính sách mua bảo hiểm"
-                  OnAdornmentClick="Show_BuyPolicy"
-                  Variant="Variant.Text"
-                  Adornment="Adornment.End"
-                  ReadOnly=true
-                  AdornmentIcon="@Icons.Filled.Create"
-                  AdornmentColor="Color.Secondary" />
-    <br />
-    <!--Specifications-->
-    <MyDataGrid @ref="@grid"
-                T="SpecificationModel"
-                Title="Danh sách đặc tả chỉ tiết sản phẩm"
-                Items="@DspModel.Specifications"
-                RowsPerPage=100
-                ShowSearchBox="false"
-                ShowPager=false
-                IsAddNew="true"
-                IsDelete="true"
-                OnAddRow="@(() => OnAddRow_Handle())"
-                OnViewRow="@((SpecificationModel row) => OnViewRow_Handle(row))"
-                OnDeleteRow="@((SpecificationModel row) => OnDeleteRow_Handle(row))">
-        <ColGroup>
-            <col style="width: 2rem;" />
-            <col style="width: 15rem;" />
-        </ColGroup>
-        <HeaderContent>
-            <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SpecificationModel, object>(x => x.DspOrder)">No.</MudTableSortLabel></MudTh>
-            <MudTh>Tiêu đề</MudTh>
-        </HeaderContent>
-        <RowTemplate>
-            <MudTd Style="text-align:center;">@context.DspOrder</MudTd>
-            <MudTd Style="font-weight:bold;color:blue">@context.Title</MudTd>
-        </RowTemplate>
-    </MyDataGrid>
+
+    <div class="mt-4">
+        <MyPanels>
+            <MyPanel Title="Flash card" IsInitiallyExpanded=false>
+                <!--Flash card-->
+                <div style="height:300px; overflow-y:scroll">
+                    <div>
+                        <MyImageUpLoad Id="FlashCard"
+                                       CategoryID="@Flascard_CategoryID"
+                                       OwnerID="@DspModel.ProductID"
+                                       IsMakeThumbnail=true
+                                       IsMakeFullImage=false
+                                       SingleImage=true
+                                       ThumbnailHeight=200
+                                       ThumbnailWidth=200
+                                       Icon=@Icons.Filled.CloudUpload
+                                       Size=Size.Small
+                                       SecureLevel="0"
+                                       OnSubmit="@((List<UpLoadFileModel> files) => FlashCard_Handle(files))" />
+                    </div>
+                    <div>
+                        <MudImage Src="@("data:image/png;base64," + Convert.ToBase64String(DspModel.FlashCardContent))"
+                                  Fluid=true
+                                  Alt="Flash card"
+                                  Elevation="25"
+                                  Class="rounded-lg ma-2" />
+                    </div>
+                </div>
+            </MyPanel>
+
+            <MyPanel Title="Ảnh gói bán" IsInitiallyExpanded=false>
+                <!--Flash card-->
+                <div style="height:400px; overflow-y:scroll">
+                    <div>
+                        <MyImageUpLoad Id="SaleImage"
+                                       CategoryID="@Flascard_CategoryID"
+                                       OwnerID="@DspModel.ProductID"
+                                       IsMakeThumbnail=true
+                                       IsMakeFullImage=false
+                                       SingleImage=true
+                                       ThumbnailHeight=200
+                                       ThumbnailWidth=200
+                                       Icon=@Icons.Filled.CloudUpload
+                                       Size=Size.Small
+                                       SecureLevel="0"
+                                       OnSubmit="@((List<UpLoadFileModel> files) => SaleImage_Handle(files))" />
+                    </div>
+                    <div>
+                        <MudImage Src="@("data:image/png;base64," + Convert.ToBase64String(DspModel.SaleImageContent))"
+                                  Fluid=true
+                                  Alt="Flash card"
+                                  Elevation="25"
+                                  Class="rounded-lg ma-2" />
+                    </div>
+                </div>
+            </MyPanel>
+        </MyPanels>
+    </div>
+
+
 </MyPopupEdit>
 
 @code {
@@ -109,7 +162,7 @@
     //
     ProductModel DspModel = new ProductModel();
     // Detail data
-    MyDataGrid<SpecificationModel> grid;
+    MyDataGrid<SalePackageModel> grid;
     // Master
     private List<OptionListModel> VendorList = new List<OptionListModel>();
     private List<OptionListModel> ProductTypeList = new List<OptionListModel>();
@@ -121,6 +174,8 @@
     //Logo
     string ProductLogo_CategoryID = "001";
     string VendorLogo_CategoryID = "002";
+    string Flascard_CategoryID = "003";
+    string SaleImage_CategoryID = "004";
     //
     string BuyPolicyDisplayText = "";
 
@@ -140,28 +195,23 @@
         //SelectedProductType
         if (!string.IsNullOrWhiteSpace(DspModel.ProductType)) SelectedProductType = ProductTypeList.Find(x => x.ItemCode == DspModel.ProductType);
 
-        //Specifications
-        DspModel.Specifications.Clear();
-        if (Model.Specifications != null)
+        //SalePackages
+        DspModel.SalePackages.Clear();
+        if (Model.SalePackages != null)
         {
-            foreach (var item in Model.Specifications)
+            foreach (var item in Model.SalePackages)
             {
-                var copyItem = new SpecificationModel();
+                var copyItem = new SalePackageModel();
                 ClassHelper.CopyPropertiesData(item, copyItem);
-                DspModel.Specifications.Add(copyItem);
+                DspModel.SalePackages.Add(copyItem);
             }
         }
 
-        //Logo
+        //Load images
         DspModel.LogoContent = await masterService.GetThumbnail(Model.LogoID);
         DspModel.VendorLogoContent = await masterService.GetThumbnail(Model.VendorLogoID);
-
-        //BuyPolicy
-        BuyPolicyDisplayText = "";
-        if (!string.IsNullOrWhiteSpace(DspModel.BuyPolicy))
-        {
-            BuyPolicyDisplayText = "Đã nhập";
-        }
+        DspModel.FlashCardContent = await masterService.GetImage(Model.FlashCardID);
+        DspModel.SaleImageContent = await masterService.GetImage(Model.SaleImageID);
     }
 
     //Cancel
@@ -193,13 +243,13 @@
             Model.ProductType = SelectedProductType.ItemCode;
         }
 
-        //Specifications
-        Model.Specifications.Clear();
-        if (DspModel.Specifications != null)
+        //SalePackages
+        Model.SalePackages.Clear();
+        if (DspModel.SalePackages != null)
         {
-            foreach (var item in DspModel.Specifications)
+            foreach (var item in DspModel.SalePackages)
             {
-                Model.Specifications.Add(item);
+                Model.SalePackages.Add(item);
             }
         }
 
@@ -251,34 +301,32 @@
     async void OnAddRow_Handle()
     {
         //Init new row
-        var newRow = new SpecificationModel();
-        newRow.DspOrder = Get_MaxDspOrder();
-        newRow.RecNo = MyCodeGenerator.GenRecNo();
+        var newRow = new SalePackageModel();
         //
         var parameters = new DialogParameters();
         parameters.Add("Model", newRow);
         //
-        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.ShowEditorOptions()).Result;
+        var result = await DialogService.Show<SalePackageEdit>("", parameters, MyOptions.ShowEditorOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
-            var retModel = (SpecificationModel)result.Data;
+            var retModel = (SalePackageModel)result.Data;
 
             //Add to grid
-            DspModel.Specifications.Add(retModel);
+            DspModel.SalePackages.Add(retModel);
             grid.Refresh();
         }
     }
     //Update row
-    async void OnViewRow_Handle(SpecificationModel row)
+    async void OnViewRow_Handle(SalePackageModel row)
     {
         var parameters = new DialogParameters();
         parameters.Add("Model", row);
         //
-        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.ShowEditorOptions()).Result;
+        var result = await DialogService.Show<SalePackageEdit>("", parameters, MyOptions.ShowEditorOptions()).Result;
         if (!result.Cancelled && result.Data != null)
         {
-            var retModel = (SpecificationModel)result.Data;
-            var updateReccord = DspModel.Specifications.Find(x => x.RecNo == retModel.RecNo);
+            var retModel = (SalePackageModel)result.Data;
+            var updateReccord = DspModel.SalePackages.Find(x => x.PackageID == retModel.PackageID);
             if (updateReccord != null)
             {
                 //Update to Grid
@@ -289,19 +337,10 @@
     }
 
     //Delete row
-    void OnDeleteRow_Handle(SpecificationModel row)
+    void OnDeleteRow_Handle(SalePackageModel row)
     {
-        DspModel.Specifications.Remove(row);
+        DspModel.SalePackages.Remove(row);
         grid.Refresh();
-    }
-
-    private int Get_MaxDspOrder()
-    {
-        if (DspModel.Specifications != null && DspModel.Specifications.Count > 0)
-        {
-            return DspModel.Specifications.Max(x => x.DspOrder) + 1;
-        }
-        return 1;
     }
 
     void LoadProductLogo_Handle(List<UpLoadFileModel> files)
@@ -326,27 +365,27 @@
         }
     }
 
-    async void Show_BuyPolicy()
+    void FlashCard_Handle(List<UpLoadFileModel> files)
     {
-        var row = new SpecificationModel();
-        row.Title = "Chính sách mua bảo hiểm";
-        row.Content = DspModel.BuyPolicy;
-        var parameters = new DialogParameters();
-        parameters.Add("Model", row);
-        //
-        var result = await DialogService.Show<SpecificationEdit>("", parameters, MyOptions.ShowEditorOptions()).Result;
-        if (!result.Cancelled && result.Data != null)
+        if (files != null && files.Count > 0)
         {
-            var retModel = (SpecificationModel)result.Data;
-            DspModel.BuyPolicy = retModel.Content;
-            BuyPolicyDisplayText = "";
-            if (!string.IsNullOrWhiteSpace(DspModel.BuyPolicy))
-            {
-                BuyPolicyDisplayText = "Đã nhập";
-            }
+            DspModel.FlashCardID = files[0].ResourceID;
+            DspModel.FlashCardContent = files[0].FileContent;
             //
             this.StateHasChanged();
         }
     }
+
+    void SaleImage_Handle(List<UpLoadFileModel> files)
+    {
+        if (files != null && files.Count > 0)
+        {
+            DspModel.SaleImageID = files[0].ResourceID;
+            DspModel.SaleImageContent = files[0].FileContent;
+            //
+            this.StateHasChanged();
+        }
+    }
+
 
 }

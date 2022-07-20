@@ -1,0 +1,85 @@
+﻿@inherits LayoutComponentBase
+@inject NavigationManager Navigation
+@inject IJSRuntime JsRuntime;
+
+<MudThemeProvider />
+<MudDialogProvider />
+<MudSnackbarProvider />
+
+<MudLayout>
+    <!--Top App bar-->
+    <HeaderAppBar />
+
+    <!--Body content-->
+    <div class="mt-2">
+        <MudMainContent>
+            <CascadingValue Value="Program">
+                @Body
+            </CascadingValue>
+        </MudMainContent>
+    </div>
+
+    <!--Bottom App bar-->
+    <AuthorizeView>
+        <Authorized>
+            <MudAppBar id="bottomAppBar" Bottom="true" Fixed="true" Elevation="1" Dense="true" Class="justify-center" Style="@($"color:white; background:{Colors.Grey.Darken3};")">
+                <div class="d-flex align-center justify-center gap-4" style="width: 100%;column-gap:2rem">
+                    <!--Admin-->
+                    <MudMenu @ref="@adminMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+                        <ActivatorContent>
+                            <MudChip Icon="@Icons.Material.Filled.AdminPanelSettings" Color="Color.Error" Style="width: 120px;">Admin</MudChip>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudNavMenu Color="Color.Info">
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Settings" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("SettingMaster","Cài đặt hệ thống")))">Cài đặt hệ thống</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.List" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListHeader","Danh mục tùy chọn")))">Danh mục tùy chọn</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.FormatListBulleted" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("OptionListDetail","Chi tiết danh mục tùy chọn")))">Chi tiết danh mục tùy chọn</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.SupervisedUserCircle" OnClick="@(() => ShowProgram(adminMenu, new ProgramInfo("UserAccount","Tài khoản người dùng")))">Tài khoản người dùng</MudNavLink>
+                            </MudNavMenu>
+                        </ChildContent>
+                    </MudMenu>
+
+                    <!--Master-->
+                    <MudMenu @ref="@masterMenu" FullWidth="false" ActivationEvent="@MouseEvent.LeftClick" OffsetY>
+                        <ActivatorContent>
+                            <MudChip Icon="@Icons.Filled.DensityMedium" Color="Color.Warning" Style="width: 120px;">Master</MudChip>
+                        </ActivatorContent>
+                        <ChildContent>
+                            <MudNavMenu Color="Color.Info">
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.InsertChart" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("CarPriceList","Bảng giá bán TNDS ôtô")))">Bảng giá bán TNDS ôtô</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.Discount" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("DiscountCode","Danh sách code khuyến mãi")))">Danh sách code khuyến mãi</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.HealthAndSafety" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("ProductList","Danh sách sản phẩm")))">Danh sách sản phẩm</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.SupervisedUserCircle" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("MerchantSetting","Cài đặt đại lý")))">Cài đặt đại lý</MudNavLink>
+                                <MudNavLink IconColor="Color.Info" Icon="@Icons.Filled.LocationOn" OnClick="@(() => ShowProgram(masterMenu, new ProgramInfo("AddressMaster","Danh mục địa chỉ")))">Danh mục địa chỉ</MudNavLink>
+                            </MudNavMenu>
+                        </ChildContent>
+                    </MudMenu>
+                </div>
+            </MudAppBar>
+        </Authorized>
+    </AuthorizeView>
+
+</MudLayout>
+@code {
+    public ProgramInfo Program { get; set; } = new ProgramInfo("", "");
+    private MudMenu adminMenu;
+    private MudMenu masterMenu;
+    private MudMenu claimMenu;
+
+    bool _drawerOpen = false;
+
+    void DrawerToggle()
+    {
+        _drawerOpen = !_drawerOpen;
+    }
+
+    void ShowProgram(MudMenu menu, ProgramInfo program)
+    {
+        menu.CloseMenu();
+        WebUserCredential.Program = program;
+        Navigation.NavigateTo($"/{program.ProgramID}");
+    }
+
+
+}
+

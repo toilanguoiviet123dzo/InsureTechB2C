@@ -38,5 +38,14 @@ namespace CoreService
                         });
                     });
                 });
+
+        void Createsigned_Pdf()
+        {
+            string fileName = @"C:\Temp\TestSigned.pdf";
+            var Renderer = new IronPdf.ChromePdfRenderer();
+            Renderer.RenderHtmlAsPdf("<h1>Html with CSS and Images</h1>").SaveAs(fileName);
+
+            new IronPdf.Signing.PdfSignature(@"C:\Projects\Keys\insurTech.pfx", "123456").SignPdfFile(fileName);
+        }
     }
 }

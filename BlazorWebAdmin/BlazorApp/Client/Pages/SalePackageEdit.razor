@@ -1,0 +1,79 @@
+﻿@inject MasterService masterService;
+@inject ISnackbar Snackbar
+
+<MyPopupEdit Title="Nhập gói bán"
+             T="SalePackageModel"
+             Model="DspModel"
+             OnCancelClick="OnCancel"
+             OnSubmitClick="OnSubmit">
+    <MyComboBox @ref="@RefSalePackage" Literal="Gói bán" @bind-Value="SelectedSalePackage" Data="@SalePackageList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    <MudNumericField Style="color:blue" Class="mr-2" Label="Phí" @bind-Value="DspModel.UnitPrice" Min=0.0 Max=999999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
+    <MudNumericField Style="color:maroon" Class="mr-2" Label="Mức trách nhiệm" @bind-Value="DspModel.BenefitAmount" Min=0.0 Max=999999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
+    <MudTextField Label="Notes" @bind-Value="DspModel.Notes" />
+</MyPopupEdit>
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public SalePackageModel Model { get; set; }
+    //
+    SalePackageModel DspModel = new SalePackageModel();
+    //
+    // Master
+    private List<OptionListModel> SalePackageList = new List<OptionListModel>();
+    //Selected
+    OptionListModel SelectedSalePackage;
+    //Ref
+    MyComboBox<OptionListModel> RefSalePackage;
+    //
+    protected override void OnParametersSet()
+    {
+        base.OnParametersSet();
+        //Display data
+        ClassHelper.CopyPropertiesData(Model, DspModel);
+
+        //SelectedSalePackage
+        if (!string.IsNullOrWhiteSpace(DspModel.PackageID)) SelectedSalePackage = SalePackageList.Find(x => x.ItemCode == DspModel.PackageID);
+    }
+    //Cancel
+    private void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    //Submit
+    private void OnSubmit()
+    {
+        //Validate
+        if (RefSalePackage == null)
+        {
+            Snackbar.Add("Chưa nhập gói bán", Severity.Error);
+            RefSalePackage.Focus();
+            return;
+        }
+        //SelectedSalePackage
+        if (SelectedSalePackage != null)
+        {
+            DspModel.PackageID = SelectedSalePackage.ItemCode;
+            DspModel.PackageName = SelectedSalePackage.ItemName;
+        }
+
+        ClassHelper.CopyPropertiesData(DspModel, Model);
+
+        //Return changed
+        MudDialog.Close(DialogResult.Ok(Model));
+    }
+
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Load master
+        await LoadMaster();
+
+    }
+
+    async Task LoadMaster()
+    {
+        SalePackageList = await masterService.Load_OptionList("007");
+    }
+
+}

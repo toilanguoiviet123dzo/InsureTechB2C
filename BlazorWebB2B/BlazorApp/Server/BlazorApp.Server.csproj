@@ -27,10 +27,10 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Grpc.AspNetCore" Version="2.41.0" />
-    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.41.0" />
-    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.1" />
-    <PackageReference Include="MongoDB.Entities" Version="20.26.1" />
+    <PackageReference Include="Grpc.AspNetCore" Version="2.47.0" />
+    <PackageReference Include="Grpc.AspNetCore.Web" Version="2.47.0" />
+    <PackageReference Include="Microsoft.AspNetCore.Components.WebAssembly.Server" Version="6.0.7" />
+    <PackageReference Include="MongoDB.Entities" Version="20.26.4" />
     <PackageReference Include="System.Data.OleDb" Version="6.0.0" />
     <PackageReference Include="WebPush" Version="1.0.12" />
   </ItemGroup>
