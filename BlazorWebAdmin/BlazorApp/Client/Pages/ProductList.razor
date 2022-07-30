@@ -38,7 +38,7 @@
         <MudTd>@context.ProductName</MudTd>
         <MudTd>@context.VendorName</MudTd>
         <MudTd Style="text-align:end">@context.TaxRate.ToString("P0")</MudTd>
-        <MudTd ><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true" Class="m-auto"></MudCheckBox></MudTd>
+        <MudTd><MudCheckBox Checked="@context.IsIncludeVAT" Color="Color.Secondary" ReadOnly="true" Class="m-auto"></MudCheckBox></MudTd>
         <MudTd Style="text-align:center;">@context.ModifiedOn.ToString("dd/MM/yyyy HH:mm")</MudTd>
     </RowTemplate>
 </MyDataGrid>
@@ -91,9 +91,20 @@
                         foreach (var item in record.Specifications)
                         {
                             var specItem = new SpecificationModel();
-                            ClassHelper.CopyPropertiesData(item,specItem);
+                            ClassHelper.CopyPropertiesData(item, specItem);
                             //
                             dataRow.Specifications.Add(specItem);
+                        }
+                    }
+                    //SalePackages
+                    if (record.SalePackages != null)
+                    {
+                        foreach (var item in record.SalePackages)
+                        {
+                            var subItem = new SalePackageModel();
+                            ClassHelper.CopyPropertiesData(item, subItem);
+                            //
+                            dataRow.SalePackages.Add(subItem);
                         }
                     }
                     //
@@ -139,6 +150,17 @@
                     ClassHelper.CopyPropertiesDataDateConverted(item, grpcItem);
                     //
                     request.Record.Specifications.Add(grpcItem);
+                }
+            }
+            //SalePackages
+            if (saveRow.SalePackages != null)
+            {
+                foreach (var item in saveRow.SalePackages)
+                {
+                    var subItem = new grpcSalePackageModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(item, subItem);
+                    //
+                    request.Record.SalePackages.Add(subItem);
                 }
             }
 

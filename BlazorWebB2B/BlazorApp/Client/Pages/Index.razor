@@ -17,20 +17,12 @@
     [Parameter] public string DiscountCode { get; set; } = "";
 
     //
-    string Tab1Text = "&nbsp;&nbsp;Mua bảo hiểm&nbsp;&nbsp;";
-    string Tab2Text = "Giấy chứng nhận&nbsp;";
     protected override async Task OnInitializedAsync()
     {
         await base.OnInitializedAsync();
 
         // Get browser info
         await Get_BrowserInfo();
-
-        if (BrowserInfo.IsMobile)
-        {
-            Tab1Text = "Mua bảo hiểm";
-            Tab2Text = "Chứng nhận";
-        }
 
         if (!string.IsNullOrWhiteSpace(ProductID))
         {

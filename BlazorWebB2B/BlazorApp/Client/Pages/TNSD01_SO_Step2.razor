@@ -244,6 +244,9 @@
                     ApiKey = WebUserCredential.ApiKey
                 };
             request.Credential = Credential;
+            //Account
+            Model.AccountID = WebUserCredential.Username;
+            Model.MerchantID = WebUserCredential.MerchantID;
             // Convert to DB row
             request.Record = new grpcSaleOrderModel();
             ClassHelper.CopyPropertiesDataDateConverted(Model, request.Record);

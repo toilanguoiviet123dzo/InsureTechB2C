@@ -1,4 +1,4 @@
-using BlazorApp.Server.Common;
+using Server.Common;
 using MongoDB.Driver;
 using MongoDB.Entities;
 using PaymentWeb.Services;
@@ -20,6 +20,12 @@ builder.WebHost.ConfigureKestrel(options =>
 
 // AddRazorPages
 builder.Services.AddRazorPages();
+//builder.Services.AddRazorPages(options =>
+//{
+//    options.Conventions.AddPageRoute("/DonateOrder", "/DonateOrder/{InitOrderToken}/{TransactionID}");
+//    options.Conventions.AddPageRoute("/CashPayment", "/CashPayment/{InitOrderToken}/{TransactionID}");
+//});
+
 
 //Api
 builder.Services.AddControllers();
@@ -51,6 +57,7 @@ builder.Services.AddSingleton<eBaoService>();
 builder.Services.AddSingleton<BHVService>();
 builder.Services.AddSingleton<VnPayService>();
 builder.Services.AddSingleton<PaymentService>();
+builder.Services.AddSingleton<ReportService>();
 
 //Mongle DB
 bool IsTaskDone = false;

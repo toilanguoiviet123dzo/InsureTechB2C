@@ -8,7 +8,7 @@ namespace BlazorApp.Client.Common
 {
     public static class MyOptions
     {
-        public static DialogOptions ShowAppbarOptions(MaxWidth size = MaxWidth.Small)
+        public static DialogOptions ShowAppbarOptions(MaxWidth size = MaxWidth.ExtraExtraLarge)
         {
             var options = new DialogOptions()
             {
@@ -16,6 +16,20 @@ namespace BlazorApp.Client.Common
                 Position = DialogPosition.Center,
                 CloseOnEscapeKey = false,
                 DisableBackdropClick = true,
+                CloseButton = false,
+                FullWidth = false
+            };
+            return options;
+        }
+
+        public static DialogOptions ShowImageOptions(MaxWidth size = MaxWidth.ExtraExtraLarge)
+        {
+            var options = new DialogOptions()
+            {
+                MaxWidth = size,
+                Position = DialogPosition.Center,
+                CloseOnEscapeKey = true,
+                DisableBackdropClick = false,
                 CloseButton = false,
                 FullWidth = false
             };
@@ -45,20 +59,6 @@ namespace BlazorApp.Client.Common
                 CloseOnEscapeKey = true,
                 DisableBackdropClick = true,
                 CloseButton = false,
-                FullWidth = false
-            };
-            return options;
-        }
-
-        public static DialogOptions ShowImageOptions(MaxWidth size = MaxWidth.Large)
-        {
-            var options = new DialogOptions()
-            {
-                MaxWidth = size,
-                Position = DialogPosition.Center,
-                CloseOnEscapeKey = true,
-                DisableBackdropClick = false,
-                CloseButton = true,
                 FullWidth = false
             };
             return options;

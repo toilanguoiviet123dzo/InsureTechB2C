@@ -343,6 +343,80 @@ namespace BlazorApp.Client.Services
             return retThumbnail;
         }
 
+        //GetImage
+        private List<ResourceModel> ImageList = new List<ResourceModel>();
+        public async Task<byte[]> GetImage(string resourceID)
+        {
+            byte[] retImage = new byte[0];
+            if (string.IsNullOrWhiteSpace(resourceID)) return retImage;
+            //
+            try
+            {
+                //From cached
+                var cacheItem = ImageList.Find(x => x.ResourceID == resourceID);
+                if (cacheItem != null) return cacheItem.Content;
+
+                //Load image from DB
+                var request = new Resource.Services.GetResourceFile_Request();
+                var Credential = new Resource.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+                request.Credential = Credential;
+                //ClaimNo
+                request.ResourceID = resourceID;
+                request.IsGetFull = true;
+                //Call api
+                var response = await _resourceServicesClient.GetResourceFileAsync(request);
+                // Success
+                if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                {
+                    retImage = response.Record.FileContent.ToByteArray();
+                }
+            }
+            catch { }
+            //
+            return retImage;
+        }
+
+        private byte[] BlankImage = new byte[0];
+        public async Task<byte[]> GetBlankImage()
+        {
+            //from cached
+            if (BlankImage.Length > 0) return BlankImage;
+            //
+            try
+            {
+                //Load image from DB
+                var resourceID = "220721143130689560";
+                var request = new Resource.Services.GetResourceFile_Request();
+                var Credential = new Resource.Services.UserCredential()
+                {
+                    Username = WebUserCredential.Username,
+                    RoleID = WebUserCredential.RoleID,
+                    AccessToken = WebUserCredential.AccessToken,
+                    ApiKey = WebUserCredential.ApiKey
+                };
+                request.Credential = Credential;
+                //ClaimNo
+                request.ResourceID = resourceID;
+                request.IsGetThumbnail = true;
+                //Call api
+                var response = await _resourceServicesClient.GetResourceFileAsync(request);
+                // Success
+                if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+                {
+                    BlankImage = response.Record.Thumbnail.ToByteArray();
+                }
+            }
+            catch { }
+            //
+            return BlankImage;
+        }
+
         public async Task<DiscountCodeModel> CheckDiscountCode(string discountCode)
         {
             DiscountCodeModel RetModel = null;
@@ -433,4 +507,10 @@ public class ThumbnailModel
 {
     public string ResourceID { get; set; }
     public byte[] Thumbnail { get; set; }
+}
+
+public class ResourceModel
+{
+    public string ResourceID { get; set; }
+    public byte[] Content { get; set; }
 }

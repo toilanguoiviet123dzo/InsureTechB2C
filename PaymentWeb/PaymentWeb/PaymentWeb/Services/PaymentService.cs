@@ -6,8 +6,9 @@ using MongoDB.Driver;
 using MongoDB.Entities;
 using Cores.Utilities;
 using Cores.Helpers;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
+using Database.Models;
+using Common.Services;
 
 namespace PaymentWeb.Services
 {
@@ -280,6 +281,10 @@ namespace PaymentWeb.Services
             ret.ReturnCode = ReturnCode.OK;
             try
             {
+                //DateTime
+                order.OrderDate = DateTime.UtcNow;
+                order.PolicyDate = DateTime.UtcNow;
+
                 //BMI
                 if (order.VendorID == MyConstant.Vendor_BMI)
                 {
@@ -300,6 +305,12 @@ namespace PaymentWeb.Services
                     if (order.ProductID == MyConstant.Product_AutoBHV)
                     {
                         ret = await _bhvService.Create_AutoTNDS(order);
+                    }
+
+                    //TNDS auto
+                    if (order.ProductID == MyConstant.Product_FlashCare)
+                    {
+                        ret = await _bhvService.Create_FlashCare(order);
                     }
                 }
             }

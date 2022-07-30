@@ -52,6 +52,7 @@ namespace Server.Common
         public const string Product_MotorBHV = "TNDS_HV";
         public const string Product_AutoBMI = "TNDS_BM02";
         public const string Product_AutoBHV = "TNDS_HV02";
+        public const string Product_FlashCare = "FLASHCARE";
 
 
     }// end class

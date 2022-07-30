@@ -1,5 +1,5 @@
-﻿using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+﻿using Server.Common;
+using Database.Models;
 using MongoDB.Entities;
 
 namespace PaymentWeb.Services

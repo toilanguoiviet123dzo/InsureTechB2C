@@ -23,8 +23,9 @@
 }
 
 .page-container {
+    background-color: #f2f4f6;
     margin-bottom: 1rem;
-    max-width: 1200px;
+    max-width: 1300px;
     margin-left: auto;
     margin-right: auto;
     overflow: scroll;

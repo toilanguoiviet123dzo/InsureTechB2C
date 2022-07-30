@@ -3,7 +3,7 @@
         padding: 0px 24px !important;
     }
 </style>
-<div style="@(@$"max-height:calc(100vh - {bottomMargin}); margin-bottom:{bottomMargin}; min-width: {Width}")" class="hidescroll">
+<div style="@($"max-height:calc(100vh - 48px); width:{@Width}; margin-bottom:48px;")" class="hidescroll">
     <!--Appbar-->
     <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
         @if (ShowBackButton)
@@ -43,7 +43,7 @@
     [Parameter] public bool ShowBottomAppBar { get; set; } = true;
     [Parameter] public string Class { get; set; } = "";
     [Parameter] public string Style { get; set; } = "";
-    [Parameter] public string Width { get; set; } = "100%";
+    [Parameter] public string Width { get; set; } = MyFormSize.Small;
 
     //
     string bottomMargin = "48px";

@@ -1,0 +1,51 @@
+﻿@inject MasterService masterService;
+
+
+<div style="max-width:100vw; max-height:100vh; overflow:scroll">
+    <MudAppBar Color="Color.Primary" Fixed="false" Elevation="1" Dense="true">
+        <MudIconButton Style="color:white" Icon="@BackIcon" aria-label="back" @onclick="OnCancel"></MudIconButton>
+        <h5 class="m-auto">@Title</h5>
+        <MudSpacer />
+        <MudIconButton Style="color:red" Icon="@Icons.Material.Filled.Close" aria-label="back" @onclick="OnCancel"></MudIconButton>
+    </MudAppBar>
+
+    <div style="@($"overflow:scroll;{Style}")">
+        <!--Content-->
+        <MudImage ObjectFit="@ImageFit" Src="@("data:image/png;base64," + Convert.ToBase64String(Image))" Alt=@Alt Elevation=@Elevation Class=@Class />
+
+    </div>
+</div>
+
+
+
+@code {
+    [CascadingParameter] MudDialogInstance MudDialog { get; set; }
+    [Parameter] public string Title { get; set; } = "Image view";
+    [Parameter] public string Style { get; set; } = "";
+    [Parameter] public string Class { get; set; } = "rounded-lg";
+    [Parameter] public ObjectFit ImageFit { get; set; } = ObjectFit.Contain;
+    [Parameter] public byte[] Image { get; set; } = new byte[0];
+    [Parameter] public string Alt { get; set; } = "";
+    [Parameter] public int Elevation { get; set; } = 25;
+    [Parameter] public bool Rounded { get; set; } = true;
+    //Cancel
+    private async void OnCancel()
+    {
+        MudDialog.Cancel();
+    }
+    public string BackIcon { get; set; } = Icons.Material.Filled.ArrowBackIosNew;
+
+    //Ref
+    protected override async void OnParametersSet()
+    {
+        base.OnParametersSet();
+
+        //Set blank image
+        if (Image.Length == 0)
+        {
+            Image = await masterService.GetBlankImage();
+        }
+
+    }
+
+}

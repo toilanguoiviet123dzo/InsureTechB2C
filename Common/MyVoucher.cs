@@ -1,18 +1,19 @@
 ﻿using System;
 using System.Threading.Tasks;
-using BlazorApp.Server.Models;
+using Database.Models;
 using Cores.Utilities;
 using MongoDB.Entities;
+using Server.Common;
 
-namespace BlazorApp.Server.Common
+namespace Server.Common
 {
     public static class MyVoucher
     {
-        public async static Task<string> GetVoucherNo(string voucherCode)
+        public async static Task<string> GetVoucherNo(string voucherCode, bool needCommit = false)
         {
             //Default Voucher No
             string currentYear = DateTime.Now.ToString("yy");
-            string newVoucherNo = currentYear + "000001";
+            string newVoucherNo = currentYear + "0000001";
             //
             try
             {
@@ -27,7 +28,7 @@ namespace BlazorApp.Server.Common
                     if (!String.IsNullOrWhiteSpace(findRecords.CurrentVoucherNo) && currentYear == findRecords.CurrentVoucherNo.Left(2))
                     {
                         var nextSeq = findRecords.CurrentVoucherNo.Right(6).ToInt() + 1;
-                        newVoucherNo = currentYear + nextSeq.ToString("000000");
+                        newVoucherNo = currentYear + nextSeq.ToString("0000000");
                     }
                 }
                 else
@@ -35,9 +36,9 @@ namespace BlazorApp.Server.Common
                     //Add new master record
                     var newRecord = new mdVoucherMaster();
                     newRecord.VoucherCode = voucherCode;
-                    newRecord.CurrentVoucherNo = currentYear + "000000"; ;
-                    newRecord.MinVoucherNo = "00000000";
-                    newRecord.MaxVoucherNo = "99999999";
+                    newRecord.CurrentVoucherNo = currentYear + "0000000"; ;
+                    newRecord.MinVoucherNo = "000000000";
+                    newRecord.MaxVoucherNo = "999999999";
                     newRecord.ModifiedOn = DateTime.UtcNow;
                     newRecord.UpdMode = 1;
                     //
@@ -48,6 +49,11 @@ namespace BlazorApp.Server.Common
             {
                 newVoucherNo = "";
                 MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "Get_VoucherNo", "Exception", "Exception", 500, ex.Message);
+            }
+            //needCommit
+            if (needCommit)
+            {
+                newVoucherNo = await CommitVoucherNo(voucherCode, newVoucherNo);
             }
             //
             return newVoucherNo;
@@ -66,8 +72,6 @@ namespace BlazorApp.Server.Common
                 //Gen new VoucherNo
                 if (findRecords != null)
                 {
-                    var getNewVoucherRequest = new Admin.Services.String_Request();
-                    getNewVoucherRequest.StringValue = voucherCode;
                     var newVoucherNo = await GetVoucherNo(voucherCode);
                     if (!string.IsNullOrWhiteSpace(newVoucherNo))
                     {

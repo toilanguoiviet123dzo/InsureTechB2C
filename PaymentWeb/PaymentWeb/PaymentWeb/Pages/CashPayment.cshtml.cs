@@ -1,15 +1,15 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PaymentWeb.Services;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
+using Database.Models;
 
 namespace PaymentWeb.Pages
 {
-    public class CashPayment : PageModel
+    public class CashPaymentModel : PageModel
     {
         private readonly PaymentService _paymentService;
-        public CashPayment(PaymentService paymentService)
+        public CashPaymentModel(PaymentService paymentService)
         {
             _paymentService = paymentService;
         }
@@ -31,7 +31,11 @@ namespace PaymentWeb.Pages
         {
             try
             {
-                var ret = await _paymentService.DonateOrder(InitOrderToken, TransactionID);
+                //Get base Url
+                MyData.BaseUrl = @$"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
+
+                //Finish
+                var ret = await _paymentService.CashPayment(InitOrderToken, TransactionID);
                 //
                 ReturnCode = ret.ReturnCode;
                 ErrorMessage = ret.ErrorMessage;

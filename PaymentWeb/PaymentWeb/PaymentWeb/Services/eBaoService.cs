@@ -1,8 +1,10 @@
 ﻿using Cores.Utilities;
 using Cores.Helpers;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
 using MongoDB.Entities;
+using Server.Common;
+using Database.Models;
+using Common.Services;
 
 namespace PaymentWeb.Services
 {

@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PaymentWeb.Services;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
+using Database.Models;
 
 namespace PaymentWeb.Pages
 {

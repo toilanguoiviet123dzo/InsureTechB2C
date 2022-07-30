@@ -5,7 +5,7 @@ using System.Text.Json;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 
-namespace BlazorApp.Server.Common
+namespace Server.Common
 {
     public static class MyData
     {

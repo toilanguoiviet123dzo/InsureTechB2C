@@ -7,6 +7,7 @@
              OnCancelClick="OnCancel"
              OnSubmitClick="OnSubmit">
     <MyComboBox @ref="@RefSalePackage" Literal="Gói bán" @bind-Value="SelectedSalePackage" Data="@SalePackageList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+    <MyComboBox @ref="@RefTarget" Literal="Đối tượng" @bind-Value="SelectedTarget" Data="@TargetList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
     <MudNumericField Style="color:blue" Class="mr-2" Label="Phí" @bind-Value="DspModel.UnitPrice" Min=0.0 Max=999999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
     <MudNumericField Style="color:maroon" Class="mr-2" Label="Mức trách nhiệm" @bind-Value="DspModel.BenefitAmount" Min=0.0 Max=999999999.0 For="@(() => DspModel.UnitPrice)" HideSpinButtons="true" Format="N0" T="double" />
     <MudTextField Label="Notes" @bind-Value="DspModel.Notes" />
@@ -20,10 +21,13 @@
     //
     // Master
     private List<OptionListModel> SalePackageList = new List<OptionListModel>();
+    private List<OptionListModel> TargetList = new List<OptionListModel>();
     //Selected
     OptionListModel SelectedSalePackage;
+    OptionListModel SelectedTarget;
     //Ref
     MyComboBox<OptionListModel> RefSalePackage;
+    MyComboBox<OptionListModel> RefTarget;
     //
     protected override void OnParametersSet()
     {
@@ -33,6 +37,9 @@
 
         //SelectedSalePackage
         if (!string.IsNullOrWhiteSpace(DspModel.PackageID)) SelectedSalePackage = SalePackageList.Find(x => x.ItemCode == DspModel.PackageID);
+
+        //SelectedTarget
+        if (!string.IsNullOrWhiteSpace(DspModel.TargetID)) SelectedTarget = TargetList.Find(x => x.ItemCode == DspModel.TargetID);
     }
     //Cancel
     private void OnCancel()
@@ -49,11 +56,24 @@
             RefSalePackage.Focus();
             return;
         }
+        //Validate
+        if (RefSalePackage == null)
+        {
+            Snackbar.Add("Chưa nhập đối tượng", Severity.Error);
+            RefTarget.Focus();
+            return;
+        }
         //SelectedSalePackage
         if (SelectedSalePackage != null)
         {
             DspModel.PackageID = SelectedSalePackage.ItemCode;
             DspModel.PackageName = SelectedSalePackage.ItemName;
+        }
+        //SelectedTarget
+        if (SelectedTarget != null)
+        {
+            DspModel.TargetID = SelectedTarget.ItemCode;
+            DspModel.TargetName = SelectedTarget.ItemName;
         }
 
         ClassHelper.CopyPropertiesData(DspModel, Model);
@@ -74,6 +94,7 @@
     async Task LoadMaster()
     {
         SalePackageList = await masterService.Load_OptionList("007");
+        TargetList = await masterService.Load_OptionList("008");
     }
 
 }

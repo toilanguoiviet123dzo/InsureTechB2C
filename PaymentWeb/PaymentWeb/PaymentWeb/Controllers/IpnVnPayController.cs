@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using MongoDB.Entities;
-using BlazorApp.Server.Models;
-using BlazorApp.Server.Common;
+using Database.Models;
+using Server.Common;
 using PaymentWeb.Services;
 using Cores.Utilities;
 

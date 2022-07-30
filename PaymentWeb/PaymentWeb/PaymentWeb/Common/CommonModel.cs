@@ -1,5 +1,5 @@
 ﻿
-namespace BlazorApp.Server.Common
+namespace Server.Common
 {
     public class CallApiReturn
     {

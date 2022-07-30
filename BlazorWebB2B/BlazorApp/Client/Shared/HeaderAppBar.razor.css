@@ -1,7 +1,9 @@
 ﻿.wrapper {
-    max-width: 1300px;
+    background-color: white;
+    max-width: 1500px;
     width: 100%;
     margin: auto;
+    margin-bottom: 10px;
 }
 
 .header {
@@ -50,6 +52,7 @@
 }
 
 .header-title {
+    text-align:center;
     font-size: 1.5rem;
     color: #a6754b;
 }

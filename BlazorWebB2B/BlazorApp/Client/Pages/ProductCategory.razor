@@ -31,32 +31,6 @@
                     </div>
                 </div>
             </div>
-            <!--Suc khoe-->
-            <div class="category-item">
-                <div class="category-item-image">
-                    <a href="">
-                        <img src="images/health.png" alt="Bảo hiểm sức khỏe">
-                    </a>
-                </div>
-                <div class="category-item-content">
-                    <div class="category-name">
-                        <a href="">Bảo hiểm sức khỏe</a>
-                    </div>
-                </div>
-            </div>
-            <!--Bao hiem tai nan-->
-            <div class="category-item">
-                <div class="category-item-image">
-                    <a href="">
-                        <img src="images/works.png" alt="Bảo hiểm tai nạn">
-                    </a>
-                </div>
-                <div class="category-item-content">
-                    <div class="category-name">
-                        <a href="">Bảo hiểm tai nạn 24/7</a>
-                    </div>
-                </div>
-            </div>
             <!--Bao hiem chay no-->
             <div class="category-item">
                 <div class="category-item-image">
@@ -70,6 +44,17 @@
                     </div>
                 </div>
             </div>
+            <!--Suc khoe-->
+            <div class="category-item" @onclick="Show_FlashCare">
+                <div class="category-item-image">
+                    <img src="images/health.png" alt="Flash Care">
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        BH sức khỏe Flash Care
+                    </div>
+                </div>
+            </div>
             <!--Bao hiem hoc sinh-->
             <div class="category-item">
                 <div class="category-item-image">
@@ -80,6 +65,19 @@
                 <div class="category-item-content">
                     <div class="category-name">
                         <a href="">Bảo hiểm học sinh</a>
+                    </div>
+                </div>
+            </div>
+            <!--Bao hiem tai nan-->
+            <div class="category-item">
+                <div class="category-item-image">
+                    <a href="">
+                        <img src="images/works.png" alt="Bảo hiểm tai nạn">
+                    </a>
+                </div>
+                <div class="category-item-content">
+                    <div class="category-name">
+                        <a href="">Bảo hiểm tai nạn 24/7</a>
                     </div>
                 </div>
             </div>
@@ -112,6 +110,13 @@
         var parameters = new DialogParameters();
         //
         var result = await DialogService.Show<TNSD_Auto_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
+    }
+
+    async void Show_FlashCare()
+    {
+        var parameters = new DialogParameters();
+        //
+        var result = await DialogService.Show<FlashCare_SO_Step1>("", parameters, MyOptions.ShowAppbarOptions()).Result;
     }
 
 

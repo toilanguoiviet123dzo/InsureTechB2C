@@ -1,0 +1,207 @@
+﻿@page "/SaleResult"
+@using Insure.Services
+@using System.Collections.ObjectModel;
+@inject grpcInsureService.grpcInsureServiceClient insureServiceClient;
+@inject MasterService masterService;
+@inject IJSRuntime JsRuntime;
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MyPanels>
+    <MyPanel Title="Nhập điều kiện tìm kiếm">
+        <div class="row align-end">
+            <!--Thời gian-->
+            <div class="col-12 col-lg-6">
+                <div class="row">
+                    <!--Time flag-->
+                    <div class="col-12 col-lg-4">
+                        <MyComboBox @bind-Value="Filter_TimeFlag"
+                                    Data="TimeFlagList"
+                                    TextFieldName="@(nameof(CodeNameModel.Name))"
+                                    TextChanged="@((string text) =>
+                                                       {
+                                                            var timeRange = MyDateTimeSelector.Select_DateTimeRange1(Filter_TimeFlag);
+                                                            Filter_StartDate = timeRange.StartDate;
+                                                            Filter_EndDate = timeRange.EndDate;
+                                                            this.StateHasChanged();
+                                                       })"
+                                    Clearable="true"
+                                    Literal="Thời gian" />
+                    </div>
+                    <!--Start-->
+                    <div class="col-6 col-lg-4">
+                        <MyDateEdit @bind-Date="Filter_StartDate"
+                                    Format="dd/MM/yyyy"
+                                    Width="100%"
+                                    Literal="Từ ngày" />
+                    </div>
+                    <!--End-->
+                    <div class="col-6 col-lg-4">
+                        <MyDateEdit @bind-Date="Filter_EndDate"
+                                    Format="dd/MM/yyyy"
+                                    Width="100%"
+                                    Literal="Đến ngày" />
+                    </div>
+                </div>
+            </div>
+            <!--Search buttion-->
+            <div class="col-12 col-lg-3">
+                <MyButtonSearch OnClick="@(() => DisplayMain())" />
+            </div>
+        </div>
+    </MyPanel>
+</MyPanels>
+
+<MyDataGrid @ref="@grid"
+            T="SaleOrderModel"
+            ShowSearchBox=false
+            Title="Doanh số bán hàng"
+            Items="@DetailData">
+    <ColGroup>
+        <col style="width: 8rem;" />
+        <col style="width: 12rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 4rem;" />
+        <col style="width: 8rem;" />
+        <col style="width: 4rem;" />
+        <col style="width: 10rem;" />
+        <col style="width: 10rem;" />
+        <col />
+    </ColGroup>
+    <HeaderContent>
+        <MudTh><MudTableSortLabel InitialDirection="SortDirection.Descending" SortBy="new Func<SaleOrderModel, object>(x => x.OrderDate)">Ngày</MudTableSortLabel></MudTh>
+        <MudTh>Sản phẩm</MudTh>
+        <MudTh>Số tiền</MudTh>
+        <MudTh>%CK</MudTh>
+        <MudTh>Tiền CK</MudTh>
+        <MudTh>Chi trả CK</MudTh>
+        <MudTh>Khách hàng</MudTh>
+        <MudTh>Saler</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd Style="text-align:center;">@context.OrderDate.ToString("dd/MM/yyyy")</MudTd>
+        <MudTd>@context.ProductName</MudTd>
+        <MudTd Style="color:blue; text-align:right;font-weight:600">@context.PaymentAmount.ToString("N0")</MudTd>
+        <MudTd Style="color:maroon; text-align:right;font-weight:600">@context.BonusRate %</MudTd>
+        <MudTd Style="color:maroon; text-align:right;font-weight:600">@context.BonusAmount.ToString("N0")</MudTd>
+        <MudCheckBox @bind-Checked=@context.IsPayBonus ReadOnly=true></MudCheckBox>
+        <MudTd>@context.CusFullname</MudTd>
+        <MudTd>@context.AccountID</MudTd>
+    </RowTemplate>
+</MyDataGrid>
+
+<div class="mt-2" style="overflow-y:hidden;">
+    <div class="row">
+        <div class="col-6 col-lg-2">
+            <MudText Typo="Typo.subtitle1">Doanh thu</MudText>
+        </div>
+        <div class="col-6 col-lg-2" style="color:blue; text-align:right;font-weight:600">
+            @TotalAmount.ToString("N0")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 col-lg-2">
+            <MudText Typo="Typo.subtitle1">Tiền chiết khấu</MudText>
+        </div>
+        <div class="col-6 col-lg-2" style="color:maroon; text-align:right;font-weight:600">
+            @TotalBonusAmount.ToString("N0")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 col-lg-2">
+            <MudText Typo="Typo.subtitle1">Đã chi trả</MudText>
+        </div>
+        <div class="col-6 col-lg-2" style="color:green; text-align:right;font-weight:600">
+            @TotalPayAmount.ToString("N0")
+        </div>
+    </div>
+    <div class="row">
+        <div class="col-6 col-lg-2">
+            <MudText Typo="Typo.subtitle1">Còn lại</MudText>
+        </div>
+        <div class="col-6 col-lg-2" style="color:purple; text-align:right;font-weight:600">
+            @TotalRemainAmount.ToString("N0")
+        </div>
+    </div>
+</div>
+
+
+@code {
+    [CascadingParameter] protected ProgramInfo Program { get; set; }
+    // Detail data
+    MyDataGrid<SaleOrderModel> grid;
+    readonly List<SaleOrderModel> DetailData = new List<SaleOrderModel>();
+    //TimeFlag
+    private List<CodeNameModel> TimeFlagList = MyDateTimeSelector.Get_TimeRangeList();
+    private CodeNameModel Filter_TimeFlag { get; set; }
+    private DateTime Filter_StartDate { get; set; } = DateTime.Today.MinDate().ToLocalTime();
+    private DateTime Filter_EndDate { get; set; } = DateTime.Today.MaxDate().ToLocalTime();
+    //
+    double TotalAmount = 0;
+    double TotalBonusAmount = 0;
+    double TotalPayAmount = 0;
+    double TotalRemainAmount = 0;
+    //
+    protected override async Task OnInitializedAsync()
+    {
+        await base.OnInitializedAsync();
+
+        //Display data ..
+
+    }
+    #region Load data
+
+    async Task DisplayMain()
+    {
+        try
+        {
+            //Cached to UserData
+
+            //Filter
+            var request = new GetSaleResult_Request();
+            request.Credential = new UserCredential()
+            {
+                Username = WebUserCredential.Username,
+                RoleID = WebUserCredential.RoleID,
+                AccessToken = WebUserCredential.AccessToken,
+                ApiKey = WebUserCredential.ApiKey
+            };
+            //Merchant
+            request.MerchantID = WebUserCredential.MerchantID;
+            //Time range
+            request.StartDate = Filter_StartDate.ToTimestampFromLocalTime();
+            request.EndDate = Filter_EndDate.ToTimestampFromLocalTime();
+            //Get data from DB
+            DetailData.Clear();
+            var response = await insureServiceClient.GetSaleResultAsync(request);
+            if (response != null && response.ReturnCode == GrpcReturnCode.OK)
+            {
+                foreach (var record in response.Records)
+                {
+                    SaleOrderModel dataRow = new SaleOrderModel();
+                    ClassHelper.CopyPropertiesDataDateConverted(record, dataRow);
+                    //
+                    DetailData.Add(dataRow);
+
+                    //Sum
+                    TotalAmount += dataRow.PaymentAmount;
+                    TotalBonusAmount += dataRow.BonusAmount;
+                    if (dataRow.IsPayBonus)
+                    {
+                        TotalPayAmount += dataRow.BonusAmount;
+                    }
+                }
+                TotalRemainAmount = TotalBonusAmount - TotalPayAmount;
+            }
+            //Not found
+            if (DetailData.Count == 0) Snackbar.Add(MyMessage.Warning_NoData, Severity.Warning);
+        }
+        catch
+        {
+            Snackbar.Add(MyMessage.Error_LoadDataFailed, Severity.Error);
+        }
+    }
+
+    #endregion
+    //
+}

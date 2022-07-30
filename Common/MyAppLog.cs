@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Database.Models;
 using MongoDB.Entities;
 
-namespace BlazorApp.Server.Common
+namespace Server.Common
 {
     public static class MyAppLog
     {

@@ -8,9 +8,11 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Configuration;
 using MongoDB.Driver;
 using MongoDB.Entities;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
 using Cores.Helpers;
+using Server.Common;
+using Common.Services;
+using Database.Models;
 
 namespace PaymentWeb.Services
 {

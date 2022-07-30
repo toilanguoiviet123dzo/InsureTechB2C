@@ -195,7 +195,7 @@ namespace BlazorApp.Server.Services
                 var record = await DB.Find<mdSaleOrderLog>()
                                      .Match(x => request.EffectiveSttDate.ToDateTime() < x.EffectiveEndDate)
                                      .Match(x => request.ProductID == x.ProductID)
-                                     .Match(x => request.LicensePlate == x.LicensePlate)
+                                     .Match(x => request.HolderID == x.HolderID)
                                      .ExecuteFirstAsync();
                 if (record != null)
                 {
@@ -235,8 +235,10 @@ namespace BlazorApp.Server.Services
                 saveRecord.ID = saveRecord.GenerateNewID();
                 saveRecord.TransactionID = MyCodeGenerator.GenTransactionID();
                 //Time
+                saveRecord.OrderDate = DateTime.UtcNow;
+                saveRecord.PolicyDate = DateTime.UtcNow;
                 saveRecord.RequestTime = DateTime.UtcNow;
-                saveRecord.ModifiedOn = DateTime.Now;
+                saveRecord.ModifiedOn = DateTime.UtcNow;
                 saveRecord.UpdMode = 1;
 
                 //RequestTime, ExpiredTime
@@ -333,7 +335,7 @@ namespace BlazorApp.Server.Services
                 query.Match(x => x.MerchantID == request.MerchantID);
 
                 //CusPhone
-                if (string.IsNullOrWhiteSpace(request.CusPhone)) query.Match(x => x.CusPhone == request.CusPhone);
+                if (!string.IsNullOrWhiteSpace(request.CusPhone)) query.Match(x => x.CusPhone == request.CusPhone);
                 //
                 var records = await query.ExecuteAsync();
                 if (records != null)
@@ -522,7 +524,86 @@ namespace BlazorApp.Server.Services
             return await Task.FromResult(response);
         }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // GetFlashCarePrice
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.GetFlashCarePrice_Response> GetFlashCarePrice(GetFlashCarePrice_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.GetFlashCarePrice_Response();
+            response.ReturnCode = GrpcReturnCode.Error_201;
+            try
+            {
+                var record = await DB.Find<mdProduct>()
+                                     .Match(x => x.ProductID == request.ProductID)
+                                     .ExecuteFirstAsync();
+                if (record != null)
+                {
+                    foreach (var package in record.SalePackages)
+                    {
+                        if (package.PackageID == request.SalePackageID && package.TargetID == request.TargetID)
+                        {
+                            response.ReturnCode = GrpcReturnCode.OK;
+                            response.UnitPrice = package.UnitPrice;
+                            response.BenefitAmount = package.BenefitAmount;
+                            //
+                            return response;
+                        }
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetFlashCarePrice", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
 
+        //-------------------------------------------------------------------------------------------------------/
+        // GetSaleResult
+        //-------------------------------------------------------------------------------------------------------/
+        public override async Task<Insure.Services.GetSaleResult_Response> GetSaleResult(GetSaleResult_Request request, ServerCallContext context)
+        {
+            var response = new Insure.Services.GetSaleResult_Response();
+            response.ReturnCode = GrpcReturnCode.OK;
+            try
+            {
+                var query = DB.Find<mdSaleOrderLog>();
+                query.Match(x => x.MerchantID == request.MerchantID);
+
+                //Time range
+                //StartDate
+                if (request.StartDate.ToDateTime().ToString("yyyyMMdd") != DateTime.Today.MinShortDateString())
+                {
+                    query.Match(a => a.OrderDate >= request.StartDate.ToDateTime().StartOfDay());
+                }
+                //EndDate
+                if (request.EndDate.ToDateTime().ToString("yyyyMMdd") != DateTime.Today.MaxShortDateString())
+                {
+                    query.Match(a => a.OrderDate <= request.EndDate.ToDateTime().EndOfDay());
+                }
+                //
+                var records = await query.ExecuteAsync();
+                if (records != null)
+                {
+                    foreach (var item in records)
+                    {
+                        var retRecord = new grpcSaleOrderModel();
+                        ClassHelper.CopyPropertiesData(item, retRecord);
+                        //
+                        response.Records.Add(retRecord);
+                    }
+                }
+            }
+            catch (Exception ex)
+            {
+                response.ReturnCode = GrpcReturnCode.Error_ByServer;
+                response.MsgCode = ex.Message;
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "InsureService", "GetSaleResult", "Exception", response.ReturnCode, ex.Message);
+            }
+            return await Task.FromResult(response);
+        }
 
 
 

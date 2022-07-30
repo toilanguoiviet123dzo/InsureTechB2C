@@ -208,9 +208,9 @@
     {
         Model.CusFullname = text.Beautify_VnName();
         //
-        if (string.IsNullOrWhiteSpace(Model.OwnerFullname))
+        if (string.IsNullOrWhiteSpace(Model.Fullname))
         {
-            Model.OwnerFullname = Model.CusFullname;
+            Model.Fullname = Model.CusFullname;
         }
     }
 
@@ -238,7 +238,7 @@
             var response = await insureServiceClient.GetSaleOrderByPhoneAsync(requestString);
             if (response != null && response.ReturnCode == GrpcReturnCode.OK)
             {
-                Model.OwnerFullname = response.Record.OwnerFullname;
+                Model.Fullname = response.Record.Fullname;
                 Model.CusFullname = response.Record.CusFullname;
                 Model.CusEmail = response.Record.CusEmail;
                 Model.CusCitizenID = response.Record.CusCitizenID;
@@ -327,6 +327,9 @@
         //Buy year
         Model.BuyYear = Int32.Parse(SelectedYear);
 
+        //HolderID
+        Model.HolderID = Model.LicensePlate;
+
         //Duplicated check
         var isDuplicated = await DuplicatedCheck();
         if (isDuplicated) return;
@@ -362,9 +365,11 @@
                     ApiKey = WebUserCredential.ApiKey
                 };
             request.Credential = Credential;
+            //
+            Model.HolderID = Model.LicensePlate;
             request.EffectiveSttDate = Model.EffectiveSttDate.ToTimestampFromLocalTime();
             request.ProductID = Model.ProductID;
-            request.LicensePlate = Model.LicensePlate;
+            request.HolderID = Model.HolderID;
             //
             var response = await insureServiceClient.DuplicatedCheckAsync(request);
             // Duplicated
@@ -431,6 +436,22 @@
 
     void Calc_Sum()
     {
+        //Amount
+        Model.Amount = Model.UnitPrice * Model.Quantity;
+        Model.Amount = Math.Round(Model.Amount, 0);
+
+        //VAT
+        if (Model.IsIncludeVAT)
+        {
+            Model.TaxAmount = Model.Amount * Model.TaxRate/(1 + Model.TaxRate);
+        }
+        else
+        {
+            Model.TaxAmount = Model.Amount + Model.Amount * Model.TaxRate;
+        }
+        Model.TaxAmount = Math.Round(Model.TaxAmount, 0);
+
+        //PaymentAmount
         Model.PaymentAmount = Model.Amount - Model.DiscountAmount;
         if (Model.PaymentAmount < 0)
         {

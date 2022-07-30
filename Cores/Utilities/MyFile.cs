@@ -30,6 +30,25 @@ namespace Cores.Utilities
             return readContents;
         }
 
+        public static string Load_ToStringUTF8(string fileName)
+        {
+            string readContents;
+            //
+            try
+            {
+                using (StreamReader streamReader = new StreamReader(fileName, Encoding.UTF8))
+                {
+                    readContents = streamReader.ReadToEnd();
+                }
+            }
+            catch
+            {
+                return "";
+            }
+            //Return
+            return readContents;
+        }
+
         public static byte[] Load_ToByteArray(string fileName)
         {
             byte[] buff = null;

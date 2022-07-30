@@ -17,8 +17,9 @@
     <MudSpacer />
     <LoginDisplay />
 </MudAppBar>*@
-
-<HeaderAppBar />
+<div class="header-container">
+    <HeaderAppBar />
+</div>
 
 <!--Body content-->
 <div class="page-container">
@@ -32,7 +33,7 @@
         <div class="button-icon">
             <i class="fa fa-shopping-cart" aria-hidden="true"></i>
         </div>
-        <div class="button-title">Mua bảo hiểm</div>
+        <div class="button-title">Bán bảo hiểm</div>
     </div>
     <div class="button button-secondary" @onclick="Open_CertificateList">
         <div class="button-icon">
@@ -45,7 +46,7 @@
         <div class="button-icon">
             <i class="fa fa-sack-dollar" aria-hidden="true"></i>
         </div>
-        <div class="button-title">Doanh số bán hàng</div>
+        <div class="button-title">Doanh số</div>
     </div>
 </div>
 
@@ -76,7 +77,7 @@
 
     void Open_SaleSummary()
     {
-        Navigation.NavigateTo("/SaleSummary");
+        Navigation.NavigateTo("/SaleResult");
     }
 
     async void Open_CompanyHomePage()

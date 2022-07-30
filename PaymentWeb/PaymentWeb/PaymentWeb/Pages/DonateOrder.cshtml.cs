@@ -1,8 +1,8 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.RazorPages;
 using PaymentWeb.Services;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
+using Database.Models;
 
 namespace PaymentWeb.Pages
 {
@@ -31,6 +31,9 @@ namespace PaymentWeb.Pages
         {
             try
             {
+                //Get base Url
+                MyData.BaseUrl = @$"{HttpContext.Request.Scheme}://{HttpContext.Request.Host}";
+
                 var ret = await _paymentService.DonateOrder(InitOrderToken, TransactionID);
                 //
                 ReturnCode = ret.ReturnCode;

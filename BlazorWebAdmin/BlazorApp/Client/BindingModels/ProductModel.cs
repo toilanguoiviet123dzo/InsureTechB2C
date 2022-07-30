@@ -29,6 +29,8 @@ namespace BlazorApp.Client.BindingModels
         public string FlashCardID { get; set; } = "";
         public byte[] SaleImageContent { get; set; } = new byte[] { };
         public byte[] FlashCardContent { get; set; } = new byte[] { };
+        public int Duration { get; set; }
+        public string DurationUnit { get; set; } = "";
         public string Notes { get; set; } = "";
         public List<SpecificationModel> Specifications { get; set; } = new List<SpecificationModel>();
         public List<BenefitModel> Benefits { get; set; } = new List<BenefitModel>();
@@ -85,6 +87,8 @@ namespace BlazorApp.Client.BindingModels
     {
         public string PackageID { get; set; } = "";
         public string PackageName { get; set; } = "";
+        public string TargetID { get; set; } = "";
+        public string TargetName { get; set; } = "";
         [Range(0.0, 99999999.0, ErrorMessage = "Trị không hợp lệ")]
         public double UnitPrice { get; set; }
         [Range(0.0, 999999999.0, ErrorMessage = "Trị không hợp lệ")]

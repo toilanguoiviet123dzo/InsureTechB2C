@@ -4,7 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Cores.Utilities;
 
-namespace BlazorApp.Server.Common
+namespace Server.Common
 {
     public static class MyTokenService
     {

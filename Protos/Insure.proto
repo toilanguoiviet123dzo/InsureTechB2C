@@ -34,6 +34,13 @@ service grpcInsureService {
     rpc GetUserDiscountCodeList (String_Request) returns (GetUserDiscountCodeList_Response);
     rpc CheckDiscountCode (String_Request) returns (CheckDiscountCode_Response);
 
+    //FlashCare
+    rpc GetFlashCarePrice (GetFlashCarePrice_Request) returns (GetFlashCarePrice_Response);
+
+
+    //SaleResult
+    rpc GetSaleResult (GetSaleResult_Request) returns (GetSaleResult_Response);
+
 }
 
 //======================================================
@@ -146,9 +153,11 @@ message grpcProductModel {
     string BuyPolicy = 16;
     string SaleImageID = 17;
     string FlashCardID = 18;
-    string Notes = 19;
-    repeated grpcBenefitModel Benefits = 20;
-    repeated grpcSalePackageModel SalePackages = 21;
+    int32 Duration = 19;
+    string DurationUnit = 20;
+    string Notes = 21;
+    repeated grpcBenefitModel Benefits = 22;
+    repeated grpcSalePackageModel SalePackages = 23;
     //
     google.protobuf.Timestamp ModifiedOn = 99;
     int32 UpdMode = 100;
@@ -186,9 +195,11 @@ message grpcBenefitItemModel {
 message grpcSalePackageModel {
     string PackageID = 1;
     string PackageName = 2;
-    double UnitPrice = 3;
-    double BenefitAmount = 4;
-    string Notes = 5;
+    string TargetID = 3;
+    string TargetName = 4;
+    double UnitPrice = 5;
+    double BenefitAmount = 6;
+    string Notes = 7;
 }
 
 message GetProduct_Response {
@@ -210,76 +221,104 @@ message CreateSaleOrder_Request {
 }
 message grpcSaleOrderModel {
     string ID = 1;
-    string OrderID = 2;
-    google.protobuf.Timestamp OrderDate = 201;
-    string OwnerFullname = 3;
-    string LicensePlate = 4;
-    string CusFullname = 5;
-    string CusPhone = 6;
-    string CusEmail = 7;
-    google.protobuf.Timestamp EffectiveSttDate = 8;
-    google.protobuf.Timestamp EffectiveEndDate = 9;
-    string CityID = 10;
-    string CityName = 11;
-    string DistrictID = 12;
-    string DistrictName = 13;
-    string WardID = 14;
-    string WardName = 15;
-    string Address = 16;
-    //Product
-    string VendorID = 17;
-    string VendorName = 171;
-    string ProductID = 172;
-    string ProductName = 18;
-    int32 Duration = 19;
-    string DurationUnit = 20;
-    int32 Quantity = 21;
-    double UnitPrice = 22;
-    double Amount = 23;
-    bool IsIncludeVAT = 24;
-    double TaxRate = 25;
-    double TaxAmount = 26;
-    string Currency = 27;
-    double ExchangeRate = 28;
-    string BusinessType = 281;
-    string CarType = 282;
-    double SeatCount = 283;
-    double Tonage = 284;
-    bool Motor2People = 285;
-    int32 BuyYear = 286;
-    //Status
-    google.protobuf.Timestamp RequestTime  = 29;
-    google.protobuf.Timestamp PaymentTime  = 30;
-    google.protobuf.Timestamp ExpiredTime  = 31;
-    bool IsPayRequest = 32;
-    bool IsPayDone = 33;
-    bool IsPayError = 34;
-    bool IsProcessDone = 35;
-    bool IsProcessError = 36;
-    bool IsIssueCertificate = 37;
-    bool IsDelivery = 38;
-    //
-    string TransactionID = 39;
-    string PolicyID = 40;
-    string QuoteNo = 41;
-    string PolicyNo = 42;
-    string CusCitizenID = 43;
-    string CertificateLink = 44;
-    //
-    string ProductType = 45;
-    string PostalCode = 46;
-    //Discount
-    string DiscountCode = 47;
-    double DiscountRate = 48;
-    double DiscountAmount = 49;
-    double PaymentAmount = 50;
+    //SO - header
+    string TransactionID = 2;
+    string OrderID = 3;
+    google.protobuf.Timestamp OrderDate = 4;
+
     //Merchant
-    string MerchantID = 51;
-    string AccountID = 52;
-    double BonusRate = 53;
-    double BonusAmount = 54;
-    bool IsPayBonus = 55;
-    string PaymentChannelID = 56;
+    string MerchantID = 5;
+    string AccountID = 6;
+    double BonusRate = 7;
+    double BonusAmount = 8;
+    bool IsPayBonus = 9;
+
+    //SO - amount
+    int32 Quantity = 10;
+    double UnitPrice = 11;
+    double Amount = 12;
+    double PaymentAmount = 13;
+    bool IsIncludeVAT = 14;
+    double TaxRate = 15;
+    double TaxAmount = 16;
+    string Currency = 17;
+    double ExchangeRate = 18;
+
+    //Discount
+    string DiscountCode = 19;
+    string DiscountName = 20;
+    double DiscountRate = 21;
+    double DiscountAmount = 22;
+
+    //Customer
+    string CusFullname = 23;
+    string CusPhone = 24;
+    string CusEmail = 25;
+    string CusCitizenID = 26;
+    string CityID = 27;
+    string CityName = 28;
+    string DistrictID = 29;
+    string DistrictName = 30;
+    string WardID = 31;
+    string WardName = 32;
+    string Address = 33;
+    string PostalCode = 34;
+
+    //Product
+    string ProductType = 35;
+    string VendorID = 36;
+    string VendorName = 37;
+    string ProductID = 38;
+    string ProductName = 39;
+
+    //Status
+    google.protobuf.Timestamp RequestTime = 40;
+    google.protobuf.Timestamp PaymentTime = 41;
+    google.protobuf.Timestamp ExpiredTime = 42;
+    bool IsPayRequest = 43;
+    bool IsPayDone = 44;
+    bool IsPayError = 45;
+    bool IsProcessDone = 46;
+    bool IsProcessError = 47;
+    bool IsIssueCertificate = 48;
+
+    //Payment
+    string PaymentChannelID = 49;
+    string PaymentRefID = 50;
+    string PaymentResponseCode = 51;
+    string PaymentResponseData = 52;
+
+    // Vehicle info
+    string LicensePlate = 53;
+    string BusinessType = 54;
+    string BusinessTypeName = 55;
+    string CarType = 56;
+    string CarTypeName = 57;
+    double SeatCount = 58;
+    double Tonage = 59;
+    bool IsBySeat = 60;
+    bool Motor2People = 61;
+    int32 BuyYear = 62;
+
+    //Single holder
+    bool HasMultiple = 63;
+    string HolderID = 64;
+    string PolicyNo = 65;
+    google.protobuf.Timestamp PolicyDate = 66;
+    string Fullname = 67;
+    google.protobuf.Timestamp DateOfBirth = 68;
+    string Sex = 69;
+    string CitizenID = 70;
+    string SalePackageID = 71;
+    string SalePackageName = 72;
+    string TargetID = 73;
+    string TargetName = 74;
+    google.protobuf.Timestamp EffectiveSttDate = 75;
+    google.protobuf.Timestamp EffectiveEndDate = 76;
+    int32 Duration = 77;
+    string DurationUnit = 78;
+    double BenefitAmount = 79;
+    string CertificateLink = 80;
     //
     google.protobuf.Timestamp ModifiedOn = 99;
     int32 UpdMode = 100;
@@ -380,7 +419,7 @@ message DuplicatedCheck_Request {
     //
     google.protobuf.Timestamp EffectiveSttDate = 2;
     string ProductID = 3;
-    string LicensePlate = 4;
+    string HolderID = 4;
 }
 message DuplicatedCheck_Response {
     int32 ReturnCode = 1;
@@ -403,4 +442,31 @@ message GetCarPrice_Request {
     double SeatCount = 5;
     double Tonage = 6;
 }
+message GetFlashCarePrice_Request {
+    UserCredential Credential = 1;
+    //
+    string ProductID = 2;
+    string SalePackageID = 3;
+    string TargetID = 4;
+}
 
+message GetFlashCarePrice_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    double UnitPrice = 3;
+    double BenefitAmount = 4;
+}
+message GetSaleResult_Request {
+    UserCredential Credential = 1;
+    //
+    google.protobuf.Timestamp StartDate = 2;
+    google.protobuf.Timestamp EndDate = 3;
+    string MerchantID = 4;
+}
+message GetSaleResult_Response {
+    int32 ReturnCode = 1;
+    string MsgCode = 2;
+    //
+    repeated grpcSaleOrderModel Records = 3;
+}

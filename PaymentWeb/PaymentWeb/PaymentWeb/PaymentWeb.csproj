@@ -13,25 +13,31 @@
     <Compile Include="..\..\..\Common\MyData.cs" Link="Common\MyData.cs" />
     <Compile Include="..\..\..\Common\MyMessage.cs" Link="Common\MyMessage.cs" />
     <Compile Include="..\..\..\Common\MyTokenService.cs" Link="Common\MyTokenService.cs" />
-    <Compile Include="..\..\..\Common\SettingMaster.cs" Link="Common\SettingMaster.cs" />
-    <Compile Include="..\..\..\Common\SettingMasterModel.cs" Link="Common\SettingMasterModel.cs" />
+    <Compile Include="..\..\..\Common\MyVoucher.cs" Link="Common\MyVoucher.cs" />
+    <Compile Include="..\..\..\Common\SettingMaster.cs" Link="CommonServices\SettingMaster.cs" />
+    <Compile Include="..\..\..\Common\SettingMasterModel.cs" Link="CommonServices\SettingMasterModel.cs" />
     <Compile Include="..\..\..\Models\mdAppLog.cs" Link="Models\mdAppLog.cs" />
     <Compile Include="..\..\..\Models\mdDiscountCode.cs" Link="Models\mdDiscountCode.cs" />
     <Compile Include="..\..\..\Models\mdProduct.cs" Link="Models\mdProduct.cs" />
     <Compile Include="..\..\..\Models\mdSaleOrder.cs" Link="Models\mdSaleOrder.cs" />
     <Compile Include="..\..\..\Models\mdSaleOrderLog.cs" Link="Models\mdSaleOrderLog.cs" />
     <Compile Include="..\..\..\Models\mdSettingMaster.cs" Link="Models\mdSettingMaster.cs" />
+    <Compile Include="..\..\..\Models\mdVoucherMaster.cs" Link="Models\mdVoucherMaster.cs" />
   </ItemGroup>
 
   <ItemGroup>
+    <PackageReference Include="jsreport.Binary" Version="2.11.0" />
+    <PackageReference Include="jsreport.Local" Version="2.3.1" />
+    <PackageReference Include="jsreport.Types" Version="3.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.3" />
-    <PackageReference Include="MongoDB.Entities" Version="20.26.3" />
+    <PackageReference Include="Microsoft.Extensions.Http.Polly" Version="6.0.7" />
+    <PackageReference Include="MongoDB.Entities" Version="20.26.5" />
     <PackageReference Include="Polly" Version="7.2.3" />
   </ItemGroup>
 
   <ItemGroup>
     <Folder Include="Models\" />
+    <Folder Include="CommonServices\" />
   </ItemGroup>
 
   <ItemGroup>

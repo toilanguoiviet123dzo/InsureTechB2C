@@ -1,9 +1,11 @@
 ﻿using Cores.Utilities;
 using Cores.Helpers;
-using BlazorApp.Server.Common;
-using BlazorApp.Server.Models;
+using Server.Common;
+using Database.Models;
 using MongoDB.Entities;
 using Newtonsoft.Json;
+using Common.Services;
+using Server.Common;
 
 namespace PaymentWeb.Services
 {
@@ -15,13 +17,16 @@ namespace PaymentWeb.Services
         private string _url = "";
         private string _accessToken = "";
         private string _certificateFolder = "";
+        private ReportService _reportService;
         //
         public BHVService(IHttpClientFactory httpClientFactory,
-                          IWebHostEnvironment hostingEnvironment)
+                          IWebHostEnvironment hostingEnvironment,
+                          ReportService reportService)
         {
             _hostingEnvironment = hostingEnvironment;
             _httpClientFactory = httpClientFactory;
             _httpHelper = new HttpHelper(MyConstant.HttpClient_Common, _httpClientFactory);
+            _reportService = reportService;
         }
 
         #region Common functions
@@ -511,11 +516,11 @@ namespace PaymentWeb.Services
                 // 2 nguoi tren xe
                 requestData.MOTOR_PACKAGE = "";
                 requestData.CHK_BUY_MOTOR_VPA = "0";
-                if (saleOrder.Motor2People) 
+                if (saleOrder.Motor2People)
                 {
                     requestData.MOTOR_PACKAGE = "4894fc2e-da00-4c86-aea9-bbcff478e653";
                     requestData.CHK_BUY_MOTOR_VPA = "1";
-                } 
+                }
                 //
                 requestData.CHK_BUY_MOTOR_CCL = "1";
 
@@ -654,14 +659,14 @@ namespace PaymentWeb.Services
                 // 2 nguoi tren xe
                 requestData.MOTOR_PACKAGE = "";
                 requestData.CHK_BUY_MOTOR_VPA = "0";
-                if (saleOrder.Motor2People) 
+                if (saleOrder.Motor2People)
                 {
                     requestData.MOTOR_PACKAGE = "4894fc2e-da00-4c86-aea9-bbcff478e653";
                     requestData.CHK_BUY_MOTOR_VPA = "1";
                 }
                 //
                 requestData.CHK_BUY_MOTOR_CCL = "1";
-                
+
 
                 //BhvDataModel
                 var data = new BhvRequestData();
@@ -679,7 +684,6 @@ namespace PaymentWeb.Services
             return bodyData;
         }
         #endregion
-
 
         #region AutoTNDS
         private async Task<string> GetPrice_AutoTNDS(mdSaleOrder saleOrder)
@@ -719,7 +723,7 @@ namespace PaymentWeb.Services
             }
             catch (Exception ex)
             {
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Download_AutoTNDS_Certificate", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "GetPrice_AutoTNDS", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
             //
             return ret;
@@ -829,7 +833,7 @@ namespace PaymentWeb.Services
             }
             catch (Exception ex)
             {
-                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "CreateToIssue", "Exception", ReturnCode.Error_ByServer, ex.Message);
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_AutoTNDS", "Exception", ReturnCode.Error_ByServer, ex.Message);
             }
             //Payment error
             if (!paymentSuccess)
@@ -1031,7 +1035,7 @@ namespace PaymentWeb.Services
             {
                 //AutoTNDSRequestData
                 var requestData = new AutoTNDS_CreateData();
-                requestData.buyer_fullname = saleOrder.OwnerFullname;
+                requestData.buyer_fullname = saleOrder.CusFullname;
                 requestData.buyer_phone = saleOrder.CusPhone;
                 requestData.buyer_email = saleOrder.CusEmail;
                 requestData.buyer_identity_card = saleOrder.CusCitizenID;
@@ -1220,6 +1224,89 @@ namespace PaymentWeb.Services
             }
             //
             return bodyData;
+        }
+        #endregion
+
+        #region FlashCare
+        public async Task<CallApiReturn> Create_FlashCare(mdSaleOrder saleOrder)
+        {
+            var ret = new CallApiReturn();
+            ret.ReturnCode = ReturnCode.OK;
+            bool processSuccess = false;
+            //
+            try
+            {
+                //OrderID
+                saleOrder.PolicyNo = await MyVoucher.GetVoucherNo("001", true);
+                saleOrder.PolicyID = saleOrder.PolicyNo;
+                saleOrder.OrderID = "BHV_FC" + saleOrder.PolicyNo;
+                saleOrder.QuoteNo = saleOrder.OrderID;
+
+                //EffectiveSttDate, EffectiveSttDate
+                if (saleOrder.EffectiveSttDate.ToString("yyyyMMdd") == DateTime.UtcNow.ToString("yyyyMMdd"))
+                {
+                    //Today
+                    saleOrder.EffectiveSttDate = new DateTime(saleOrder.EffectiveSttDate.Year,
+                                                          saleOrder.EffectiveSttDate.Month,
+                                                          saleOrder.EffectiveSttDate.Day,
+                                                          DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, 0).ToUniversalTime();
+                    saleOrder.EffectiveEndDate = new DateTime(saleOrder.EffectiveEndDate.Year,
+                                                          saleOrder.EffectiveEndDate.Month,
+                                                          saleOrder.EffectiveEndDate.Day,
+                                                          DateTime.Now.Hour, DateTime.Now.Minute, DateTime.Now.Second, 0).ToUniversalTime();
+                }
+                else
+                {
+                    //In future
+                    saleOrder.EffectiveSttDate = new DateTime(saleOrder.EffectiveSttDate.Year,
+                                                          saleOrder.EffectiveSttDate.Month,
+                                                          saleOrder.EffectiveSttDate.Day,
+                                                          0, 0, 0, 0).ToUniversalTime();
+                    saleOrder.EffectiveEndDate = new DateTime(saleOrder.EffectiveEndDate.Year,
+                                                          saleOrder.EffectiveEndDate.Month,
+                                                          saleOrder.EffectiveEndDate.Day,
+                                                          23, 59, 59, 0).ToUniversalTime();
+                    saleOrder.EffectiveEndDate = saleOrder.EffectiveEndDate.AddDays(-1);
+                }
+
+                //Create Certificate
+                string certificateLink = _reportService.Create_FlashCareCertificate(saleOrder);
+
+                //Success
+                if (!string.IsNullOrWhiteSpace(certificateLink))
+                {
+                    processSuccess = true;
+                    saleOrder.IsProcessDone = true;
+                    saleOrder.CertificateLink = certificateLink;
+                }
+            }
+            catch (Exception ex)
+            {
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_FlashCare", "Exception", ReturnCode.Error_ByServer, ex.Message);
+            }
+
+            //Payment error
+            if (!processSuccess)
+            {
+                saleOrder.IsProcessError = true;
+                ret.ReturnCode = ReturnCode.Error_203;
+                ret.ErrorMessage = MyMessage.Error_PaymenmtError;
+                //Payment error log
+                string logMessage = "Đã nhận tiền khách hàng nhưng không cấp được giấy chứng nhận" + Environment.NewLine;
+                logMessage += $"Tên khách hàng: {saleOrder.CusFullname}";
+                logMessage += $"Điện thoại: {saleOrder.CusPhone}";
+                logMessage += $"Mua sản phẩm: {saleOrder.ProductName}";
+                logMessage += $"Giá tiền: {saleOrder.UnitPrice}";
+                logMessage += $"Giảm giá: {saleOrder.DiscountAmount}";
+                logMessage += $"Tổng thanh toán: {saleOrder.PaymentAmount}";
+                //
+                MyAppLog.WriteLog(MyConstant.LogLevel_Critical, "BHVService", "Create_FlashCare", "Issue", ReturnCode.Error_ByServer, saleOrder.ProcessErrorMessage);
+                MyAppLog.WriteLog(MyConstant.LogLevel_ForSale, "BHVService", "Create_FlashCare", "Issue", ReturnCode.Error_ByServer, logMessage);
+            }
+            //Save
+            await saleOrder.SaveAsync();
+            //
+            return ret;
         }
         #endregion
 

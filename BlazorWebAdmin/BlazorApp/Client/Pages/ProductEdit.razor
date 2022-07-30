@@ -13,8 +13,12 @@
              OnSubmitClick="OnSubmit">
 
     <div class="d-flex align-center">
-        <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Class="mr-2" Style="text-transform: uppercase" AutoFocus=true />
-        <MyComboBox @ref="@RefProductType" Literal="Loại" @bind-Value="SelectedProductType" Data="@ProductTypeList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+        <div style="width:20rem">
+            <MudTextField Label="Mã" @bind-Value="DspModel.ProductID" For="@(() => DspModel.ProductID)" Class="mr-2" Style="text-transform: uppercase" AutoFocus=true />
+        </div>
+        <div style="width:10rem">
+            <MyComboBox @ref="@RefProductType" Literal="Loại" @bind-Value="SelectedProductType" Data="@ProductTypeList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+        </div>
         <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.LogoContent))" Alt="Product Avatar" />
         <MyImageUpLoad Id="ProductLogo"
                        CategoryID="@ProductLogo_CategoryID"
@@ -29,10 +33,13 @@
                        SecureLevel="0"
                        OnSubmit="@((List<UpLoadFileModel> files) => LoadProductLogo_Handle(files))" />
     </div>
-    <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
-
+    <div style="width:30rem">
+        <MudTextField Label="Tên" @bind-Value="DspModel.ProductName" For="@(() => DspModel.ProductName)" />
+    </div>
     <div class="d-flex align-center">
-        <MyComboBox @ref="@RefVendor" Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+        <div style="width:30rem">
+            <MyComboBox @ref="@RefVendor" Literal="Nhà cung cấp" @bind-Value="SelectedVendor" Data="@VendorList" TextFieldName="@(nameof(OptionListModel.ItemName))" />
+        </div>
         <MudAvatar Class="mr-4" Size="Size.Large" Image="@("data:image/png;base64," + Convert.ToBase64String(DspModel.VendorLogoContent))" Alt="Vendor Avatar" />
         <MyImageUpLoad Id="VendorLogo"
                        CategoryID="@VendorLogo_CategoryID"
@@ -47,17 +54,29 @@
                        SecureLevel="0"
                        OnSubmit="@((List<UpLoadFileModel> files) => LoadVendorLogo_Handle(files))" />
     </div>
-    <div class="d-flex justify-start align-center">
-        <div style="width: 50%">
+    <div class="d-flex align-center">
+        <div style="width: 10rem">
             <MudNumericField Class="mr-2" Label="% VAT" @bind-Value="DspModel.TaxRate" Min=0.0 Max=99.0 For="@(() => DspModel.TaxRate)" HideSpinButtons="true" Format="N0" T="double" />
         </div>
-        <div style="width: 50%">
+        <div class="ml-5">
             <MudSwitch @bind-Checked="@DspModel.IsIncludeVAT" Color="Color.Secondary">Bao gồm VAT</MudSwitch>
+        </div>
+    </div>
+    <div class="d-flex align-center">
+        <div style="width: 10rem">
+            <MudNumericField Class="mr-2" Label="Thời hạn" @bind-Value="DspModel.Duration" Min=1 Max=99 For="@(() => DspModel.Duration)" HideSpinButtons="true" Format="N0" T="int" Style="color:purple; font-weight:bold" />
+        </div>
+        <div class="ml-2">
+            <MudRadioGroup @bind-SelectedOption="@DspModel.DurationUnit">
+                <MudRadio Option="@("Ngày")" Color="Color.Primary">Ngày</MudRadio>
+                <MudRadio Option="@("Tháng")" Color="Color.Warning">Tháng</MudRadio>
+                <MudRadio Option="@("Năm")" Color="Color.Secondary">Năm</MudRadio>
+            </MudRadioGroup>
         </div>
     </div>
 
     <!--Sale packages-->
-    <div class="mt-4">
+    <div class="mt-4" style="max-height:400px; overflow-y:scroll">
         <MyDataGrid @ref="@grid"
                     T="SalePackageModel"
                     Title="Danh sách gói bán"
@@ -71,22 +90,22 @@
                     OnViewRow="@((SalePackageModel row) => OnViewRow_Handle(row))"
                     OnDeleteRow="@((SalePackageModel row) => OnDeleteRow_Handle(row))">
             <ColGroup>
-                <col style="width: 2rem;" />
+                <col style="width: 12rem;" />
                 <col style="width: 12rem;" />
                 <col style="width: 10rem;" />
                 <col style="width: 10rem;" />
                 <col />
             </ColGroup>
             <HeaderContent>
-                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SalePackageModel, object>(x => x.PackageID)">No.</MudTableSortLabel></MudTh>
-                <MudTh>Tên gói</MudTh>
+                <MudTh><MudTableSortLabel InitialDirection="SortDirection.Ascending" SortBy="new Func<SalePackageModel, object>(x => x.PackageName)">Gói bán</MudTableSortLabel></MudTh>
+                <MudTh>Đố tượng</MudTh>
                 <MudTh>Phí</MudTh>
                 <MudTh>Mức trách nhiệm</MudTh>
                 <MudTh>Ghi chú</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd Style="text-align:center;">@context.PackageID</MudTd>
-                <MudTd>@context.PackageName</MudTd>
+                <MudTd Style="text-align:center;">@context.PackageName</MudTd>
+                <MudTd>@context.TargetName</MudTd>
                 <MudTd Style="font-weight:600;color:blue;text-align:right">@context.UnitPrice.ToString("N0")</MudTd>
                 <MudTd Style="font-weight:600;color:maroon;text-align:right">@context.BenefitAmount.ToString("N0")</MudTd>
                 <MudTd>@context.Notes</MudTd>
